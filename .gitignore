@@ -7,6 +7,8 @@ dist-ssr
 coverage
 dev-dist
 .playwright-mcp
+playwright-report
+test-results
 *.tsbuildinfo
 
 # deploy (исключён из VCS — механизм деплоя ещё меняется)

@@ -171,7 +171,12 @@ export const ClueComposer = reatomComponent(() => {
 						>
 							<Minus />
 						</Button>
-						<span className="min-w-4 text-center font-heading font-bold">{num}</span>
+						<span
+							data-testid="clue-count"
+							className="min-w-4 text-center font-heading font-bold"
+						>
+							{num}
+						</span>
 						<Button
 							type="button"
 							variant="ghost"

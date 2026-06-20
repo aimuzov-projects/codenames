@@ -1,4 +1,6 @@
 import { decodeSignal, encodeSignal } from '@/signaling/codec.ts'
+import type { SignalDescription } from '@/signaling/types.ts'
+import { E2E } from '@/lib/e2e.ts'
 
 /**
  * WebRTC поверх локальной сети (хотспота) с офлайн-сигналингом через QR/строку.
@@ -32,6 +34,27 @@ function localCode(pc: RTCPeerConnection): string {
 	const desc = pc.localDescription
 	if (!desc) throw new Error('Нет локального описания')
 	return encodeSignal({ type: desc.type as 'offer' | 'answer', sdp: desc.sdp })
+}
+
+/**
+ * e2e-хук: на принимающей стороне дублирует каждый host-кандидат копией на 127.0.0.1 с тем же
+ * портом (сокет слушает на 0.0.0.0). Оба контекста Playwright — на одной машине, но за VPN
+ * единственным host-кандидатом становится VPN-интерфейс, по которому два сокета не связываются,
+ * а loopback Chromium не предлагает. Применяется к remote-SDP перед setRemoteDescription (не к
+ * исходящему коду — кодек отфильтровал бы loopback, см. isUsefulCandidate в sdp.ts). Только под
+ * VITE_E2E; в проде сигнал не трогаем.
+ */
+function patchSignalForE2E(desc: SignalDescription): SignalDescription {
+	if (!E2E) return desc
+	const out: string[] = []
+	for (const line of desc.sdp.split('\r\n')) {
+		out.push(line)
+		const m = line.match(/^a=candidate:(\S+) (\d+) (udp|UDP) (\d+) (\S+) (\d+) typ host(.*)$/)
+		if (m && m[5] !== '127.0.0.1') {
+			out.push(`a=candidate:${m[1]}lo ${m[2]} ${m[3]} ${m[4]} 127.0.0.1 ${m[6]} typ host${m[7]}`)
+		}
+	}
+	return { type: desc.type, sdp: out.join('\r\n') }
 }
 
 /** Тонкая обёртка над DataChannel: типизированные подписки и отправка JSON. */
@@ -92,7 +115,7 @@ export class GuestConnection<TIn = unknown, TOut = unknown> {
 
 	/** Принимает answer-код от хоста; после этого канал откроется. */
 	async acceptAnswerCode(code: string): Promise<void> {
-		await this.pc.setRemoteDescription(decodeSignal(code))
+		await this.pc.setRemoteDescription(patchSignalForE2E(decodeSignal(code)))
 	}
 
 	send(msg: TOut) {
@@ -123,7 +146,7 @@ export class HostConnection<TIn = unknown, TOut = unknown> {
 
 	/** Принимает offer-код гостя и возвращает answer-код для показа ему. */
 	async acceptOfferCode(code: string): Promise<string> {
-		await this.pc.setRemoteDescription(decodeSignal(code))
+		await this.pc.setRemoteDescription(patchSignalForE2E(decodeSignal(code)))
 		await this.pc.setLocalDescription(await this.pc.createAnswer())
 		await waitIceComplete(this.pc)
 		return localCode(this.pc)

@@ -1,5 +1,5 @@
 import { reatomComponent } from '@reatom/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { acceptGuestOffer, rosterAtom } from '@/state/net.ts'
 import { goBack } from '@/state/ui.ts'
 import { Card, CardContent } from '@/components/ui/card'
@@ -19,11 +19,16 @@ export const AddPlayer = reatomComponent(() => {
 	const [pendingId, setPendingId] = useState<string | null>(null)
 
 	const roster = rosterAtom()
+	// Защита от повторного возврата: подключение и следующее за ним `hello` обновляют ростер
+	// почти одновременно, и оба прошли бы условие до того, как экран успеет размонтироваться —
+	// тогда вышло бы два goBack подряд (за HostLobby улетели бы и в Lobby).
+	const leftRef = useRef(false)
 
 	// Как только ожидаемый игрок реально подключился — возвращаемся к настройке игры.
 	// Сессию не рвём: ростер сохраняется, HostLobby его покажет.
 	useEffect(() => {
-		if (pendingId && roster.some((p) => p.id === pendingId && p.connected)) {
+		if (!leftRef.current && pendingId && roster.some((p) => p.id === pendingId && p.connected)) {
+			leftRef.current = true
 			goBack()
 		}
 	}, [roster, pendingId])

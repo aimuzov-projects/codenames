@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import basicSsl from '@vitejs/plugin-basic-ssl'
@@ -67,5 +67,9 @@ export default defineConfig({
 	],
 	server: {
 		host: true, // доступ с телефона по локальной сети/хотспоту
+	},
+	// Юнит-тесты (vitest) — только в src; e2e/*.spec.ts гоняет Playwright отдельно.
+	test: {
+		include: ['src/**/*.test.ts'],
 	},
 })

@@ -102,6 +102,11 @@ export function CardTile({ card, interactive, onReveal, hideWord = false }: Prop
 			type="button"
 			disabled={!clickable}
 			onClick={clickable ? onReveal : undefined}
+			data-testid="card"
+			// Тип попадает в DOM лишь когда он раскрыт зрителю (вид капитана / открытая карта);
+			// в виде игрока type === null — атрибута нет, ключ через DOM не подсмотреть.
+			data-card-type={type ?? undefined}
+			data-revealed={card.revealed ? 'true' : undefined}
 			className={cn(
 				TILE,
 				revealed ? SOLID[type] : tinted ? TINT[type] : CLOSED_FACE,

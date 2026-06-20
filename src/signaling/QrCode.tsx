@@ -1,4 +1,5 @@
 import QRCode from 'react-qr-code'
+import { E2E } from '@/lib/e2e.ts'
 
 /** Показывает строку как QR-код — его сканирует камера другого игрока. */
 export function QrCode({ value }: { value: string }) {
@@ -13,6 +14,12 @@ export function QrCode({ value }: { value: string }) {
 				viewBox="0 0 256 256"
 				style={{ height: 'auto', maxWidth: '100%', width: '100%' }}
 			/>
+			{/* e2e-хук: тот же код строкой, чтобы тест передал его другому контексту вместо съёмки QR. */}
+			{E2E && (
+				<span data-testid="signal-out" hidden>
+					{value}
+				</span>
+			)}
 		</div>
 	)
 }

@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import type { IScannerControls } from '@zxing/browser'
+import { E2E } from '@/lib/e2e.ts'
 
 /** Сканер QR через камеру. */
 export function QrScanner({ onScan }: { onScan: (text: string) => void }) {
 	const videoRef = useRef<HTMLVideoElement>(null)
 	const [error, setError] = useState('')
+	const [manualCode, setManualCode] = useState('')
 
 	useEffect(() => {
 		let controls: IScannerControls | null = null
@@ -84,6 +86,25 @@ export function QrScanner({ onScan }: { onScan: (text: string) => void }) {
 				autoPlay
 			/>
 			{error && <p className="text-sm text-destructive">{error}</p>}
+			{/* e2e-хук: вставка кода строкой вместо съёмки QR камерой (в headless камеры нет). */}
+			{E2E && (
+				<div className="flex flex-col gap-2">
+					<textarea
+						data-testid="signal-in"
+						value={manualCode}
+						onChange={(e) => setManualCode(e.target.value)}
+						className="rounded border p-1 text-xs"
+						rows={2}
+					/>
+					<button
+						type="button"
+						data-testid="signal-submit"
+						onClick={() => manualCode.trim() && onScan(manualCode.trim())}
+					>
+						Применить код
+					</button>
+				</div>
+			)}
 		</div>
 	)
 }

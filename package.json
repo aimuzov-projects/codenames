@@ -9,6 +9,9 @@
 		"preview": "vite preview",
 		"test": "vitest run",
 		"test:watch": "vitest",
+		"test:e2e": "playwright test",
+		"test:e2e:ui": "playwright test --ui",
+		"test:e2e:headed": "playwright test --headed",
 		"typecheck": "tsc -b --noEmit",
 		"lint": "oxlint",
 		"lint:fix": "oxlint --fix",
@@ -43,6 +46,7 @@
 	"devDependencies": {
 		"@commitlint/cli": "21.0.2",
 		"@commitlint/config-conventional": "21.0.2",
+		"@playwright/test": "^1.61.0",
 		"@release-it/conventional-changelog": "11.0.1",
 		"@types/node": "25.9.3",
 		"@types/pako": "2.0.4",
