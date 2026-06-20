@@ -36,12 +36,21 @@ function AlertDialogOverlay({
 	// помечен `dismissible` (т.е. у него есть действие «Отмена»), оборачиваем фон в
 	// `Close` — тап по фону срабатывает как отмена. `aria-hidden`/`tabIndex={-1}`
 	// оставляют фон презентационным: для клавиатуры и скринридера отмена доступна
-	// через саму кнопку «Отмена».
+	// через саму кнопку «Отмена». `nativeButton={false}` — фон рендерится как `<div>`,
+	// а не `<button>`, поэтому отключаем нативную button-семантику (иначе base-ui
+	// предупреждает о несоответствии).
 	if (!dismissible) {
 		return backdrop
 	}
 
-	return <AlertDialogPrimitive.Close render={backdrop} aria-hidden tabIndex={-1} />
+	return (
+		<AlertDialogPrimitive.Close
+			render={backdrop}
+			nativeButton={false}
+			aria-hidden
+			tabIndex={-1}
+		/>
+	)
 }
 
 function AlertDialogContent({
