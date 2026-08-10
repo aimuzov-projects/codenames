@@ -1,10 +1,11 @@
 import { reatomComponent } from '@reatom/react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { myRoleAtom, myTeamAtom } from '@/state/session.ts'
 import {
 	connStatusAtom,
 	guestAcceptAnswer,
 	guestCreateOffer,
+	guestReconnect,
 	guestSetup,
 	leaveSession,
 	myIdAtom,
@@ -12,9 +13,9 @@ import {
 	startJoining,
 } from '@/state/net.ts'
 import { randomSetup, teamHasSpymaster } from '@/state/roster.ts'
-import { goBack } from '@/state/ui.ts'
+import { goBack, joinModeAtom } from '@/state/ui.ts'
 import { randomName } from '@/data/names.ts'
-import { ArrowLeft, ArrowRight, Dices, LogIn } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Dices, LogIn, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -41,10 +42,25 @@ const SectionTitle = ({ children }: { children: string }) => (
 )
 
 export const Join = reatomComponent(() => {
-	const [stage, setStage] = useState<Stage>('name')
+	// Возврат в свою партию после обрыва: имя и место уже есть, шаг с именем пропускаем.
+	const [reconnecting] = useState(() => joinModeAtom() === 'reconnect')
+	const [stage, setStage] = useState<Stage>(reconnecting ? 'offer' : 'name')
 	const [name, setName] = useState('')
 	const [suggestedName, setSuggestedName] = useState(() => randomName())
 	const [offerCode, setOfferCode] = useState('')
+
+	// Новое рукопожатие без потери сессии: id и место у игрока прежние, хост узнает его по ним.
+	const reconnect = async () => {
+		setOfferCode('')
+		setStage('offer')
+		guestReconnect()
+		setOfferCode(await guestCreateOffer())
+	}
+
+	useEffect(() => {
+		if (reconnecting) void reconnect()
+		// eslint-disable-next-line react-hooks/exhaustive-deps -- только при входе на экран
+	}, [reconnecting])
 
 	const status = connStatusAtom()
 	const team = myTeamAtom()
@@ -65,13 +81,18 @@ export const Join = reatomComponent(() => {
 		setStage('setup')
 	}
 
+	// При переподключении выход с экрана — просто возврат на доску: сессию рвать нельзя,
+	// иначе игрок потеряет партию, в которую как раз возвращается.
 	const back = () => {
-		leaveSession()
+		if (!reconnecting) leaveSession()
 		goBack()
 	}
 
 	return (
-		<Screen onBack={back} header={<TopBar title="Подключение" onBack={back} />}>
+		<Screen
+			onBack={back}
+			header={<TopBar title={reconnecting ? 'Переподключение' : 'Подключение'} onBack={back} />}
+		>
 			{stage === 'name' && (
 				<Card>
 					<CardContent className="flex flex-col gap-3">
@@ -137,6 +158,12 @@ export const Join = reatomComponent(() => {
 						<CardContent className="flex flex-col gap-3">
 							<SectionTitle>Команда и роль</SectionTitle>
 							<p className="text-sm text-muted-foreground">{STATUS_LABEL[status]}</p>
+							{status === 'error' && (
+								<Button variant="outline" className="w-full" onClick={() => void reconnect()}>
+									<RefreshCw />
+									Переподключиться
+								</Button>
+							)}
 							<SetupPicker
 								team={team}
 								role={role}

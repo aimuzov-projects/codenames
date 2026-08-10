@@ -9,14 +9,21 @@ export interface PlayerInfo {
 	connected: boolean
 }
 
-/** Сообщения хост → клиент. */
+/**
+ * Сообщения хост → клиент.
+ * `ping` — пульс: замороженный сном вебвью часто не присылает close, и тишина в канале
+ * оказывается единственным признаком обрыва (см. heartbeat в net.ts).
+ */
 export type HostMessage =
 	| { t: 'welcome'; youId: string }
 	| { t: 'lobby'; players: PlayerInfo[]; started: boolean }
 	| { t: 'state'; state: RedactedState }
+	| { t: 'ping' }
 
 /** Сообщения клиент → хост. */
 export type ClientMessage =
-	| { t: 'hello'; name: string }
+	// id — стабильный идентификатор устройства: по нему хост узнаёт вернувшегося игрока.
+	| { t: 'hello'; id: string; name: string }
 	| { t: 'setup'; team: Team; role: Role }
 	| { t: 'intent'; event: GameEvent }
+	| { t: 'ping' }

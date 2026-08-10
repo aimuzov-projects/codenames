@@ -1,6 +1,8 @@
 import { reatomComponent } from '@reatom/react'
 import { useEffect } from 'react'
 import { hydrateCustomPacks, screenAtom, type Screen } from './state/ui.ts'
+import { keepAwakeAtom } from '@/state/settings.ts'
+import { useWakeLock } from '@/ui/useWakeLock.ts'
 import { Toaster } from '@/components/ui/sonner'
 import { Home } from './ui/screens/Home.tsx'
 import { Play } from './ui/screens/Play.tsx'
@@ -15,6 +17,9 @@ import { Join } from './ui/screens/Join.tsx'
 import { Settings } from './ui/screens/Settings.tsx'
 import { Stats } from './ui/screens/Stats.tsx'
 import { Changelog } from './ui/screens/Changelog.tsx'
+
+/** Экраны, где засыпание особенно болезненно: партия и сетевые лобби (там ждут подключений). */
+const AWAKE_SCREENS = new Set<Screen>(['board', 'host', 'host-add', 'join'])
 
 function screenView(screen: Screen) {
 	switch (screen) {
@@ -87,6 +92,7 @@ export const App = reatomComponent(() => {
 	}, [])
 
 	const screen = screenAtom()
+	useWakeLock(keepAwakeAtom() && AWAKE_SCREENS.has(screen))
 
 	// key={screen} перемонтирует экран при каждом переходе → анимация тела (в Screen) играет заново.
 	// Toaster — вне keyed-блока, чтобы тосты не сбрасывались при смене экрана.

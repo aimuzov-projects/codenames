@@ -35,6 +35,18 @@ export const navDirectionAtom = atom<'forward' | 'back'>('forward', 'navDirectio
 /** Открыт ли оверлей ввода подсказки (композер капитана). */
 export const composerOpenAtom = atom<boolean>(false, 'composerOpen')
 
+/**
+ * Зачем открыт экран подключения: 'new' — вход в новую игру, 'reconnect' — возврат в свою партию
+ * после обрыва (имя и место уже есть, экран сразу показывает QR и не рвёт сессию при выходе).
+ */
+export const joinModeAtom = atom<'new' | 'reconnect'>('new', 'joinMode')
+
+/** Открыть экран подключения в нужном режиме. */
+export function goToJoin(mode: 'new' | 'reconnect' = 'new') {
+	joinModeAtom.set(mode)
+	goTo('join')
+}
+
 export const goTo = action((screen: Screen) => {
 	if (screen === screenAtom()) return
 	historyAtom.set([...historyAtom(), screenAtom()])

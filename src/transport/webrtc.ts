@@ -121,6 +121,9 @@ export class GuestConnection<TIn = unknown, TOut = unknown> {
 	send(msg: TOut) {
 		this.chan.send(msg)
 	}
+	get open() {
+		return this.chan.open
+	}
 	onMessage(cb: (msg: TIn) => void) {
 		return this.chan.onMessage(cb)
 	}

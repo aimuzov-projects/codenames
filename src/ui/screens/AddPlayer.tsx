@@ -1,6 +1,6 @@
 import { reatomComponent } from '@reatom/react'
 import { useEffect, useRef, useState } from 'react'
-import { acceptGuestOffer, rosterAtom } from '@/state/net.ts'
+import { acceptGuestOffer, joinedConnIdsAtom } from '@/state/net.ts'
 import { goBack } from '@/state/ui.ts'
 import { Card, CardContent } from '@/components/ui/card'
 import { QrCode } from '@/signaling/QrCode.tsx'
@@ -16,27 +16,28 @@ const SectionTitle = ({ children }: { children: string }) => (
 
 export const AddPlayer = reatomComponent(() => {
 	const [answer, setAnswer] = useState<string | null>(null)
-	const [pendingId, setPendingId] = useState<string | null>(null)
+	const [pendingConnId, setPendingConnId] = useState<string | null>(null)
 
-	const roster = rosterAtom()
-	// Защита от повторного возврата: подключение и следующее за ним `hello` обновляют ростер
-	// почти одновременно, и оба прошли бы условие до того, как экран успеет размонтироваться —
-	// тогда вышло бы два goBack подряд (за HostLobby улетели бы и в Lobby).
+	const joined = joinedConnIdsAtom()
+	// Защита от повторного возврата: список подключившихся может обновиться ещё раз до того,
+	// как экран успеет размонтироваться — тогда вышло бы два goBack подряд (за HostLobby
+	// улетели бы и в Lobby).
 	const leftRef = useRef(false)
 
-	// Как только ожидаемый игрок реально подключился — возвращаемся к настройке игры.
+	// Как только гость представился (`hello`) — возвращаемся к настройке игры. Ждём именно
+	// `hello`, а не появления в ростере: игрок мог подключаться повторно и уже быть в списке.
 	// Сессию не рвём: ростер сохраняется, HostLobby его покажет.
 	useEffect(() => {
-		if (!leftRef.current && pendingId && roster.some((p) => p.id === pendingId && p.connected)) {
+		if (!leftRef.current && pendingConnId && joined.includes(pendingConnId)) {
 			leftRef.current = true
 			goBack()
 		}
-	}, [roster, pendingId])
+	}, [joined, pendingConnId])
 
 	const onScanOffer = async (offerCode: string) => {
 		try {
-			const { id, answerCode } = await acceptGuestOffer(offerCode)
-			setPendingId(id)
+			const { connId, answerCode } = await acceptGuestOffer(offerCode)
+			setPendingConnId(connId)
 			setAnswer(answerCode)
 		} catch {
 			setAnswer(null)

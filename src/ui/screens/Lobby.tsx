@@ -1,7 +1,7 @@
 import { reatomComponent } from '@reatom/react'
 import { LogIn, Plus } from 'lucide-react'
 import { BOARD_SIZE } from '@/game/index.ts'
-import { goBack, goTo, selectedWordsAtom } from '@/state/ui.ts'
+import { goBack, goTo, goToJoin, selectedWordsAtom } from '@/state/ui.ts'
 import { Footer } from '@/ui/components/Footer.tsx'
 import { MenuButton } from '@/ui/components/MenuButton.tsx'
 import { MenuLayout } from '@/ui/components/MenuLayout.tsx'
@@ -17,7 +17,7 @@ export const Lobby = reatomComponent(() => {
 	return (
 		<Screen staticBody onBack={back} header={<TopBar title="Лобби" onBack={back} />}>
 			<MenuLayout>
-				<MenuButton icon={<LogIn />} onClick={() => goTo('join')}>
+				<MenuButton icon={<LogIn />} onClick={() => goToJoin('new')}>
 					Подключиться
 				</MenuButton>
 				<MenuButton

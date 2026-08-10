@@ -7,6 +7,7 @@ interface Persisted {
 	timer: number
 	cardWordSize: string
 	hideRevealedWords: boolean
+	keepAwake: boolean
 }
 
 function load(): Partial<Persisted> {
@@ -45,6 +46,9 @@ export const cardWordSizeAtom = atom<CardWordSize>(
 /** Прятать слова на открытых картах, заменяя их иконкой по типу. */
 export const hideRevealedWordsAtom = atom(saved.hideRevealedWords ?? false, 'hideRevealedWords')
 
+/** Держать экран включённым в игре: сон устройства рвёт связь с хостом (см. useWakeLock). */
+export const keepAwakeAtom = atom(saved.keepAwake ?? true, 'keepAwake')
+
 /** Применяет размер слова к <html> через CSS-переменную. */
 export function applyCardWordSize(size: CardWordSize = cardWordSizeAtom()): void {
 	document.documentElement.style.setProperty('--card-word-size', size)
@@ -59,6 +63,7 @@ function persist() {
 				timer: timerSecondsAtom(),
 				cardWordSize: cardWordSizeAtom(),
 				hideRevealedWords: hideRevealedWordsAtom(),
+				keepAwake: keepAwakeAtom(),
 			}),
 		)
 	} catch {
@@ -86,3 +91,8 @@ export const setHideRevealedWords = action((v: boolean) => {
 	hideRevealedWordsAtom.set(v)
 	persist()
 }, 'setHideRevealedWords')
+
+export const setKeepAwake = action((v: boolean) => {
+	keepAwakeAtom.set(v)
+	persist()
+}, 'setKeepAwake')

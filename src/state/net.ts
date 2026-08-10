@@ -10,7 +10,9 @@ import {
 import { HostHub } from '@/transport/hostHub.ts'
 import { GuestConnection } from '@/transport/webrtc.ts'
 import type { ClientMessage, HostMessage, PlayerInfo } from '@/transport/messages.ts'
+import { deviceId } from './deviceId.ts'
 import { validateIntent } from './validateIntent.ts'
+import { E2E } from '@/lib/e2e.ts'
 import { pickSlot, reshuffleRoster, resolveSetup } from './roster.ts'
 import {
 	applyEvent,
@@ -36,6 +38,12 @@ export const connStatusAtom = atom<'idle' | 'connecting' | 'connected' | 'error'
 	'connStatus',
 )
 
+/**
+ * Соединения, чей `hello` уже дошёл до хоста (экран «Добавить игрока» ждёт по этому списку:
+ * игрока в ростере до `hello` ещё нет, потому что его id приходит именно в этом сообщении).
+ */
+export const joinedConnIdsAtom = atom<string[]>([], 'joinedConnIds')
+
 let hub: HostHub | null = null
 let guest: GuestConnection<HostMessage, ClientMessage> | null = null
 
@@ -44,8 +52,36 @@ function patchRoster(id: string, patch: Partial<PlayerInfo>) {
 	rosterAtom.set(rosterAtom().map((p) => (p.id === id ? { ...p, ...patch } : p)))
 }
 
+// ---------- связка соединения и игрока (хост) ----------
+// За партию у одного игрока может смениться несколько соединений (переподключение после сна),
+// поэтому транспортный connId и игровой playerId живут отдельно.
+const playerByConn = new Map<string, string>()
+const connByPlayer = new Map<string, string>()
+
+function bindConn(connId: string, playerId: string) {
+	const prev = connByPlayer.get(playerId)
+	if (prev !== undefined && prev !== connId) playerByConn.delete(prev)
+	playerByConn.set(connId, playerId)
+	connByPlayer.set(playerId, connId)
+	joinedConnIdsAtom.set([...joinedConnIdsAtom(), connId])
+}
+
+/** Снимает привязку закрытого соединения; возвращает игрока, если тот действительно ушёл. */
+function unbindConn(connId: string): string | null {
+	const playerId = playerByConn.get(connId)
+	playerByConn.delete(connId)
+	joinedConnIdsAtom.set(joinedConnIdsAtom().filter((c) => c !== connId))
+	// Старое соединение может закрыться уже после того, как игрок вернулся через новое
+	// (обрыв WebRTC замечают с задержкой). Тогда привязка указывает на живой канал — не трогаем.
+	if (playerId === undefined || connByPlayer.get(playerId) !== connId) return null
+	connByPlayer.delete(playerId)
+	return playerId
+}
+
 // ---------- отложенное удаление офлайн-игрока из лобби ----------
-const OFFLINE_REMOVAL_MS = 5000
+// Полминуты — чтобы уснувший в лобби успел вернуться на своё место (рукопожатие по QR не мгновенное).
+// Старт партии офлайн-игроки не блокируют: isRosterReady смотрит только на подключённых.
+const OFFLINE_REMOVAL_MS = 30_000
 const removalTimers = new Map<string, ReturnType<typeof setTimeout>>()
 
 function removePlayer(id: string) {
@@ -78,6 +114,35 @@ function roleOf(id: string): Role {
 	return rosterAtom().find((p) => p.id === id)?.role ?? 'operative'
 }
 
+// ---------- пульс ----------
+/**
+ * Уснувшее устройство замораживает вебвью, и канал нередко умирает молча — без close.
+ * Поэтому обе стороны раз в HEARTBEAT_MS шлют `ping` и считают связь потерянной, если
+ * собеседник молчит дольше SILENCE_MS. Признак мягкий: пришедшее сообщение сразу возвращает
+ * связь в строй, соединение мы при этом не закрываем.
+ */
+const HEARTBEAT_MS = 5000
+const SILENCE_MS = 20_000
+
+let heartbeat: ReturnType<typeof setInterval> | null = null
+const lastSeen = new Map<string, number>()
+
+function stopHeartbeat() {
+	if (heartbeat !== null) clearInterval(heartbeat)
+	heartbeat = null
+	lastSeen.clear()
+}
+
+function startHeartbeat(tick: () => void) {
+	stopHeartbeat()
+	heartbeat = setInterval(tick, HEARTBEAT_MS)
+}
+
+function silentFor(key: string, now: number): boolean {
+	const seen = lastSeen.get(key)
+	return seen !== undefined && now - seen > SILENCE_MS
+}
+
 // ================= ХОСТ =================
 export const startHosting = action((name: string, team: Team, role: Role) => {
 	modeAtom.set('host')
@@ -91,49 +156,85 @@ export const startHosting = action((name: string, team: Team, role: Role) => {
 	rosterAtom.set([{ id: HOST_ID, name, team, role, connected: true }])
 
 	hub = new HostHub()
-	hub.onConnect((id) => {
-		clearRemovalTimer(id)
-		if (!rosterAtom().some((p) => p.id === id)) {
-			const slot = pickSlot(rosterAtom())
-			rosterAtom.set([...rosterAtom(), { id, name: 'Игрок', ...slot, connected: true }])
-		} else {
-			patchRoster(id, { connected: true })
-		}
-		hub!.send(id, { t: 'welcome', youId: id })
+	// onConnect не трогаем: пока не пришёл `hello`, мы не знаем, кто именно подключился.
+	hub.onDisconnect((connId) => {
+		const playerId = unbindConn(connId)
+		if (playerId === null) return
+		patchRoster(playerId, { connected: false })
 		broadcastLobby()
-		sendStateTo(id)
-	})
-	hub.onDisconnect((id) => {
-		patchRoster(id, { connected: false })
-		broadcastLobby()
-		if (!startedAtom()) scheduleRemoval(id)
+		if (!startedAtom()) scheduleRemoval(playerId)
 	})
 	hub.onMessage(handleClientMessage)
+	startHeartbeat(hostHeartbeat)
 
 	setHostSubmit(hostSubmit)
 	setIntentSender(null)
 }, 'startHosting')
 
-/** Принимает offer гостя (из QR/строки); возвращает id и answer-код для показа гостю. */
+/** Пульс хоста: рассылает `ping` и переводит замолчавших игроков в офлайн. */
+function hostHeartbeat() {
+	hub?.broadcast({ t: 'ping' })
+	const now = Date.now()
+	let changed = false
+	for (const [connId, playerId] of playerByConn) {
+		if (!silentFor(connId, now)) continue
+		if (rosterAtom().find((p) => p.id === playerId)?.connected === false) continue
+		patchRoster(playerId, { connected: false })
+		changed = true
+	}
+	if (changed) broadcastLobby()
+}
+
+/** Принимает offer гостя (из QR/строки); возвращает id соединения и answer-код для показа гостю. */
 export const acceptGuestOffer = action(async (offerCode: string) => {
 	if (!hub) throw new Error('Хост не запущен')
 	return await wrap(hub.acceptGuest(offerCode))
 }, 'acceptGuestOffer')
 
-function handleClientMessage(id: string, msg: ClientMessage) {
+function handleClientMessage(connId: string, msg: ClientMessage) {
+	lastSeen.set(connId, Date.now())
+	if (msg.t === 'hello') {
+		welcomePlayer(connId, msg.id, msg.name)
+		return
+	}
+	const playerId = playerByConn.get(connId)
+	if (playerId === undefined) return // сообщение до `hello` — отправителя ещё не знаем
+	// Заговорил тот, кого пульс успел записать в офлайн (связь только подвисала) — возвращаем.
+	if (rosterAtom().find((p) => p.id === playerId)?.connected === false) {
+		clearRemovalTimer(playerId)
+		patchRoster(playerId, { connected: true })
+		broadcastLobby()
+	}
 	switch (msg.t) {
-		case 'hello':
-			patchRoster(id, { name: msg.name || 'Игрок', connected: true })
-			broadcastLobby()
+		case 'ping':
 			break
 		case 'setup':
-			patchRoster(id, resolveSetup(rosterAtom(), id, msg.team, msg.role))
+			patchRoster(playerId, resolveSetup(rosterAtom(), playerId, msg.team, msg.role))
 			broadcastLobby()
 			break
 		case 'intent':
-			hostSubmit(id, msg.event)
+			hostSubmit(playerId, msg.event)
 			break
 	}
+}
+
+/**
+ * Заводит нового игрока или возвращает знакомого (переподключение после обрыва/сна) на его
+ * прежнее место — с той же командой и ролью, сразу с актуальным состоянием партии.
+ */
+function welcomePlayer(connId: string, playerId: string, name: string) {
+	clearRemovalTimer(playerId)
+	bindConn(connId, playerId)
+	const patch = { name: name || 'Игрок', connected: true }
+	if (rosterAtom().some((p) => p.id === playerId)) {
+		patchRoster(playerId, patch)
+	} else {
+		const slot = pickSlot(rosterAtom())
+		rosterAtom.set([...rosterAtom(), { id: playerId, ...slot, ...patch }])
+	}
+	hub?.send(connId, { t: 'welcome', youId: playerId })
+	broadcastLobby()
+	sendStateTo(playerId)
 }
 
 function hostSubmit(senderId: string, event: GameEvent) {
@@ -147,17 +248,16 @@ function broadcastLobby() {
 	hub?.broadcast({ t: 'lobby', players: rosterAtom(), started: startedAtom() })
 }
 
-function sendStateTo(id: string) {
+function sendStateTo(playerId: string) {
 	const game = gameAtom()
-	if (game) hub?.send(id, { t: 'state', state: redactStateForRole(game, roleOf(id)) })
+	const connId = connByPlayer.get(playerId)
+	if (!game || connId === undefined) return
+	hub?.send(connId, { t: 'state', state: redactStateForRole(game, roleOf(playerId)) })
 }
 
 function broadcastState() {
-	const game = gameAtom()
-	if (!game || !hub) return
-	for (const id of hub.ids()) {
-		hub.send(id, { t: 'state', state: redactStateForRole(game, roleOf(id)) })
-	}
+	if (!gameAtom()) return
+	for (const playerId of connByPlayer.keys()) sendStateTo(playerId)
 }
 
 /** Хост настраивает свою команду/роль. */
@@ -196,9 +296,16 @@ export const hostStartGame = action((config: GameConfig) => {
 export const startJoining = action((name: string) => {
 	modeAtom.set('guest')
 	myNameAtom.set(name)
+	myIdAtom.set(deviceId())
 	remoteViewAtom.set(null)
 	rosterAtom.set([])
 	startedAtom.set(false)
+	openGuestConnection()
+}, 'startJoining')
+
+/** Создаёт гостевое соединение, не трогая уже накопленное состояние (см. также guestReconnect). */
+function openGuestConnection() {
+	guest?.close()
 	connStatusAtom.set('connecting')
 
 	guest = new GuestConnection<HostMessage, ClientMessage>()
@@ -206,13 +313,32 @@ export const startJoining = action((name: string) => {
 	guest.onMessage(handleHostMessage)
 	guest.onOpen(() => {
 		connStatusAtom.set('connected')
-		guest!.send({ t: 'hello', name })
+		lastSeen.set(HOST_ID, Date.now())
+		guest?.send({ t: 'hello', id: myIdAtom(), name: myNameAtom() })
 	})
 	guest.onClose(() => connStatusAtom.set('error'))
+	startHeartbeat(guestHeartbeat)
 
 	setIntentSender((event) => guest?.send({ t: 'intent', event }))
 	setHostSubmit(null)
-}, 'startJoining')
+}
+
+/** Пульс гостя: отмечается сам и следит, не замолчал ли хост. */
+function guestHeartbeat() {
+	guest?.send({ t: 'ping' })
+	if (connStatusAtom() === 'connected' && silentFor(HOST_ID, Date.now())) {
+		connStatusAtom.set('error')
+	}
+}
+
+/**
+ * Гость переподключается после обрыва (сон устройства, потеря сети). В отличие от startJoining
+ * ничего не сбрасывает: доска, ростер и id остаются на экране, пока идёт новое рукопожатие —
+ * хост узнает игрока по тому же id и вернёт его на место.
+ */
+export const guestReconnect = action(() => {
+	openGuestConnection()
+}, 'guestReconnect')
 
 /** Гость создаёт offer-код для показа хосту. */
 export const guestCreateOffer = action(async () => {
@@ -235,7 +361,12 @@ export const guestSetup = action((team: Team, role: Role) => {
 }, 'guestSetup')
 
 function handleHostMessage(msg: HostMessage) {
+	lastSeen.set(HOST_ID, Date.now())
+	// Хост снова на связи: подвисший канал ожил (или пульс поспешил объявить его мёртвым).
+	if (connStatusAtom() !== 'connected' && guest?.open) connStatusAtom.set('connected')
 	switch (msg.t) {
+		case 'ping':
+			break
 		case 'welcome':
 			myIdAtom.set(msg.youId)
 			break
@@ -266,6 +397,10 @@ function handleHostMessage(msg: HostMessage) {
 export const leaveSession = action(() => {
 	for (const t of removalTimers.values()) clearTimeout(t)
 	removalTimers.clear()
+	playerByConn.clear()
+	connByPlayer.clear()
+	joinedConnIdsAtom.set([])
+	stopHeartbeat()
 	hub?.close()
 	guest?.close()
 	hub = null
@@ -279,3 +414,9 @@ export const leaveSession = action(() => {
 	gameAtom.set(null)
 	remoteViewAtom.set(null)
 }, 'leaveSession')
+
+// e2e-хук: обрывает канал у гостя. Усыпить устройство в тесте нельзя, а последствия сна —
+// именно такие: канал закрывается, состояние партии на экране остаётся. Под VITE_E2E.
+if (E2E) {
+	;(window as unknown as { __e2eDropLink?: () => void }).__e2eDropLink = () => guest?.close()
+}

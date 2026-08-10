@@ -1,38 +1,49 @@
 import { HostConnection } from './webrtc.ts'
 import type { ClientMessage, HostMessage } from './messages.ts'
 
-/** Управляет множеством соединений хоста с гостями (топология «звезда»). */
+/**
+ * Управляет множеством соединений хоста с гостями (топология «звезда»).
+ * Оперирует id соединения (connId), а не игрока: одному игроку за партию может достаться
+ * несколько соединений подряд (переподключение после сна). Связку connId ↔ playerId держит
+ * net.ts по присланному гостем `hello`.
+ */
 export class HostHub {
 	private conns = new Map<string, HostConnection<ClientMessage, HostMessage>>()
-	private messageCb: (id: string, msg: ClientMessage) => void = () => {}
-	private connectCb: (id: string) => void = () => {}
-	private disconnectCb: (id: string) => void = () => {}
+	private messageCb: (connId: string, msg: ClientMessage) => void = () => {}
+	private connectCb: (connId: string) => void = () => {}
+	private disconnectCb: (connId: string) => void = () => {}
 
-	onMessage(cb: (id: string, msg: ClientMessage) => void) {
+	onMessage(cb: (connId: string, msg: ClientMessage) => void) {
 		this.messageCb = cb
 	}
-	onConnect(cb: (id: string) => void) {
+	onConnect(cb: (connId: string) => void) {
 		this.connectCb = cb
 	}
-	onDisconnect(cb: (id: string) => void) {
+	onDisconnect(cb: (connId: string) => void) {
 		this.disconnectCb = cb
 	}
 
-	/** Принимает offer гостя, возвращает id и answer-код для показа гостю. */
-	async acceptGuest(offerCode: string): Promise<{ id: string; answerCode: string }> {
-		const id = crypto.randomUUID().slice(0, 8)
-		const conn = new HostConnection<ClientMessage, HostMessage>(id)
+	/** Принимает offer гостя, возвращает id соединения и answer-код для показа гостю. */
+	async acceptGuest(offerCode: string): Promise<{ connId: string; answerCode: string }> {
+		const connId = crypto.randomUUID().slice(0, 8)
+		const conn = new HostConnection<ClientMessage, HostMessage>(connId)
 		// Подписки — до рукопожатия, чтобы не пропустить событие открытия канала.
-		conn.onMessage((m) => this.messageCb(id, m))
-		conn.onOpen(() => this.connectCb(id))
-		conn.onClose(() => this.disconnectCb(id))
+		conn.onMessage((m) => this.messageCb(connId, m))
+		conn.onOpen(() => this.connectCb(connId))
+		conn.onClose(() => {
+			// Мёртвое соединение выбрасываем сразу: за партию их накапливается по одному
+			// на каждое переподключение гостя, а рассылка ходит по всей карте.
+			this.conns.delete(connId)
+			conn.close()
+			this.disconnectCb(connId)
+		})
 		const answerCode = await conn.acceptOfferCode(offerCode)
-		this.conns.set(id, conn)
-		return { id, answerCode }
+		this.conns.set(connId, conn)
+		return { connId, answerCode }
 	}
 
-	send(id: string, msg: HostMessage) {
-		this.conns.get(id)?.send(msg)
+	send(connId: string, msg: HostMessage) {
+		this.conns.get(connId)?.send(msg)
 	}
 
 	broadcast(msg: HostMessage) {

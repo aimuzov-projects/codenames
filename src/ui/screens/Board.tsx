@@ -34,6 +34,7 @@ import { resumeAudio } from '@/audio/sfx.ts'
 import { CardTile } from '@/ui/components/CardTile.tsx'
 import { RippleButton } from '@/ui/components/RippleButton.tsx'
 import { ClueBar } from '@/ui/components/ClueBar.tsx'
+import { ConnectionBar } from '@/ui/components/ConnectionBar.tsx'
 import { ClueComposer, openComposer } from '@/ui/components/ClueComposer.tsx'
 import { PassPhone } from '@/ui/components/PassPhone.tsx'
 import { ScoreChip } from '@/ui/components/ScoreChip.tsx'
@@ -159,6 +160,9 @@ export const Board = reatomComponent(() => {
 				/>
 			}
 		>
+			{/* состояние связи (сетевые режимы) */}
+			<ConnectionBar />
+
 			{/* score */}
 			<div className="flex gap-2.5">
 				<ScoreChip

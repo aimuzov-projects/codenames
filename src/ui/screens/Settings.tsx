@@ -6,8 +6,10 @@ import {
 	type CardWordSize,
 	cardWordSizeAtom,
 	hideRevealedWordsAtom,
+	keepAwakeAtom,
 	setCardWordSize,
 	setHideRevealedWords,
+	setKeepAwake,
 	setSound,
 	setTimer,
 	soundEnabledAtom,
@@ -55,6 +57,7 @@ export const Settings = reatomComponent(() => {
 	const timer = timerSecondsAtom()
 	const cardWordSize = cardWordSizeAtom()
 	const hideRevealedWords = hideRevealedWordsAtom()
+	const keepAwake = keepAwakeAtom()
 	const theme = themeAtom()
 	const updateStatus = updateStatusAtom()
 	const hasUnseen = hasUnseenChangelogAtom()
@@ -177,6 +180,18 @@ export const Settings = reatomComponent(() => {
 						checked={hideRevealedWords}
 						onCheckedChange={(v) => setHideRevealedWords(v)}
 					/>
+				</CardContent>
+			</Card>
+
+			<Card>
+				<CardContent className="flex items-center justify-between gap-3">
+					<div className="flex flex-col gap-0.5">
+						<Label htmlFor="keep-awake">Не гасить экран в игре</Label>
+						<span className="text-xs text-muted-foreground">
+							Уснувший телефон теряет связь с хостом
+						</span>
+					</div>
+					<Switch id="keep-awake" checked={keepAwake} onCheckedChange={(v) => setKeepAwake(v)} />
 				</CardContent>
 			</Card>
 
