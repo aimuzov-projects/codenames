@@ -77,6 +77,57 @@ test.describe('переподключение после обрыва', () => {
 		}
 	})
 
+	test('перезапуск приложения не теряет партию', async ({ browser }) => {
+		const { ctxs, pages } = await openPeers(browser, 4)
+		const [host, g1, g2, g3] = pages
+		try {
+			await seatFour(host!, g1!, g2!, g3!)
+			await host!.getByRole('button', { name: 'Начать игру' }).click()
+			await expect(cards(g1!)).toHaveCount(25, { timeout: 20_000 })
+
+			const key = await readKey(host!)
+			const start = startingTeam(key)
+			const captain = start === 'red' ? host! : g2!
+			const operative = start === 'red' ? g1! : g3!
+			await giveClue(captain, 'память', 2)
+			await revealCardAt(operative, indicesOf(key, start)[0]!)
+			await expect(host!.locator('[data-testid="card"][data-revealed="true"]')).toHaveCount(1, {
+				timeout: 20_000,
+			})
+
+			// Приложение гостя выгрузили из памяти (iOS так делает регулярно).
+			await g1!.reload()
+			await g1!.getByRole('button', { name: 'Вернуться в игру' }).click()
+			// Доска на месте — с открытой картой и подсказкой из партии, но без связи.
+			await expect(cards(g1!)).toHaveCount(25)
+			await expect(g1!.locator('[data-testid="card"][data-revealed="true"]')).toHaveCount(1)
+			await expect(g1!.getByText('память')).toBeVisible()
+			await expect(g1!.getByText('Связь с хостом потеряна')).toBeVisible()
+
+			// Теперь то же самое с хостом — он хранит канон партии.
+			await host!.reload()
+			await host!.getByRole('button', { name: 'Вернуться в игру' }).click()
+			await expect(cards(host!)).toHaveCount(25)
+			await expect(host!.locator('[data-testid="card"][data-revealed="true"]')).toHaveCount(1)
+			// Ключ капитана тоже восстановлен.
+			await expect(host!.locator('[data-testid="card"][data-card-type]')).toHaveCount(25)
+
+			// И гость возвращается в эту же партию через новое рукопожатие.
+			await g1!.getByRole('button', { name: 'Переподключиться' }).click()
+			const offer = await readSignalOut(g1!)
+			await g1!.getByRole('button', { name: 'Далее' }).click()
+			await host!.getByRole('button', { name: 'Подключить' }).click()
+			await submitSignalIn(host!, offer)
+			const answer = await readSignalOut(host!)
+			await submitSignalIn(g1!, answer)
+
+			await expect(g1!.getByText('Связь с хостом потеряна')).toBeHidden({ timeout: 20_000 })
+			await expect(g1!.locator('[data-testid="card"][data-revealed="true"]')).toHaveCount(1)
+		} finally {
+			await Promise.all(ctxs.map((c) => c.close()))
+		}
+	})
+
 	test('в лобби вернувшийся гость сохраняет выбранную команду и роль', async ({ browser }) => {
 		const { ctxs, pages } = await openPeers(browser, 2)
 		const [host, guest] = pages

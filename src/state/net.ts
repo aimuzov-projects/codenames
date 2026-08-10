@@ -1,4 +1,4 @@
-import { action, atom, wrap } from '@reatom/core'
+import { action, addChangeHook, atom, wrap } from '@reatom/core'
 import {
 	createGame,
 	redactStateForRole,
@@ -11,6 +11,12 @@ import { HostHub } from '@/transport/hostHub.ts'
 import { GuestConnection } from '@/transport/webrtc.ts'
 import type { ClientMessage, HostMessage, PlayerInfo } from '@/transport/messages.ts'
 import { deviceId } from './deviceId.ts'
+import {
+	clearSnapshot,
+	loadSnapshot,
+	saveSnapshot,
+	type SessionSnapshot,
+} from './persistSession.ts'
 import { validateIntent } from './validateIntent.ts'
 import { E2E } from '@/lib/e2e.ts'
 import { pickSlot, reshuffleRoster, resolveSetup } from './roster.ts'
@@ -25,7 +31,7 @@ import {
 	setIntentSender,
 	viewRoleAtom,
 } from './session.ts'
-import { goTo } from './ui.ts'
+import { goTo, goToJoin } from './ui.ts'
 
 export const HOST_ID = 'host'
 
@@ -155,6 +161,13 @@ export const startHosting = action((name: string, team: Team, role: Role) => {
 	gameAtom.set(null)
 	rosterAtom.set([{ id: HOST_ID, name, team, role, connected: true }])
 
+	openHostHub()
+	setHostSubmit(hostSubmit)
+	setIntentSender(null)
+}, 'startHosting')
+
+/** Поднимает хаб хоста и его обработчики (общее для нового хостинга и восстановления сессии). */
+function openHostHub() {
 	hub = new HostHub()
 	// onConnect не трогаем: пока не пришёл `hello`, мы не знаем, кто именно подключился.
 	hub.onDisconnect((connId) => {
@@ -166,10 +179,7 @@ export const startHosting = action((name: string, team: Team, role: Role) => {
 	})
 	hub.onMessage(handleClientMessage)
 	startHeartbeat(hostHeartbeat)
-
-	setHostSubmit(hostSubmit)
-	setIntentSender(null)
-}, 'startHosting')
+}
 
 /** Пульс хоста: рассылает `ping` и переводит замолчавших игроков в офлайн. */
 function hostHeartbeat() {
@@ -414,6 +424,76 @@ export const leaveSession = action(() => {
 	gameAtom.set(null)
 	remoteViewAtom.set(null)
 }, 'leaveSession')
+
+// ================= восстановление после перезапуска =================
+/**
+ * Сетевую партию держим в localStorage: iOS выгружает PWA из памяти, и без снимка возврат
+ * в приложение означал бы потерю партии — у хоста вместе с каноном, то есть для всех сразу.
+ */
+export const savedSessionAtom = atom<SessionSnapshot | null>(loadSnapshot(), 'savedSession')
+
+function saveSession() {
+	if (modeAtom() === 'local') {
+		clearSnapshot()
+		savedSessionAtom.set(null)
+		return
+	}
+	const snap = {
+		mode: modeAtom() as 'host' | 'guest',
+		id: myIdAtom(),
+		name: myNameAtom(),
+		team: myTeamAtom(),
+		role: myRoleAtom(),
+		roster: rosterAtom(),
+		started: startedAtom(),
+		game: modeAtom() === 'host' ? gameAtom() : null,
+		view: modeAtom() === 'guest' ? remoteViewAtom() : null,
+	}
+	savedSessionAtom.set(saveSnapshot(snap))
+}
+
+for (const source of [modeAtom, gameAtom, remoteViewAtom, rosterAtom, startedAtom]) {
+	addChangeHook(source, saveSession)
+}
+
+/**
+ * Возвращает игрока в сохранённую партию. Хост поднимает хаб и ждёт, пока гости подключатся
+ * заново (их соединения перезапуск не пережили); гость оказывается на своей доске со статусом
+ * «связь потеряна» и кнопкой переподключения.
+ */
+export const resumeSession = action(() => {
+	const snap = savedSessionAtom()
+	if (!snap) return false
+
+	modeAtom.set(snap.mode)
+	myIdAtom.set(snap.id)
+	myNameAtom.set(snap.name)
+	myTeamAtom.set(snap.team)
+	myRoleAtom.set(snap.role)
+	viewRoleAtom.set(snap.role)
+	startedAtom.set(snap.started)
+	// Живых соединений после перезапуска нет ни у кого, кроме нас самих.
+	rosterAtom.set(snap.roster.map((p) => ({ ...p, connected: p.id === snap.id })))
+
+	if (snap.mode === 'host') {
+		gameAtom.set(snap.game)
+		remoteViewAtom.set(null)
+		connStatusAtom.set('idle')
+		openHostHub()
+		setHostSubmit(hostSubmit)
+		setIntentSender(null)
+		goTo(snap.started ? 'board' : 'host')
+	} else {
+		gameAtom.set(null)
+		remoteViewAtom.set(snap.view)
+		connStatusAtom.set('error')
+		setHostSubmit(null)
+		setIntentSender(null)
+		if (snap.started && snap.view) goTo('board')
+		else goToJoin('reconnect')
+	}
+	return true
+}, 'resumeSession')
 
 // e2e-хук: обрывает канал у гостя. Усыпить устройство в тесте нельзя, а последствия сна —
 // именно такие: канал закрывается, состояние партии на экране остаётся. Под VITE_E2E.
