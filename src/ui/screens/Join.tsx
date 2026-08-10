@@ -11,11 +11,14 @@ import {
 	myIdAtom,
 	rosterAtom,
 	startJoining,
+	transportAtom,
 } from '@/state/net.ts'
 import { randomSetup, teamHasSpymaster } from '@/state/roster.ts'
 import { goBack, joinModeAtom } from '@/state/ui.ts'
 import { randomName } from '@/data/names.ts'
-import { ArrowLeft, ArrowRight, Dices, LogIn, RefreshCw } from 'lucide-react'
+import { isRoomCode, normalizeRoomCode } from '@/transport/relayProtocol.ts'
+import { RELAY_AVAILABLE } from '@/lib/relay.ts'
+import { ArrowLeft, ArrowRight, Dices, LogIn, QrCode as QrCodeIcon, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -26,7 +29,7 @@ import { SetupPicker } from '@/ui/components/SetupPicker.tsx'
 import { Screen } from '@/ui/components/Screen.tsx'
 import { TopBar } from '@/ui/components/TopBar.tsx'
 
-type Stage = 'name' | 'offer' | 'scan' | 'setup'
+type Stage = 'name' | 'room' | 'scanRoom' | 'offer' | 'scan' | 'setup'
 
 const STATUS_LABEL = {
 	idle: '',
@@ -48,9 +51,17 @@ export const Join = reatomComponent(() => {
 	const [name, setName] = useState('')
 	const [suggestedName, setSuggestedName] = useState(() => randomName())
 	const [offerCode, setOfferCode] = useState('')
+	const [roomInput, setRoomInput] = useState('')
+	const [codeError, setCodeError] = useState('')
 
 	// Новое рукопожатие без потери сессии: id и место у игрока прежние, хост узнает его по ним.
+	// В комнате на релее ходить с камерой не нужно — транспорт поднимается сам.
 	const reconnect = async () => {
+		if (transportAtom() === 'relay') {
+			guestReconnect()
+			setStage('setup')
+			return
+		}
 		setOfferCode('')
 		setStage('offer')
 		guestReconnect()
@@ -69,11 +80,24 @@ export const Join = reatomComponent(() => {
 	const myId = myIdAtom()
 	const spymasterDisabled = teamHasSpymaster(roster, team, myId)
 
-	const connect = async () => {
+	// Офлайн-путь: двухшаговое рукопожатие по QR (offer → answer), интернет не нужен.
+	const connectByQr = async () => {
 		startJoining(name.trim() || suggestedName)
 		const code = await guestCreateOffer()
 		setOfferCode(code)
 		setStage('offer')
+	}
+
+	// Онлайн-путь: комната на релее. Дальше канал чинится сам, ходить с камерой не придётся.
+	const connectByCode = (raw: string) => {
+		const code = normalizeRoomCode(raw)
+		if (!isRoomCode(code)) {
+			setCodeError('Код из 6 символов, например ABC123')
+			return
+		}
+		setCodeError('')
+		startJoining(name.trim() || suggestedName, { transport: 'relay', code })
+		setStage('setup')
 	}
 
 	const onScanAnswer = async (answerCode: string) => {
@@ -114,9 +138,62 @@ export const Join = reatomComponent(() => {
 								<Dices />
 							</Button>
 						</div>
-						<Button className="w-full" onClick={connect}>
+						{RELAY_AVAILABLE ? (
+							<>
+								<Button className="w-full" onClick={() => setStage('room')}>
+									<LogIn />
+									Войти по коду
+								</Button>
+								<Button variant="ghost" className="w-full" onClick={() => void connectByQr()}>
+									<QrCodeIcon />
+									Рядом, без интернета
+								</Button>
+							</>
+						) : (
+							<Button className="w-full" onClick={() => void connectByQr()}>
+								<LogIn />
+								Подключиться
+							</Button>
+						)}
+					</CardContent>
+				</Card>
+			)}
+
+			{stage === 'room' && (
+				<Card>
+					<CardContent className="flex flex-col gap-3">
+						<SectionTitle>Код комнаты</SectionTitle>
+						<Input
+							autoFocus
+							inputMode="text"
+							autoCapitalize="characters"
+							placeholder="ABC123"
+							className="text-center text-2xl tracking-[0.3em] uppercase"
+							value={roomInput}
+							onChange={(e) => setRoomInput(normalizeRoomCode(e.target.value))}
+							onKeyDown={(e) => e.key === 'Enter' && connectByCode(roomInput)}
+						/>
+						{codeError && <p className="text-sm text-destructive">{codeError}</p>}
+						<Button className="w-full" onClick={() => connectByCode(roomInput)}>
 							<LogIn />
-							Подключиться
+							Войти
+						</Button>
+						<Button variant="outline" className="w-full" onClick={() => setStage('scanRoom')}>
+							<QrCodeIcon />
+							Отсканировать QR хоста
+						</Button>
+					</CardContent>
+				</Card>
+			)}
+
+			{stage === 'scanRoom' && (
+				<Card>
+					<CardContent className="flex flex-col gap-3">
+						<SectionTitle>QR с кодом комнаты</SectionTitle>
+						<QrScanner onScan={connectByCode} />
+						<Button variant="outline" className="w-full" onClick={() => setStage('room')}>
+							<ArrowLeft />
+							Ввести код руками
 						</Button>
 					</CardContent>
 				</Card>

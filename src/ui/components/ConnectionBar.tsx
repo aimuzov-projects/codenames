@@ -1,7 +1,7 @@
 import { reatomComponent } from '@reatom/react'
 import { PlugZap, WifiOff } from 'lucide-react'
 import { modeAtom } from '@/state/session.ts'
-import { connStatusAtom, rosterAtom } from '@/state/net.ts'
+import { connStatusAtom, guestReconnect, rosterAtom, transportAtom } from '@/state/net.ts'
 import { goTo, goToJoin } from '@/state/ui.ts'
 import { Button } from '@/components/ui/button'
 
@@ -21,11 +21,14 @@ export const ConnectionBar = reatomComponent(() => {
 	if (mode === 'guest') {
 		if (status === 'connected') return null
 		const connecting = status === 'connecting'
+		// В комнате на релее канал поднимается сам — кнопка лишь торопит очередную попытку.
+		// По QR вернуться можно только новым рукопожатием, поэтому уводим на экран подключения.
+		const retry = transportAtom() === 'relay' ? () => guestReconnect() : () => goToJoin('reconnect')
 		return (
 			<Bar
 				icon={connecting ? <PlugZap /> : <WifiOff />}
 				text={connecting ? 'Восстанавливаем связь…' : 'Связь с хостом потеряна'}
-				action={connecting ? null : { label: 'Переподключиться', run: () => goToJoin('reconnect') }}
+				action={connecting ? null : { label: 'Переподключиться', run: retry }}
 			/>
 		)
 	}

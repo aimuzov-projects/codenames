@@ -6,13 +6,16 @@ import {
 	hostReshuffle,
 	hostStartGame,
 	leaveSession,
+	roomCodeAtom,
 	rosterAtom,
 	setHostSetup,
 	startHosting,
+	transportAtom,
 } from '@/state/net.ts'
 import { isRosterReady, randomSetup, teamHasSpymaster } from '@/state/roster.ts'
 import { goBack, goTo, selectedWordsAtom } from '@/state/ui.ts'
-import { Check, Dices, Play, UserPlus } from 'lucide-react'
+import { RELAY_AVAILABLE } from '@/lib/relay.ts'
+import { Check, Dices, Play, QrCode as QrCodeIcon, UserPlus, Wifi } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
 	AlertDialog,
@@ -24,6 +27,7 @@ import {
 	AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Card, CardContent } from '@/components/ui/card'
+import { QrCode } from '@/signaling/QrCode.tsx'
 import { RippleButton } from '@/ui/components/RippleButton.tsx'
 import { RosterList } from '@/ui/components/RosterList.tsx'
 import { SetupPicker } from '@/ui/components/SetupPicker.tsx'
@@ -39,10 +43,16 @@ const SectionTitle = ({ children }: { children: string }) => (
 export const HostLobby = reatomComponent(() => {
 	// Запускаем хостинг при входе, но не при возврате с экрана «Добавить игрока»:
 	// экран перемонтируется (key={screen}), а startHosting деструктивен (сбросил бы ростер).
+	// По умолчанию — комната на сервере: она переживает сон телефона сама. Без сервера
+	// (сборка без VITE_RELAY_URL) остаётся офлайновое рукопожатие по QR.
 	useEffect(() => {
-		if (modeAtom() !== 'host') startHosting('Хост', 'red', 'spymaster')
+		if (modeAtom() !== 'host') {
+			startHosting('Хост', 'red', 'spymaster', RELAY_AVAILABLE ? 'relay' : 'qr')
+		}
 	}, [])
 
+	const transport = transportAtom()
+	const roomCode = roomCodeAtom()
 	const team = myTeamAtom()
 	const role = myRoleAtom()
 	const roster = rosterAtom()
@@ -84,15 +94,47 @@ export const HostLobby = reatomComponent(() => {
 				</CardContent>
 			</Card>
 
+			{transport === 'relay' && (
+				<Card>
+					<CardContent className="flex flex-col items-center gap-3">
+						<SectionTitle>Код комнаты</SectionTitle>
+						{roomCode ? (
+							<>
+								<span data-testid="room-code" className="font-heading text-3xl tracking-[0.3em]">
+									{roomCode}
+								</span>
+								<QrCode value={roomCode} />
+								<p className="text-center text-sm text-muted-foreground">
+									Продиктуйте код или дайте отсканировать. Игроки вернутся сами, даже если телефон
+									уснёт.
+								</p>
+							</>
+						) : (
+							<p className="text-sm text-muted-foreground">Открываем комнату…</p>
+						)}
+						<Button
+							variant="outline"
+							className="w-full"
+							onClick={() => startHosting('Хост', team, role, 'qr')}
+						>
+							<QrCodeIcon />
+							Играть без интернета
+						</Button>
+					</CardContent>
+				</Card>
+			)}
+
 			<Card>
 				<CardContent className="flex flex-col gap-3">
 					<SectionTitle>Игроки</SectionTitle>
 					<RosterList />
 					<div className="flex gap-2">
-						<Button variant="outline" className="flex-1" onClick={() => goTo('host-add')}>
-							<UserPlus />
-							Добавить игрока
-						</Button>
+						{transport === 'qr' && (
+							<Button variant="outline" className="flex-1" onClick={() => goTo('host-add')}>
+								<UserPlus />
+								Добавить игрока
+							</Button>
+						)}
 						{canReshuffle && (
 							<Button
 								variant="outline"
@@ -104,6 +146,16 @@ export const HostLobby = reatomComponent(() => {
 							</Button>
 						)}
 					</div>
+					{transport === 'qr' && RELAY_AVAILABLE && (
+						<Button
+							variant="ghost"
+							className="w-full"
+							onClick={() => startHosting('Хост', team, role, 'relay')}
+						>
+							<Wifi />
+							Играть через интернет — по коду комнаты
+						</Button>
+					)}
 				</CardContent>
 			</Card>
 

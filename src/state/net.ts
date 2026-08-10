@@ -9,7 +9,10 @@ import {
 } from '@/game/index.ts'
 import { HostHub } from '@/transport/hostHub.ts'
 import { GuestConnection } from '@/transport/webrtc.ts'
+import { WsGuestTransport, WsHostTransport } from '@/transport/wsRelay.ts'
+import type { GuestTransport, HostTransport } from '@/transport/types.ts'
 import type { ClientMessage, HostMessage, PlayerInfo } from '@/transport/messages.ts'
+import { RELAY_URL } from '@/lib/relay.ts'
 import { deviceId } from './deviceId.ts'
 import {
 	clearSnapshot,
@@ -50,8 +53,18 @@ export const connStatusAtom = atom<'idle' | 'connecting' | 'connected' | 'error'
  */
 export const joinedConnIdsAtom = atom<string[]>([], 'joinedConnIds')
 
-let hub: HostHub | null = null
-let guest: GuestConnection<HostMessage, ClientMessage> | null = null
+/**
+ * Транспорт партии: 'qr' — WebRTC с рукопожатием через камеру (работает без интернета, на одном
+ * хотспоте), 'relay' — комната на WS-сервере (нужен интернет, зато переподключается сама).
+ */
+export type Transport = 'qr' | 'relay'
+
+export const transportAtom = atom<Transport>('qr', 'transport')
+/** Код комнаты на релее: у хоста приходит с сервера, у гостя — введён или отсканирован. */
+export const roomCodeAtom = atom<string>('', 'roomCode')
+
+let hub: HostTransport | null = null
+let guest: GuestTransport | null = null
 
 // ---------- helpers ----------
 function patchRoster(id: string, patch: Partial<PlayerInfo>) {
@@ -150,25 +163,39 @@ function silentFor(key: string, now: number): boolean {
 }
 
 // ================= ХОСТ =================
-export const startHosting = action((name: string, team: Team, role: Role) => {
-	modeAtom.set('host')
-	myIdAtom.set(HOST_ID)
-	myNameAtom.set(name)
-	myTeamAtom.set(team)
-	myRoleAtom.set(role)
-	viewRoleAtom.set(role)
-	startedAtom.set(false)
-	gameAtom.set(null)
-	rosterAtom.set([{ id: HOST_ID, name, team, role, connected: true }])
+export const startHosting = action(
+	(name: string, team: Team, role: Role, transport: Transport = 'qr') => {
+		modeAtom.set('host')
+		myIdAtom.set(HOST_ID)
+		myNameAtom.set(name)
+		myTeamAtom.set(team)
+		myRoleAtom.set(role)
+		viewRoleAtom.set(role)
+		startedAtom.set(false)
+		gameAtom.set(null)
+		rosterAtom.set([{ id: HOST_ID, name, team, role, connected: true }])
+		transportAtom.set(transport)
+		roomCodeAtom.set('')
 
-	openHostHub()
-	setHostSubmit(hostSubmit)
-	setIntentSender(null)
-}, 'startHosting')
+		openHostHub()
+		setHostSubmit(hostSubmit)
+		setIntentSender(null)
+	},
+	'startHosting',
+)
 
-/** Поднимает хаб хоста и его обработчики (общее для нового хостинга и восстановления сессии). */
+/** Поднимает транспорт хоста и его обработчики (общее для нового хостинга и восстановления). */
 function openHostHub() {
-	hub = new HostHub()
+	hub?.close()
+	hub =
+		transportAtom() === 'relay'
+			? new WsHostTransport(
+					RELAY_URL,
+					roomCodeAtom() || null,
+					(code) => roomCodeAtom.set(code),
+					hostRelayFatal,
+				)
+			: new HostHub()
 	// onConnect не трогаем: пока не пришёл `hello`, мы не знаем, кто именно подключился.
 	hub.onDisconnect((connId) => {
 		const playerId = unbindConn(connId)
@@ -179,6 +206,11 @@ function openHostHub() {
 	})
 	hub.onMessage(handleClientMessage)
 	startHeartbeat(hostHeartbeat)
+}
+
+/** Комнату занял кто-то другой — код придётся получить заново (партия при этом цела). */
+function hostRelayFatal() {
+	roomCodeAtom.set('')
 }
 
 /** Пульс хоста: рассылает `ping` и переводит замолчавших игроков в офлайн. */
@@ -197,7 +229,7 @@ function hostHeartbeat() {
 
 /** Принимает offer гостя (из QR/строки); возвращает id соединения и answer-код для показа гостю. */
 export const acceptGuestOffer = action(async (offerCode: string) => {
-	if (!hub) throw new Error('Хост не запущен')
+	if (!(hub instanceof HostHub)) throw new Error('Рукопожатие по QR недоступно в этом режиме')
 	return await wrap(hub.acceptGuest(offerCode))
 }, 'acceptGuestOffer')
 
@@ -303,22 +335,30 @@ export const hostStartGame = action((config: GameConfig) => {
 }, 'hostStartGame')
 
 // ================= ГОСТЬ =================
-export const startJoining = action((name: string) => {
-	modeAtom.set('guest')
-	myNameAtom.set(name)
-	myIdAtom.set(deviceId())
-	remoteViewAtom.set(null)
-	rosterAtom.set([])
-	startedAtom.set(false)
-	openGuestConnection()
-}, 'startJoining')
+export const startJoining = action(
+	(name: string, options: { transport?: Transport; code?: string } = {}) => {
+		modeAtom.set('guest')
+		myNameAtom.set(name)
+		myIdAtom.set(deviceId())
+		remoteViewAtom.set(null)
+		rosterAtom.set([])
+		startedAtom.set(false)
+		transportAtom.set(options.transport ?? 'qr')
+		roomCodeAtom.set(options.code ?? '')
+		openGuestConnection()
+	},
+	'startJoining',
+)
 
 /** Создаёт гостевое соединение, не трогая уже накопленное состояние (см. также guestReconnect). */
 function openGuestConnection() {
 	guest?.close()
 	connStatusAtom.set('connecting')
 
-	guest = new GuestConnection<HostMessage, ClientMessage>()
+	guest =
+		transportAtom() === 'relay'
+			? new WsGuestTransport(RELAY_URL, roomCodeAtom(), myIdAtom(), guestRelayFatal)
+			: new GuestConnection<HostMessage, ClientMessage>()
 	// Подписки — до рукопожатия.
 	guest.onMessage(handleHostMessage)
 	guest.onOpen(() => {
@@ -331,6 +371,14 @@ function openGuestConnection() {
 
 	setIntentSender((event) => guest?.send({ t: 'intent', event }))
 	setHostSubmit(null)
+}
+
+/** Комнаты с таким кодом нет (опечатка или хост давно ушёл) — дальше пробовать бессмысленно. */
+function guestRelayFatal() {
+	connStatusAtom.set('error')
+	guest?.close()
+	guest = null
+	stopHeartbeat()
 }
 
 /** Пульс гостя: отмечается сам и следит, не замолчал ли хост. */
@@ -350,15 +398,15 @@ export const guestReconnect = action(() => {
 	openGuestConnection()
 }, 'guestReconnect')
 
-/** Гость создаёт offer-код для показа хосту. */
+/** Гость создаёт offer-код для показа хосту (только режим QR). */
 export const guestCreateOffer = action(async () => {
-	if (!guest) throw new Error('Подключение не начато')
+	if (!(guest instanceof GuestConnection)) throw new Error('Подключение не начато')
 	return await wrap(guest.createOfferCode())
 }, 'guestCreateOffer')
 
-/** Гость принимает answer-код хоста; после этого канал откроется. */
+/** Гость принимает answer-код хоста; после этого канал откроется (только режим QR). */
 export const guestAcceptAnswer = action(async (answerCode: string) => {
-	if (!guest) throw new Error('Подключение не начато')
+	if (!(guest instanceof GuestConnection)) throw new Error('Подключение не начато')
 	await wrap(guest.acceptAnswerCode(answerCode))
 }, 'guestAcceptAnswer')
 
@@ -440,6 +488,8 @@ function saveSession() {
 	}
 	const snap = {
 		mode: modeAtom() as 'host' | 'guest',
+		transport: transportAtom(),
+		code: roomCodeAtom(),
 		id: myIdAtom(),
 		name: myNameAtom(),
 		team: myTeamAtom(),
@@ -452,7 +502,7 @@ function saveSession() {
 	savedSessionAtom.set(saveSnapshot(snap))
 }
 
-for (const source of [modeAtom, gameAtom, remoteViewAtom, rosterAtom, startedAtom]) {
+for (const source of [modeAtom, gameAtom, remoteViewAtom, rosterAtom, startedAtom, roomCodeAtom]) {
 	addChangeHook(source, saveSession)
 }
 
@@ -466,6 +516,8 @@ export const resumeSession = action(() => {
 	if (!snap) return false
 
 	modeAtom.set(snap.mode)
+	transportAtom.set(snap.transport)
+	roomCodeAtom.set(snap.code)
 	myIdAtom.set(snap.id)
 	myNameAtom.set(snap.name)
 	myTeamAtom.set(snap.team)
@@ -486,11 +538,17 @@ export const resumeSession = action(() => {
 	} else {
 		gameAtom.set(null)
 		remoteViewAtom.set(snap.view)
-		connStatusAtom.set('error')
 		setHostSubmit(null)
 		setIntentSender(null)
-		if (snap.started && snap.view) goTo('board')
-		else goToJoin('reconnect')
+		if (snap.transport === 'relay') {
+			// Комната и id известны — гость возвращается в партию сам, без единого действия.
+			openGuestConnection()
+			goTo(snap.started && snap.view ? 'board' : 'join')
+		} else {
+			connStatusAtom.set('error')
+			if (snap.started && snap.view) goTo('board')
+			else goToJoin('reconnect')
+		}
 	}
 	return true
 }, 'resumeSession')

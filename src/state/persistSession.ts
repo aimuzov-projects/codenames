@@ -17,6 +17,10 @@ export interface SessionSnapshot {
 	v: number
 	ts: number
 	mode: 'host' | 'guest'
+	/** Чем играли: 'qr' (WebRTC на одной сети) или 'relay' (комната на сервере). */
+	transport: 'qr' | 'relay'
+	/** Код комнаты релея — по нему хост занимает её обратно, а гость входит без лишних вопросов. */
+	code: string
 	id: string
 	name: string
 	team: Team

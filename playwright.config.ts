@@ -11,6 +11,8 @@ import { defineConfig, devices } from '@playwright/test'
  */
 const PORT = 5173
 const baseURL = `https://localhost:${PORT}`
+const RELAY_PORT = 8080
+const RELAY_URL = `ws://localhost:${RELAY_PORT}`
 
 export default defineConfig({
 	testDir: './e2e',
@@ -51,12 +53,23 @@ export default defineConfig({
 		},
 	],
 
-	webServer: {
-		command: 'npm run dev',
-		url: baseURL,
-		env: { VITE_E2E: '1' },
-		ignoreHTTPSErrors: true,
-		reuseExistingServer: !process.env.CI,
-		timeout: 120_000,
-	},
+	webServer: [
+		{
+			command: 'npm run dev',
+			url: baseURL,
+			// Тесты онлайн-режима гоняются против локального релея (см. соседний webServer).
+			env: { VITE_E2E: '1', VITE_RELAY_URL: RELAY_URL },
+			ignoreHTTPSErrors: true,
+			reuseExistingServer: !process.env.CI,
+			timeout: 120_000,
+		},
+		{
+			command: 'npm run relay',
+			url: `http://localhost:${RELAY_PORT}`,
+			// Релей отвечает на обычный GET отказом от апгрейда — для Playwright это признак жизни.
+			ignoreHTTPSErrors: true,
+			reuseExistingServer: !process.env.CI,
+			timeout: 30_000,
+		},
+	],
 })
