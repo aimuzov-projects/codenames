@@ -26,7 +26,7 @@ jobs:
     timeout-minutes: 20
     environment:
       name: production
-      url: https://__DOMAIN__
+      url: https://codenames.aimuzov.online
     steps:
       # Сервер сам знает, что делать: ключ в authorized_keys привязан к deploy/remote.sh,
       # поэтому команду ssh не передаём.
@@ -44,7 +44,7 @@ jobs:
       - name: Check site
         run: |
           for i in 1 2 3 4 5; do
-            curl -fsS -o /dev/null -w "%{http_code}\n" https://__DOMAIN__/ && exit 0
+            curl -fsS -o /dev/null -w "%{http_code}\n" https://codenames.aimuzov.online/ && exit 0
             sleep 5
           done
           exit 1

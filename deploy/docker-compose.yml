@@ -1,7 +1,7 @@
-# Сайт на сервере projects. Порты 80/443 держит общий Caddy из aimuzov-projects/infra-server,
-# он проксирует домен сюда по сети edge.
+# Игра на сервере projects. Порты 80/443 держит общий Caddy из aimuzov-projects/infra-server,
+# он проксирует домен сюда по сети edge, а /ws -- релею комнат.
 
-name: __PROJECT__
+name: codenames
 
 x-logging: &logging
   driver: json-file
@@ -15,14 +15,26 @@ services:
       context: ..
       dockerfile: deploy/frontend.Dockerfile
       secrets: [env]
-    image: __PROJECT__
-    container_name: __PROJECT__
+    image: codenames
+    container_name: codenames
     restart: unless-stopped
     networks:
       - edge
     logging: *logging
 
-# Переменные сборки лежат в /srv/__PROJECT__/.env, образец в .env.example.
+  # Релей онлайн-комнат: пересылает сообщения между хостом и гостями, игровой логики в нём нет.
+  relay:
+    build:
+      context: ..
+      dockerfile: deploy/backend.Dockerfile
+    image: codenames-relay
+    container_name: codenames-relay
+    restart: unless-stopped
+    networks:
+      - edge
+    logging: *logging
+
+# Переменные сборки лежат в /srv/codenames/.env, образец в .env.example.
 secrets:
   env:
     file: ../.env

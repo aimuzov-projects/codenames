@@ -1,18 +1,18 @@
 import { defineConfig, devices } from '@playwright/test'
 
 /**
- * E2E-конфиг. Гоняем против `vite dev` (а не preview): в dev сервис-воркер выключен
- * (`devOptions.enabled: false`), поэтому нет проблемы с устаревшим PWA-кэшем между прогонами.
- * Dev-сервер на самоподписанном HTTPS (basic-ssl) — отсюда `ignoreHTTPSErrors`.
- * VITE_E2E=1 включает тест-хуки сигналинга (см. src/lib/e2e.ts).
+ * E2E-конфиг. Гоняем против `astro dev` (а не preview): в dev сервис-воркера нет, поэтому нет
+ * проблемы с устаревшим PWA-кэшем между прогонами. Dev-сервер на самоподписанном HTTPS
+ * (basic-ssl) -- отсюда `ignoreHTTPSErrors`. PUBLIC_E2E=1 включает тест-хуки сигналинга
+ * (см. src/frontend/lib/e2e.ts).
  *
  * Один проект Chromium с мобильной эмуляцией: приложение — PWA под телефон, плюс WebRTC-loopback
  * между двумя контекстами в Chromium самый предсказуемый.
  */
-const PORT = 5173
+const PORT = 4321
 const baseURL = `https://localhost:${PORT}`
-const RELAY_PORT = 8080
-const RELAY_URL = `ws://localhost:${RELAY_PORT}`
+// Релей на том же порту, что и на проде за Caddy; dev-сервер проксирует к нему /ws.
+const RELAY_PORT = 8787
 
 export default defineConfig({
 	testDir: './e2e',
@@ -55,16 +55,18 @@ export default defineConfig({
 
 	webServer: [
 		{
-			command: 'npm run dev',
+			// Без --ignore-lock Astro, заметив AI-агента, уводит dev-сервер в фон и сразу выходит,
+			// а Playwright считает это падением.
+			command: 'npm run dev -- --ignore-lock',
 			url: baseURL,
 			// Тесты онлайн-режима гоняются против локального релея (см. соседний webServer).
-			env: { VITE_E2E: '1', VITE_RELAY_URL: RELAY_URL },
+			env: { PUBLIC_E2E: '1' },
 			ignoreHTTPSErrors: true,
 			reuseExistingServer: !process.env.CI,
 			timeout: 120_000,
 		},
 		{
-			command: 'npm run relay',
+			command: 'node src/backend/server.ts',
 			url: `http://localhost:${RELAY_PORT}`,
 			// Релей отвечает на обычный GET отказом от апгрейда — для Playwright это признак жизни.
 			ignoreHTTPSErrors: true,

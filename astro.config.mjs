@@ -23,7 +23,8 @@ export default defineConfig({
 	// Подсветка Shiki несовместима с CSP.
 	markdown: { syntaxHighlight: false },
 	// Astro кладёт CSP с хешами своих скриптов и стилей в <meta> страницы. Снаружи ничего:
-	// релей на том же хосте (wss: нужен из-за схемы), QR рисуется в data:, камера -- blob:.
+	// релей на том же хосте (wss: нужен из-за схемы), QR рисуется в data:, камера -- blob:,
+	// мелкие файлы шрифта Vite встраивает в data:.
 	// frame-ancestors в <meta> не действует, встраивание запрещает X-Frame-Options в Caddy.
 	security: {
 		csp: {
@@ -31,6 +32,7 @@ export default defineConfig({
 				"default-src 'self'",
 				"img-src 'self' data: blob:",
 				"media-src 'self' blob:",
+				"font-src 'self' data:",
 				"connect-src 'self' wss: ws:",
 				"worker-src 'self'",
 				"manifest-src 'self'",
@@ -41,6 +43,8 @@ export default defineConfig({
 		},
 	},
 	server: { host: true },
+	// Тулбар dev-режима висит у нижней кромки и перекрывает кнопки игры, в том числе для e2e.
+	devToolbar: { enabled: false },
 	vite: {
 		// Версия и время сборки видны в настройках: по ним понятно, обновилось ли устройство.
 		define: {

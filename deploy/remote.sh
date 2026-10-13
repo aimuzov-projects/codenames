@@ -6,10 +6,10 @@ set -euo pipefail
 
 # Тело в блоке: bash дочитает его целиком до того, как git pull подменит этот файл.
 {
-	cd /srv/__PROJECT__
+	cd /srv/codenames
 
 	# Два пуша подряд не должны собирать compose одновременно: второй ждёт первого.
-	exec 9>/tmp/__PROJECT__-deploy.lock
+	exec 9>/tmp/codenames-deploy.lock
 	flock 9
 
 	git pull --ff-only --quiet
