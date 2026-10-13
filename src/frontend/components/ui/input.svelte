@@ -3,7 +3,7 @@
 
 	type Props = HTMLInputAttributes & {
 		value: string
-		/** Моноширинный крупный ввод: коды комнат. */
+		/** Large monospace input: room codes. */
 		code?: boolean
 	}
 

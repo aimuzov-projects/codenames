@@ -5,9 +5,9 @@
 		team: Team
 		count: number
 		active: boolean
-		/** Зеркалит содержимое к центру экрана: точка и число у центра, статус -- у внешней границы. */
+		/** Mirrors the content toward the screen center: dot and number by the center, status by the outer edge. */
 		mirror?: boolean
-		/** Если передан, чип становится кнопкой (тап открывает статистику). */
+		/** When passed, the chip becomes a button (a tap opens stats). */
 		onclick?: () => void
 	}
 
@@ -16,7 +16,7 @@
 	const LABEL: Record<Team, string> = { red: 'Красные', blue: 'Синие' }
 </script>
 
-<!-- Чип счёта команды: точка + число оставшихся слов + статус хода. -->
+<!-- Team score chip: dot + number of words left + turn status. -->
 {#snippet content()}
 	<span class="score-chip__dot"></span>
 	<span class="score-chip__count">{count}</span>

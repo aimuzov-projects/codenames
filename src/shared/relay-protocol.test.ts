@@ -10,7 +10,7 @@ describe('код комнаты', () => {
 	})
 
 	it('выбрасывает символы, которых нет в алфавите (0/O и 1/I путают при диктовке)', () => {
-		// Ноль и единицу в кодах не выдаём, так что и на вводе они лишние.
+		// We never issue zero and one in codes, so on input they're extraneous too.
 		assert.equal(normalizeRoomCode('AB0C1D'), 'ABCD')
 	})
 

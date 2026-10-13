@@ -21,12 +21,12 @@ function load(): Partial<Persisted> {
 const saved = load()
 
 export const soundEnabledAtom = atom(saved.sound ?? true)
-/** Длительность хода в секундах; 0 — без таймера. */
+/** Turn length in seconds; 0 means no timer. */
 export const timerSecondsAtom = atom(saved.timer ?? 0)
 
 export const TIMER_OPTIONS = [0, 60, 120, 180] as const
 
-/** Размер слова на карте (font-size). */
+/** Word size on a card (font-size). */
 export const CARD_WORD_SIZES = ['11px', '13px', '15px', '17px'] as const
 export type CardWordSize = (typeof CARD_WORD_SIZES)[number]
 
@@ -38,13 +38,13 @@ function normalizeSize(v: unknown): CardWordSize {
 
 export const cardWordSizeAtom = atom<CardWordSize>(normalizeSize(saved.cardWordSize))
 
-/** Прятать слова на открытых картах, заменяя их иконкой по типу. */
+/** Hide words on revealed cards, replacing them with an icon for the card type. */
 export const hideRevealedWordsAtom = atom(saved.hideRevealedWords ?? false)
 
-/** Держать экран включённым в игре: сон устройства рвёт связь с хостом (см. useWakeLock). */
+/** Keep the screen on during a game: device sleep drops the link to the host (see useWakeLock). */
 export const keepAwakeAtom = atom(saved.keepAwake ?? true)
 
-/** Применяет размер слова к <html> через CSS-переменную. */
+/** Applies the word size to <html> via a CSS variable. */
 export function applyCardWordSize(size: CardWordSize = cardWordSizeAtom()): void {
 	document.documentElement.style.setProperty('--card-word-size', size)
 }
@@ -62,7 +62,7 @@ function persist() {
 			}),
 		)
 	} catch {
-		// приватный режим / нет доступа — настройки просто не сохранятся
+		// private mode / no access: settings just won't be saved
 	}
 }
 

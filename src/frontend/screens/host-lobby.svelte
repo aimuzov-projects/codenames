@@ -30,9 +30,9 @@
 	import { modeAtom, myRoleAtom, myTeamAtom } from '#frontend/state/session.ts'
 	import { goBack, goTo, selectedWordsAtom } from '#frontend/state/ui.ts'
 
-	// Запускаем хостинг при входе, но не при возврате с экрана «Добавить игрока»: экран
-	// перемонтируется на каждом переходе, а startHosting деструктивен (сбросил бы ростер).
-	// По умолчанию -- комната на релее: она сама переживает сон телефона.
+	// Start hosting on enter, but not on return from the "Add player" screen: the screen
+	// remounts on every transition, and startHosting is destructive (it would reset the roster).
+	// Defaults to a relay room: it survives the phone going to sleep on its own.
 	$effect(() => {
 		if (modeAtom() !== 'host') startHosting('Хост', 'red', 'spymaster', 'relay')
 	})

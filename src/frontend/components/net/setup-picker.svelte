@@ -11,10 +11,10 @@
 	type Props = {
 		team: Team
 		role: Role
-		/** Заблокировать выбор капитана (в выбранной команде уже есть капитан). */
+		/** Disable the spymaster option (the chosen team already has a spymaster). */
 		spymasterDisabled?: boolean
 		onchange: (team: Team, role: Role) => void
-		/** Случайный выбор команды и роли. Кнопка показывается, только если задан. */
+		/** Random team and role pick. The button shows only when this is set. */
 		onrandom?: () => void
 	}
 
@@ -24,7 +24,7 @@
 		value: string
 		label: string
 		icon: Component
-		/** Цвет «бегунка» и контрастной подписи, когда сегмент активен. */
+		/** Color of the "thumb" and the contrasting label when the segment is active. */
 		tone: 'red' | 'blue' | 'primary'
 		disabled?: boolean
 	}
@@ -41,8 +41,8 @@
 </script>
 
 <!--
-	Слитный сегмент-контрол с «бегунком», который скользит к выбранному сегменту. Бегунок
-	позиционируется абсолютно и сдвигается через translateX по индексу.
+	A joined segmented control with a "thumb" that slides to the selected segment. The thumb
+	is absolutely positioned and shifted via translateX by index.
 -->
 {#snippet segmented(label: string, value: string, options: Segment[], select: (value: string) => void)}
 	{@const index = options.findIndex((o) => o.value === value)}
@@ -72,7 +72,7 @@
 	</div>
 {/snippet}
 
-<!-- Выбор команды и роли (капитан/игрок) сегмент-контролами с бегунком. -->
+<!-- Team and role (spymaster/operative) pick via segmented controls with a thumb. -->
 <div class="setup-picker">
 	{@render segmented('Команда', team, teams, (t) => onchange(t as Team, role))}
 	{@render segmented('Роль', role, roles, (r) => onchange(team, r as Role))}

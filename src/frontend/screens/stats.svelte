@@ -12,7 +12,7 @@
 
 	const TEAM_NOM: Record<Team, string> = { red: 'Красные', blue: 'Синие' }
 
-	/** Исход открытия относительно открывшей команды. */
+	/** Outcome of a reveal relative to the revealing team. */
 	type Outcome = 'correct' | 'wrong' | 'assassin'
 
 	const OUTCOME_ICON = { correct: Check, wrong: X, assassin: Skull } as const
@@ -23,12 +23,12 @@
 		team: Team
 		clue: { word: string; count: number }
 		reveals: Reveal[]
-		/** Ход завершён добровольно (нажали «Завершить ход»). */
+		/** The turn was ended voluntarily ("End turn" was pressed). */
 		passed: boolean
 		startAt: number
 	}
 
-	/** Группирует плоский лог в ходы: подсказка + открытые под ней карты. */
+	/** Groups the flat log into turns: a clue + the cards revealed under it. */
 	function buildTurns(log: LogEntry[]): Turn[] {
 		const turns: Turn[] = []
 		let current: Turn | null = null
@@ -52,7 +52,7 @@
 		return turns
 	}
 
-	/** Относительное время от старта партии в формате «м:сс». */
+	/** Time relative to the game start, formatted as "m:ss". */
 	function fmtRel(ms: number): string {
 		const total = Math.max(0, Math.round(ms / 1000))
 		const m = Math.floor(total / 60)
@@ -64,7 +64,7 @@
 	const sc = $derived($scoreAtom)
 	const team = $derived($statsTeamAtom)
 
-	// Партии нет (например, её закрыли) -- статистике показывать нечего.
+	// No game (e.g. it was closed) -- stats have nothing to show.
 	$effect(() => {
 		if (!view) goTo('home')
 	})
@@ -79,9 +79,9 @@
 	const winner = $derived(view?.winner ?? null)
 	const assassinHit = $derived(view?.cards.some((c) => c.revealed && c.type === 'assassin') ?? false)
 
-	// Режим фильтра по команде (тап по чипу счёта): показываем только её данные.
+	// Team filter mode (tap on a score chip): show only that team's data.
 	const teamTurns = $derived(team ? turns.filter((t) => t.team === team) : turns)
-	// Время команды -- сумма длительностей её ходов (до начала следующего хода / конца партии).
+	// Team time -- the sum of its turn durations (until the next turn starts / the game ends).
 	const teamTime = $derived(
 		team
 			? turns.reduce(
@@ -148,7 +148,7 @@
 			<div class="stats__turns">
 				{#each teamTurns as turn, i (i)}
 					<div class="stats__turn stats__turn--{turn.team}">
-						<!-- подсказка + время хода -->
+						<!-- clue + turn time -->
 						<div class="stats__clue">
 							<span class="stats__dot stats__dot--{turn.team}"></span>
 							<span class="stats__clue-word">

@@ -1,6 +1,6 @@
 import type { Rng } from '#frontend/game/types.ts'
 
-/** Весёлый микс вымышленных и поп-культурных персонажей для имени-подсказки. */
+/** A fun mix of fictional and pop-culture characters for the suggested name. */
 export const NAMES: string[] = [
 	'Гэндальф',
 	'Фродо',
@@ -82,7 +82,7 @@ export const NAMES: string[] = [
 	'Капитан Очевидность',
 ]
 
-/** Случайное имя из словаря. Rng инъектируется ради тестируемости (по умолчанию Math.random). */
+/** Random name from the dictionary. Rng is injected for testability (defaults to Math.random). */
 export function randomName(rng: Rng = Math.random): string {
 	return NAMES[Math.floor(rng() * NAMES.length)]!
 }

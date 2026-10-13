@@ -1,9 +1,9 @@
 import { derived, writable, type Readable } from 'svelte/store'
 
 /**
- * Атом -- стор Svelte, который ещё и читается вызовом: `count()` вместо `get(count)`. В компонентах
- * это обычный стор (`$count`), а в логике состояния чтение не требует подписки. Модули состояния
- * не зависят от компилятора Svelte и поэтому гоняются в `node --test` как есть.
+ * Atom: a Svelte store that can also be read by calling it, `count()` instead of `get(count)`. In components
+ * it's a regular store (`$count`), and in state logic reading needs no subscription. State modules
+ * don't depend on the Svelte compiler, so they run in `node --test` as is.
  */
 export type Atom<T> = Readable<T> & {
 	(): T
@@ -28,15 +28,15 @@ export function atom<T>(initial: T): Atom<T> {
 }
 
 /**
- * Производное значение. Источники перечисляются явно: по ним стор узнаёт, когда пересчитаться
- * для подписчиков, а вызов `fn()` всегда считает по свежим значениям.
+ * Derived value. Sources are listed explicitly: they tell the store when to recompute
+ * for subscribers, while calling `fn()` always computes from fresh values.
  */
 export function computed<T>(sources: Readable<unknown>[], fn: () => T): Computed<T> {
 	const store = derived(sources, () => fn())
 	return Object.assign(() => fn(), { subscribe: store.subscribe })
 }
 
-/** Вызывает `cb` на каждое изменение стора, но не на подписку (текущее значение). */
+/** Calls `cb` on every store change, but not on subscribe (the current value). */
 export function onChange(store: Readable<unknown>, cb: () => void): () => void {
 	let initial = true
 	return store.subscribe(() => {

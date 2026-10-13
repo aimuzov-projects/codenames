@@ -5,18 +5,18 @@
 	import { navDirectionAtom } from '#frontend/state/ui.ts'
 
 	type Props = {
-		/** Хедер, закреплённый сверху (обычно top-bar). Не скроллится вместе с телом. */
+		/** Header pinned to the top (usually top-bar). Doesn't scroll with the body. */
 		header?: Snippet
-		/** «Назад» для жеста от левого края -- тот же, что у кнопки в хедере. */
+		/** "Back" for the left-edge swipe -- the same as the header button. */
 		onback?: () => void
-		/** Затухание у нижней кромки: контент растворяется в фоне, а не обрывается. */
+		/** Fade at the bottom edge: content dissolves into the background instead of cutting off. */
 		bottomFade?: boolean
 		/**
-		 * Не анимировать тело целиком при возврате -- контент двигает себя сам. Так menu-layout
-		 * держит логотип на месте и анимирует только кнопки.
+		 * Don't animate the whole body on return -- the content moves itself. That's how menu-layout
+		 * keeps the logo in place and animates only the buttons.
 		 */
 		staticBody?: boolean
-		/** Расстояние между блоками тела; у доски оно плотнее. */
+		/** Spacing between body blocks; tighter on the board. */
 		gap?: 'normal' | 'tight'
 		children?: Snippet
 	}
@@ -27,8 +27,8 @@
 </script>
 
 <!--
-	Хедер sticky внутри скролл-контейнера: контент проезжает под ним, а градиентный фон хедера
-	(сплошной сверху, прозрачный у нижней кромки) даёт мягкое просвечивание в обеих темах.
+	The header is sticky inside the scroll container: content slides under it, and the header's gradient
+	background (solid at the top, transparent at the bottom edge) gives a soft see-through in both themes.
 -->
 <div class="screen">
 	<div class="screen__scroll">

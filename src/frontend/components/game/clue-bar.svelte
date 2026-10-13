@@ -6,7 +6,7 @@
 	import { timerSecondsAtom } from '#frontend/state/settings.ts'
 
 	type Props = {
-		/** Доля оставшегося времени хода 0..1; null -- отсчёта сейчас нет. */
+		/** Fraction of turn time left, 0..1; null -- no countdown right now. */
 		timeFrac: number | null
 	}
 
@@ -17,22 +17,22 @@
 	const view = $derived($viewAtom)
 	const team = $derived(view?.currentTeam ?? 'red')
 	const over = $derived(view?.phase === 'over')
-	// Все слова подсказки открыты -- осталась бонусная попытка (ровно одна).
+	// All clue words are revealed -- a bonus guess is left (exactly one).
 	const isBonus = $derived((view?.guessesRemaining ?? 0) <= 1)
-	// В бонусе показываем подсказку прошлого хода этой команды; на первом ходу её ещё нет --
-	// тогда вместо пустоты ставим «…», чтобы блок слова не схлопывался.
+	// During the bonus we show this team's clue from its previous turn; on the first turn there's none yet --
+	// then we put "…" instead of nothing so the word block doesn't collapse.
 	const clueWord = $derived(isBonus ? (view?.prevClueWord[team] ?? '…') : (view?.clue?.word ?? null))
 	const isLocal = $derived($modeAtom === 'local')
-	// Таймер включён в настройках -- резервируем место под полосу всегда (и до подсказки),
-	// чтобы контент не прыгал при переходе clue → guess. Сама полоса рисуется по timeFrac.
+	// Timer is on in settings -- always reserve room for the bar (even before the clue)
+	// so content doesn't jump on the clue → guess transition. The bar itself is drawn from timeFrac.
 	const timerOn = $derived($timerSecondsAtom > 0)
 	const inClue = $derived(!over && view?.phase === 'clue')
-	// Зритель может дать подсказку (капитан в фазе clue) -- сам ввод открывается из футера.
+	// The viewer can give a clue (spymaster in the clue phase) -- the input itself opens from the footer.
 	const canCompose = $derived(
 		inClue && (isLocal ? $viewRoleAtom === 'spymaster' : $myTeamAtom === team && $myRoleAtom === 'spymaster'),
 	)
-	// Приглашение «Ожидаем подсказки» показываем всю фазу clue в локали (и под гейтом передачи
-	// телефона): инструкцию «передайте телефон» несёт сама модалка pass-phone, бар не дублирует её.
+	// The "Waiting for a clue" prompt is shown for the whole clue phase locally (and under the phone handoff
+	// gate): the "pass the phone" instruction comes from the pass-phone modal itself, the bar doesn't repeat it.
 	const showInvite = $derived(canCompose || (inClue && isLocal))
 
 	function onkeydown(event: KeyboardEvent) {
@@ -43,7 +43,7 @@
 	}
 </script>
 
-<!-- Статус-зона хода: активная подсказка либо ожидание капитана (сам ввод -- в clue-composer). -->
+<!-- Turn status area: the active clue or waiting for the spymaster (the input itself is in clue-composer). -->
 {#if view}
 	<!-- svelte-ignore a11y_no_static_element_interactions, a11y_no_noninteractive_tabindex -->
 	<div
@@ -58,7 +58,7 @@
 		onkeydown={canCompose ? onkeydown : undefined}
 	>
 		{#if view.clue}
-			<!-- Бонусная попытка выглядит как обычная подсказка -- меняются лишь подпись и число. -->
+			<!-- A bonus guess looks like a regular clue -- only the caption and the number change. -->
 			<div class="clue-bar__text">
 				<span class="clue-bar__caption">{isBonus ? 'Бонусное угадывание' : `Подсказка ${TEAM_GEN[team]}`}</span>
 				{#if clueWord}<span class="clue-bar__word">{clueWord}</span>{/if}
@@ -66,7 +66,7 @@
 			<span class="clue-bar__chip clue-bar__chip--solid">{isBonus ? view.guessesRemaining : view.clue.count}</span
 			>
 		{:else if showInvite}
-			<!-- Зеркалит вид подсказки: текст слева, чип-иконка справа (где число слов). -->
+			<!-- Mirrors the clue layout: text on the left, icon chip on the right (where the word count goes). -->
 			<div class="clue-bar__text">
 				<span class="clue-bar__caption">Ход капитана {TEAM_GEN[team]}</span>
 				<span class="clue-bar__word">Ожидаем подсказки</span>
@@ -77,9 +77,9 @@
 		{/if}
 
 		<!--
-			Таймер хода -- «утекающая» полоса по нижнему краю блока. Рисуем её всегда при включённом
-			таймере: вне фазы guess timeFrac === null, и тогда пустой серый трек заполняет зарезервированное
-			снизу место, чтобы контент не «висел» выше центра.
+			Turn timer -- a "draining" bar along the bottom edge of the block. We always draw it when the timer
+			is on: outside the guess phase timeFrac === null, and then an empty gray track fills the space reserved
+			at the bottom so content doesn't "hang" above center.
 		-->
 		{#if timerOn}
 			<div
@@ -121,7 +121,7 @@
 			--team-tint-fg: var(--team-blue-tint-foreground);
 		}
 
-		/* Полоса таймера занимает нижние 6px -- резервируем их, чтобы контент остался по центру. */
+		/* The timer bar takes the bottom 6px -- reserve them so content stays centered. */
 		&--timer {
 			padding-bottom: 6px;
 		}
@@ -130,7 +130,7 @@
 			opacity: 0.5;
 		}
 
-		/* Тап по бару-приглашению открывает композер -- как кнопка «Придумать подсказку». */
+		/* Tapping the prompt bar opens the composer -- same as the "Come up with a clue" button. */
 		&--action {
 			cursor: pointer;
 			user-select: none;
@@ -140,7 +140,7 @@
 			}
 		}
 
-		/* Блик-приглашение: тот же, что у главного CTA, но только пока зовём к ходу. */
+		/* Prompt shine: same as the main CTA's, but only while we're calling for a move. */
 		&--sheen::after {
 			pointer-events: none;
 			content: '';
@@ -203,7 +203,7 @@
 				background: var(--team);
 			}
 
-			/* Мягкая заливка для иконки-приглашения «придумать подсказку». */
+			/* Soft fill for the "come up with a clue" prompt icon. */
 			&--tint {
 				color: var(--team-tint-fg);
 				background: var(--team-tint);

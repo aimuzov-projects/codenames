@@ -1,11 +1,11 @@
 import type { RedactedState } from '#frontend/game/index.ts'
 
 /**
- * Метка времени (мс epoch) начала текущего хода — момент выдачи активной подсказки,
- * взятый из лога партии. Этот якорь живёт в состоянии партии: он синхронизируется
- * гостям и переживает перемонтирование экрана, поэтому, в отличие от локального
- * отсчёта компонента, не сбрасывается при заходе в настройки и обратно.
- * null — активного хода нет (не фаза guess).
+ * Timestamp (ms epoch) of the current turn start: the moment the active clue was given,
+ * taken from the game log. This anchor lives in the game state: it syncs
+ * to guests and survives the screen remounting, so, unlike a component's local
+ * countdown, it doesn't reset when going to settings and back.
+ * null: no active turn (not the guess phase).
  */
 export function turnStartedAt(view: RedactedState | null): number | null {
 	if (!view || view.phase !== 'guess' || !view.clue) return null
@@ -16,15 +16,15 @@ export function turnStartedAt(view: RedactedState | null): number | null {
 	return null
 }
 
-/** Сколько секунд хода осталось при длительности `timerSec` и старте `startedAt` (всё в мс epoch). */
+/** Seconds left in the turn for duration `timerSec` and start `startedAt` (all in ms epoch). */
 export function turnSecondsLeft(startedAt: number, timerSec: number, now: number): number {
 	return Math.max(0, timerSec - (now - startedAt) / 1000)
 }
 
 /**
- * Сколько секунд осталось до разблокировки кнопки «Завершить ход».
- * Блокировка длится `lockSec` секунд от старта хода `startedAt` (всё в мс epoch),
- * чтобы погасить случайный тап при передаче телефона. 0 — кнопка уже доступна.
+ * Seconds left until the "End turn" button unlocks.
+ * The lock lasts `lockSec` seconds from the turn start `startedAt` (all in ms epoch),
+ * to absorb an accidental tap while handing the phone over. 0: the button is already available.
  */
 export function endTurnLockLeft(startedAt: number, lockSec: number, now: number): number {
 	return Math.max(0, lockSec - (now - startedAt) / 1000)

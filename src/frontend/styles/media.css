@@ -1,5 +1,5 @@
-/* Брейкпоинты для @media (--md) и т. п. PostCSS подмешивает файл в каждый блок стилей,
-   в бандл он сам не попадает. Пары --below-* закрывают ровно до следующего порога. */
+/* Breakpoints for @media (--md) etc. PostCSS injects this file into every style block,
+   it never ends up in the bundle itself. The --below-* pairs cover exactly up to the next threshold. */
 @custom-media --sm (width >= 600px);
 @custom-media --md (width >= 900px);
 @custom-media --lg (width >= 1000px);
@@ -11,6 +11,6 @@
 
 @custom-media --reduced-motion (prefers-reduced-motion: reduce);
 
-/* Что проявляет скрипт, прячем только когда скрипты есть: без них страница видна сразу. */
+/* What the script fades in is hidden only when scripting is on: without it the page shows at once. */
 @custom-media --scripting (scripting: enabled);
 @custom-media --no-scripting (scripting: none);

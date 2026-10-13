@@ -1,4 +1,4 @@
-/* Токены темы. Тёмная включается классом .dark на <html> (см. state/theme.ts и скрипт в layouts/base.astro). */
+/* Theme tokens. Dark is toggled by .dark on <html> (see state/theme.ts and the script in layouts/base.astro). */
 :root {
 	--font-sans: 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
 
@@ -12,7 +12,7 @@
 	--safe-top: env(safe-area-inset-top);
 	--safe-bottom: env(safe-area-inset-bottom);
 
-	/* Размер слова на карте меняется в настройках (state/settings.ts). */
+	/* Card word size is changed in settings (state/settings.ts). */
 	--card-word-size: 13px;
 
 	--background: oklch(1 0 0);
@@ -37,12 +37,12 @@
 	--warn-border: oklch(0.63 0.17 52);
 	--warn-text: oklch(1 0 0);
 
-	/* Игровые цвета: команды и типы карт */
+	/* Game colors: teams and card types */
 	--team-red: oklch(0.585 0.222 27.3);
 	--team-red-foreground: oklch(0.985 0 0);
 	--team-red-tint: oklch(0.93 0.05 27.3);
 	--team-red-tint-foreground: oklch(0.45 0.16 27.3);
-	/* Яркий вариант -- точка открывшей команды, заметнее любого фона в обеих темах. */
+	/* Bright variant -- the dot of the revealing team, stands out on any background in both themes. */
 	--team-red-bright: oklch(0.78 0.23 27.3);
 	--team-blue: oklch(0.55 0.17 256);
 	--team-blue-foreground: oklch(0.985 0 0);
@@ -107,8 +107,8 @@
 	outline-color: color-mix(in oklch, var(--ring) 50%, transparent);
 }
 
-/* Документ не скроллится: прокрутка только внутри экрана. fixed гасит rubber-band старых iOS,
-   overscroll-behavior -- pull-to-refresh, touch-action -- double-tap-zoom и задержку тапа. */
+/* The document doesn't scroll: scrolling happens only inside a screen. fixed kills rubber-band on old iOS,
+   overscroll-behavior -- pull-to-refresh, touch-action -- double-tap-zoom and the tap delay. */
 html,
 body {
 	touch-action: manipulation;
@@ -160,15 +160,15 @@ svg {
 	display: block;
 }
 
-/* Оболочка приложения прижимается к visualViewport (см. app.svelte): при клавиатуре видимая область
-   не уезжает. fixed делает её containing block для оверлеев, overflow не режем -- затемнению
-   композера нужно вытечь за нижнюю кромку. */
+/* The app shell is pinned to visualViewport (see app.svelte): with the keyboard open the visible area
+   doesn't drift away. fixed makes it the containing block for overlays; overflow isn't clipped -- the
+   composer's backdrop needs to spill past the bottom edge. */
 #root {
 	position: fixed;
 	inset: 0;
 }
 
-/* Только для скринридеров. */
+/* Screen readers only. */
 .visually-hidden {
 	position: absolute;
 	overflow: hidden;
@@ -181,7 +181,7 @@ svg {
 	clip-path: inset(50%);
 }
 
-/* Въезд экрана слева при возврате назад (screen.svelte, menu-layout.svelte). */
+/* Screen slides in from the left when going back (screen.svelte, menu-layout.svelte). */
 @keyframes screen-in-left {
 	from {
 		transform: translateX(-10%);

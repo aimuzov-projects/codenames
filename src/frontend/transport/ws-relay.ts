@@ -6,10 +6,10 @@ type RelayIn = Envelope<ClientMessage | HostMessage>
 type RelayOut = EnvelopeOut<ClientMessage | HostMessage>
 
 /**
- * Транспорт поверх WS-релея. Главное отличие от QR/WebRTC: разорванный канал чинится сам —
- * сокет переподключается с backoff, гость заново входит в комнату под тем же id устройства,
- * а хост занимает свою комнату обратно. Именно это позволяет вернуться в партию после сна
- * телефона, не заставляя людей снова водить камерой по чужому экрану.
+ * Transport over the WS relay. The main difference from QR/WebRTC: a broken channel heals itself.
+ * The socket reconnects with backoff, the guest rejoins the room under the same device id,
+ * and the host takes its room back. That's exactly what lets people return to a game after
+ * the phone sleeps, without making them point a camera at someone else's screen again.
  */
 
 const RETRY_MIN_MS = 500
@@ -17,7 +17,7 @@ const RETRY_MAX_MS = 5000
 
 type Fatal = 'no-room' | 'room-taken'
 
-/** Сокет с авто-переподключением: живёт до close(), сам поднимается после обрыва. */
+/** Socket with auto-reconnect: lives until close(), comes back up by itself after a drop. */
 class ReconnectingSocket {
 	private ws: WebSocket | null = null
 	private timer: ReturnType<typeof setTimeout> | null = null
@@ -34,8 +34,8 @@ class ReconnectingSocket {
 		this.onMessage = onMessage
 		this.onDown = onDown
 		this.connect()
-		// Возврат из фона и появление сети — лучшие моменты для повторной попытки: ждать
-		// очередного шага backoff, когда человек уже смотрит на экран, незачем.
+		// Coming back from background and the network reappearing are the best moments to retry: no point
+		// waiting for the next backoff step when the person is already looking at the screen.
 		globalThis.addEventListener('online', this.wake)
 		document.addEventListener('visibilitychange', this.wake)
 	}
@@ -62,7 +62,7 @@ class ReconnectingSocket {
 		}
 		ws.onmessage = (e) => this.onMessage(JSON.parse(e.data as string) as RelayOut)
 		ws.onclose = () => {
-			if (this.ws !== ws) return // уже заменён более свежей попыткой
+			if (this.ws !== ws) return // already replaced by a newer attempt
 			this.onDown()
 			this.scheduleRetry()
 		}
@@ -96,7 +96,7 @@ class ReconnectingSocket {
 	}
 }
 
-/** Сторона хоста: комната на релее, гости адресуются своим id устройства. */
+/** Host side: a room on the relay, guests are addressed by their device id. */
 export class WsHostTransport implements HostTransport {
 	private socket: ReconnectingSocket
 	private code: string | null = null
@@ -108,7 +108,7 @@ export class WsHostTransport implements HostTransport {
 
 	constructor(
 		url: string,
-		/** Код прошлой комнаты — чтобы после перезапуска приложения вернуться в неё же. */
+		/** Previous room code: to get back into the same room after an app restart. */
 		code: string | null,
 		onCode: (code: string) => void,
 		onFatal: (reason: Fatal) => void = () => {},
@@ -118,7 +118,7 @@ export class WsHostTransport implements HostTransport {
 		this.onFatal = onFatal
 		this.socket = new ReconnectingSocket(
 			url,
-			// Тот же код после обрыва — гости остаются в комнате и ждут возвращения хоста.
+			// Same code after a drop: guests stay in the room and wait for the host to return.
 			() => this.socket.send({ t: 'host', code: this.code ?? undefined }),
 			(msg) => this.handle(msg),
 			() => {},
@@ -162,7 +162,7 @@ export class WsHostTransport implements HostTransport {
 	}
 }
 
-/** Сторона гостя: канал до хоста через комнату релея. */
+/** Guest side: a channel to the host through the relay room. */
 export class WsGuestTransport implements GuestTransport {
 	private socket: ReconnectingSocket
 	private hostOnline = false
@@ -186,9 +186,9 @@ export class WsGuestTransport implements GuestTransport {
 	}
 
 	/**
-	 * Канал считаем открытым, только когда хост в комнате: сокет до релея сам по себе игру не
-	 * двигает. Каждое открытие поднимает onOpen — net.ts на нём представляется (`hello`), так
-	 * что вернувшийся хост сразу узнаёт, кто уже на месте.
+	 * The channel counts as open only when the host is in the room: the socket to the relay alone
+	 * doesn't move the game. Each open fires onOpen, where net.ts introduces itself (`hello`), so
+	 * a returning host immediately learns who's already there.
 	 */
 	private setHostOnline(online: boolean) {
 		if (online === this.hostOnline) return

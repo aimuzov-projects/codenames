@@ -2,12 +2,12 @@ import type { ClientMessage, HostMessage } from '#frontend/transport/messages.ts
 import { HostConnection } from '#frontend/transport/webrtc.ts'
 
 /**
- * Управляет множеством соединений хоста с гостями (топология «звезда»).
- * Оперирует id соединения (connId), а не игрока: одному игроку за партию может достаться
- * несколько соединений подряд (переподключение после сна). Связку connId ↔ playerId держит
- * net.ts по присланному гостем `hello`.
+ * Manages the host's many connections to guests (star topology).
+ * Works with connection ids (connId), not players: one player can get several connections in a row
+ * during a game (reconnecting after sleep). The connId ↔ playerId mapping is kept by
+ * net.ts, based on the `hello` the guest sends.
  */
-/** Хостовая сторона одного WebRTC-канала: ровно то, чем хаб пользуется у HostConnection. */
+/** Host side of one WebRTC channel: exactly what the hub uses from HostConnection. */
 type QrHostConnection = {
 	onMessage(cb: (msg: ClientMessage) => void): void
 	onOpen(cb: () => void): void
@@ -25,7 +25,7 @@ export class HostHub {
 
 	private readonly connect: (connId: string) => QrHostConnection
 
-	/** Фабрику канала юнит-тесты подменяют подделкой: в Node нет WebRTC. */
+	/** Unit tests swap the channel factory for a fake: Node has no WebRTC. */
 	constructor(
 		connect: (connId: string) => QrHostConnection = (connId) =>
 			new HostConnection<ClientMessage, HostMessage>(connId),
@@ -43,16 +43,16 @@ export class HostHub {
 		this.disconnectCb = cb
 	}
 
-	/** Принимает offer гостя, возвращает id соединения и answer-код для показа гостю. */
+	/** Accepts a guest's offer, returns the connection id and the answer code to show the guest. */
 	async acceptGuest(offerCode: string): Promise<{ connId: string; answerCode: string }> {
 		const connId = crypto.randomUUID().slice(0, 8)
 		const conn = this.connect(connId)
-		// Подписки — до рукопожатия, чтобы не пропустить событие открытия канала.
+		// Subscribe before the handshake so the channel open event isn't missed.
 		conn.onMessage((m) => this.messageCb(connId, m))
 		conn.onOpen(() => this.connectCb(connId))
 		conn.onClose(() => {
-			// Мёртвое соединение выбрасываем сразу: за партию их накапливается по одному
-			// на каждое переподключение гостя, а рассылка ходит по всей карте.
+			// A dead connection is dropped right away: one piles up per guest reconnect during a game,
+			// and broadcasts walk the whole map.
 			this.conns.delete(connId)
 			conn.close()
 			this.disconnectCb(connId)

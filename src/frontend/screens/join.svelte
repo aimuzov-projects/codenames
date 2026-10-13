@@ -44,7 +44,7 @@
 		error: 'Соединение потеряно',
 	} as const
 
-	// Возврат в свою партию после обрыва: имя и место уже есть, шаг с именем пропускаем.
+	// Returning to your own game after a drop: name and seat are already known, skip the name step.
 	const reconnecting = joinModeAtom() === 'reconnect'
 	let stage = $state<Stage>(reconnecting ? 'offer' : 'name')
 	let name = $state('')
@@ -53,8 +53,8 @@
 	let roomInput = $state('')
 	let codeError = $state('')
 
-	// Новое рукопожатие без потери сессии: id и место у игрока прежние, хост узнает его по ним.
-	// В комнате на релее ходить с камерой не нужно -- транспорт поднимается сам.
+	// New handshake without losing the session: id and seat stay the same, the host knows the player by them.
+	// In a relay room no camera is needed -- the transport comes up on its own.
 	async function reconnect() {
 		if (transportAtom() === 'relay') {
 			guestReconnect()
@@ -73,14 +73,14 @@
 
 	const spymasterDisabled = $derived(teamHasSpymaster($rosterAtom, $myTeamAtom, $myIdAtom))
 
-	// Офлайн-путь: двухшаговое рукопожатие по QR (offer -> answer), интернет не нужен.
+	// Offline path: two-step QR handshake (offer -> answer), no internet needed.
 	async function connectByQr() {
 		startJoining(name.trim() || suggestedName)
 		offerCode = await guestCreateOffer()
 		stage = 'offer'
 	}
 
-	// Онлайн-путь: комната на релее. Дальше канал чинится сам, ходить с камерой не придётся.
+	// Online path: a relay room. From here the channel repairs itself, no camera needed again.
 	function connectByCode(raw: string) {
 		const code = normalizeRoomCode(raw)
 		if (!isRoomCode(code)) {
@@ -102,8 +102,8 @@
 		guestSetup(s.team, s.role)
 	}
 
-	// При переподключении выход с экрана -- просто возврат на доску: сессию рвать нельзя,
-	// иначе игрок потеряет партию, в которую как раз возвращается.
+	// When reconnecting, leaving the screen just returns to the board: the session must not be torn down,
+	// or the player would lose the very game they're returning to.
 	function back() {
 		if (!reconnecting) leaveSession()
 		goBack()

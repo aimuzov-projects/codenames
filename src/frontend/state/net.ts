@@ -33,15 +33,15 @@ import { WsGuestTransport, WsHostTransport } from '#frontend/transport/ws-relay.
 
 export const HOST_ID = 'host'
 
-/** Гостевая сторона QR-рукопожатия: кроме канала умеет выпустить offer и принять answer. */
+/** Guest side of the QR handshake: besides the channel, it can issue an offer and accept an answer. */
 type QrGuest = GuestTransport & {
 	createOfferCode(): Promise<string>
 	acceptAnswerCode(code: string): Promise<void>
 }
 
 /**
- * Откуда берутся транспорты QR-режима. Юнит-тесты подменяют фабрики подделками: в Node нет
- * WebRTC, а логике лобби и партии хватает канала, который можно дёргать руками.
+ * Where QR-mode transports come from. Unit tests swap the factories for fakes: Node has no
+ * WebRTC, and the lobby and game logic only needs a channel we can poke by hand.
  */
 export const qrTransports = {
 	host: () => new HostHub(),
@@ -55,24 +55,24 @@ export const startedAtom = atom<boolean>(false)
 export const connStatusAtom = atom<'idle' | 'connecting' | 'connected' | 'error'>('idle')
 
 /**
- * Соединения, чей `hello` уже дошёл до хоста (экран «Добавить игрока» ждёт по этому списку:
- * игрока в ростере до `hello` ещё нет, потому что его id приходит именно в этом сообщении).
+ * Connections whose `hello` has already reached the host (the "Add player" screen waits on this list:
+ * the player isn't in the roster before `hello`, because their id arrives in exactly that message).
  */
 export const joinedConnIdsAtom = atom<string[]>([])
 
 /**
- * Транспорт партии: 'qr' — WebRTC с рукопожатием через камеру (работает без интернета, на одном
- * хотспоте), 'relay' — комната на WS-сервере (нужен интернет, зато переподключается сама).
+ * Game transport: 'qr' is WebRTC with a camera handshake (works offline, on a single hotspot),
+ * 'relay' is a room on the WS server (needs internet, but reconnects on its own).
  */
 export type Transport = 'qr' | 'relay'
 
 export const transportAtom = atom<Transport>('qr')
-/** Код комнаты на релее: у хоста приходит с сервера, у гостя — введён или отсканирован. */
+/** Relay room code: the host gets it from the server, the guest types or scans it. */
 export const roomCodeAtom = atom<string>('')
 
 let hub: HostTransport | null = null
 let guest: GuestTransport | null = null
-/** Тот же гостевой канал, пока партия идёт по QR: только у него есть offer и answer. */
+/** Same guest channel while the game runs over QR: only it has offer and answer. */
 let qrGuest: QrGuest | null = null
 
 // ---------- helpers ----------
@@ -80,9 +80,9 @@ function patchRoster(id: string, patch: Partial<PlayerInfo>) {
 	rosterAtom.set(rosterAtom().map((p) => (p.id === id ? { ...p, ...patch } : p)))
 }
 
-// ---------- связка соединения и игрока (хост) ----------
-// За партию у одного игрока может смениться несколько соединений (переподключение после сна),
-// поэтому транспортный connId и игровой playerId живут отдельно.
+// ---------- connection-to-player binding (host) ----------
+// A player can go through several connections during a game (reconnecting after sleep),
+// so the transport connId and the game playerId are kept separate.
 const playerByConn = new Map<string, string>()
 const connByPlayer = new Map<string, string>()
 
@@ -94,21 +94,21 @@ function bindConn(connId: string, playerId: string) {
 	joinedConnIdsAtom.set([...joinedConnIdsAtom(), connId])
 }
 
-/** Снимает привязку закрытого соединения; возвращает игрока, если тот действительно ушёл. */
+/** Unbinds a closed connection; returns the player if they've actually left. */
 function unbindConn(connId: string): string | null {
 	const playerId = playerByConn.get(connId)
 	playerByConn.delete(connId)
 	joinedConnIdsAtom.set(joinedConnIdsAtom().filter((c) => c !== connId))
-	// Старое соединение может закрыться уже после того, как игрок вернулся через новое
-	// (обрыв WebRTC замечают с задержкой). Тогда привязка указывает на живой канал — не трогаем.
+	// The old connection may close after the player has already come back through a new one
+	// (a WebRTC drop is noticed with a delay). Then the binding points to a live channel, leave it.
 	if (playerId === undefined || connByPlayer.get(playerId) !== connId) return null
 	connByPlayer.delete(playerId)
 	return playerId
 }
 
-// ---------- отложенное удаление офлайн-игрока из лобби ----------
-// Полминуты — чтобы уснувший в лобби успел вернуться на своё место (рукопожатие по QR не мгновенное).
-// Старт партии офлайн-игроки не блокируют: isRosterReady смотрит только на подключённых.
+// ---------- delayed removal of an offline player from the lobby ----------
+// Half a minute, so whoever fell asleep in the lobby can get back to their seat (QR handshake isn't instant).
+// Offline players don't block the game start: isRosterReady only looks at connected ones.
 const OFFLINE_REMOVAL_MS = 30_000
 const removalTimers = new Map<string, ReturnType<typeof setTimeout>>()
 
@@ -129,7 +129,7 @@ function scheduleRemoval(id: string) {
 	const timer = setTimeout(() => {
 		removalTimers.delete(id)
 		const p = rosterAtom().find((p) => p.id === id)
-		// Удаляем только если всё ещё в лобби и игрок всё ещё офлайн.
+		// Remove only if we're still in the lobby and the player is still offline.
 		if (!startedAtom() && p && !p.connected) {
 			removePlayer(id)
 			broadcastLobby()
@@ -142,12 +142,12 @@ function roleOf(id: string): Role {
 	return rosterAtom().find((p) => p.id === id)?.role ?? 'operative'
 }
 
-// ---------- пульс ----------
+// ---------- heartbeat ----------
 /**
- * Уснувшее устройство замораживает вебвью, и канал нередко умирает молча — без close.
- * Поэтому обе стороны раз в HEARTBEAT_MS шлют `ping` и считают связь потерянной, если
- * собеседник молчит дольше SILENCE_MS. Признак мягкий: пришедшее сообщение сразу возвращает
- * связь в строй, соединение мы при этом не закрываем.
+ * A sleeping device freezes the webview, and the channel often dies silently, without close.
+ * So both sides send `ping` every HEARTBEAT_MS and consider the link lost if the other side
+ * stays silent longer than SILENCE_MS. It's a soft signal: any incoming message brings the link
+ * right back, and we don't close the connection.
  */
 const HEARTBEAT_MS = 5000
 const SILENCE_MS = 20_000
@@ -171,7 +171,7 @@ function silentFor(key: string, now: number): boolean {
 	return seen !== undefined && now - seen > SILENCE_MS
 }
 
-// ================= ХОСТ =================
+// ================= HOST =================
 export function startHosting(name: string, team: Team, role: Role, transport: Transport = 'qr') {
 	modeAtom.set('host')
 	myIdAtom.set(HOST_ID)
@@ -190,14 +190,14 @@ export function startHosting(name: string, team: Team, role: Role, transport: Tr
 	setIntentSender(null)
 }
 
-/** Поднимает транспорт хоста и его обработчики (общее для нового хостинга и восстановления). */
+/** Brings up the host transport and its handlers (shared by fresh hosting and restore). */
 function openHostHub() {
 	hub?.close()
 	hub =
 		transportAtom() === 'relay'
 			? new WsHostTransport(relayUrl(), roomCodeAtom() || null, (code) => roomCodeAtom.set(code), hostRelayFatal)
 			: qrTransports.host()
-	// onConnect не трогаем: пока не пришёл `hello`, мы не знаем, кто именно подключился.
+	// We skip onConnect: until `hello` arrives, we don't know who exactly connected.
 	hub.onDisconnect((connId) => {
 		const playerId = unbindConn(connId)
 		if (playerId === null) return
@@ -209,12 +209,12 @@ function openHostHub() {
 	startHeartbeat(hostHeartbeat)
 }
 
-/** Комнату занял кто-то другой — код придётся получить заново (партия при этом цела). */
+/** Someone else took the room, so we'll have to get a new code (the game itself is intact). */
 function hostRelayFatal() {
 	roomCodeAtom.set('')
 }
 
-/** Пульс хоста: рассылает `ping` и переводит замолчавших игроков в офлайн. */
+/** Host heartbeat: broadcasts `ping` and marks players who went silent as offline. */
 function hostHeartbeat() {
 	hub?.broadcast({ t: 'ping' })
 	const now = Date.now()
@@ -228,7 +228,7 @@ function hostHeartbeat() {
 	if (changed) broadcastLobby()
 }
 
-/** Принимает offer гостя (из QR/строки); возвращает id соединения и answer-код для показа гостю. */
+/** Accepts a guest offer (from QR/string); returns the connection id and the answer code to show the guest. */
 export async function acceptGuestOffer(offerCode: string) {
 	if (!(hub instanceof HostHub)) throw new Error('Рукопожатие по QR недоступно в этом режиме')
 	return await hub.acceptGuest(offerCode)
@@ -241,8 +241,8 @@ function handleClientMessage(connId: string, msg: ClientMessage) {
 		return
 	}
 	const playerId = playerByConn.get(connId)
-	if (playerId === undefined) return // сообщение до `hello` — отправителя ещё не знаем
-	// Заговорил тот, кого пульс успел записать в офлайн (связь только подвисала) — возвращаем.
+	if (playerId === undefined) return // message before `hello`, we don't know the sender yet
+	// Someone the heartbeat already marked offline is talking (the link only stalled), bring them back.
 	if (rosterAtom().find((p) => p.id === playerId)?.connected === false) {
 		clearRemovalTimer(playerId)
 		patchRoster(playerId, { connected: true })
@@ -262,8 +262,8 @@ function handleClientMessage(connId: string, msg: ClientMessage) {
 }
 
 /**
- * Заводит нового игрока или возвращает знакомого (переподключение после обрыва/сна) на его
- * прежнее место — с той же командой и ролью, сразу с актуальным состоянием партии.
+ * Adds a new player or puts a known one (reconnecting after a drop/sleep) back in their old seat,
+ * with the same team and role, and sends them the current game state right away.
  */
 function welcomePlayer(connId: string, playerId: string, name: string) {
 	clearRemovalTimer(playerId)
@@ -303,7 +303,7 @@ function broadcastState() {
 	for (const playerId of connByPlayer.keys()) sendStateTo(playerId)
 }
 
-/** Хост настраивает свою команду/роль. */
+/** Host sets their own team/role. */
 export function setHostSetup(team: Team, role: Role) {
 	const resolved = resolveSetup(rosterAtom(), HOST_ID, team, role)
 	myTeamAtom.set(resolved.team)
@@ -313,7 +313,7 @@ export function setHostSetup(team: Team, role: Role) {
 	broadcastLobby()
 }
 
-/** Хост перетасовывает весь состав (команды и роли) с соблюдением баланса. */
+/** Host reshuffles the whole roster (teams and roles), keeping it balanced. */
 export function hostReshuffle() {
 	const next = reshuffleRoster(rosterAtom())
 	rosterAtom.set(next)
@@ -326,7 +326,7 @@ export function hostReshuffle() {
 	broadcastLobby()
 }
 
-/** Хост запускает партию. */
+/** Host starts the game. */
 export function hostStartGame(config: GameConfig) {
 	gameAtom.set(createGame(config))
 	startedAtom.set(true)
@@ -335,7 +335,7 @@ export function hostStartGame(config: GameConfig) {
 	goTo('board')
 }
 
-// ================= ГОСТЬ =================
+// ================= GUEST =================
 export function startJoining(name: string, options: { transport?: Transport; code?: string } = {}) {
 	modeAtom.set('guest')
 	myNameAtom.set(name)
@@ -348,14 +348,14 @@ export function startJoining(name: string, options: { transport?: Transport; cod
 	openGuestConnection()
 }
 
-/** Создаёт гостевое соединение, не трогая уже накопленное состояние (см. также guestReconnect). */
+/** Creates the guest connection without touching the state collected so far (see also guestReconnect). */
 function openGuestConnection() {
 	guest?.close()
 	connStatusAtom.set('connecting')
 
 	qrGuest = transportAtom() === 'relay' ? null : qrTransports.guest()
 	guest = qrGuest ?? new WsGuestTransport(relayUrl(), roomCodeAtom(), myIdAtom(), guestRelayFatal)
-	// Подписки — до рукопожатия.
+	// Subscribe before the handshake.
 	guest.onMessage(handleHostMessage)
 	guest.onOpen(() => {
 		connStatusAtom.set('connected')
@@ -369,7 +369,7 @@ function openGuestConnection() {
 	setHostSubmit(null)
 }
 
-/** Комнаты с таким кодом нет (опечатка или хост давно ушёл) — дальше пробовать бессмысленно. */
+/** No room with this code (a typo or the host left long ago), no point in retrying. */
 function guestRelayFatal() {
 	connStatusAtom.set('error')
 	guest?.close()
@@ -378,7 +378,7 @@ function guestRelayFatal() {
 	stopHeartbeat()
 }
 
-/** Пульс гостя: отмечается сам и следит, не замолчал ли хост. */
+/** Guest heartbeat: checks in and watches whether the host went silent. */
 function guestHeartbeat() {
 	guest?.send({ t: 'ping' })
 	if (connStatusAtom() === 'connected' && silentFor(HOST_ID, Date.now())) {
@@ -387,27 +387,27 @@ function guestHeartbeat() {
 }
 
 /**
- * Гость переподключается после обрыва (сон устройства, потеря сети). В отличие от startJoining
- * ничего не сбрасывает: доска, ростер и id остаются на экране, пока идёт новое рукопожатие —
- * хост узнает игрока по тому же id и вернёт его на место.
+ * Guest reconnects after a drop (device sleep, network loss). Unlike startJoining it resets
+ * nothing: the board, roster and id stay on screen during the new handshake, and the host
+ * will recognize the player by the same id and put them back in their seat.
  */
 export function guestReconnect() {
 	openGuestConnection()
 }
 
-/** Гость создаёт offer-код для показа хосту (только режим QR). */
+/** Guest creates the offer code to show the host (QR mode only). */
 export async function guestCreateOffer() {
 	if (!qrGuest) throw new Error('Подключение не начато')
 	return await qrGuest.createOfferCode()
 }
 
-/** Гость принимает answer-код хоста; после этого канал откроется (только режим QR). */
+/** Guest accepts the host's answer code; the channel opens after that (QR mode only). */
 export async function guestAcceptAnswer(answerCode: string) {
 	if (!qrGuest) throw new Error('Подключение не начато')
 	await qrGuest.acceptAnswerCode(answerCode)
 }
 
-/** Гость выбирает команду/роль и сообщает хосту. */
+/** Guest picks a team/role and tells the host. */
 export function guestSetup(team: Team, role: Role) {
 	const resolved = resolveSetup(rosterAtom(), myIdAtom(), team, role)
 	myTeamAtom.set(resolved.team)
@@ -417,7 +417,7 @@ export function guestSetup(team: Team, role: Role) {
 
 function handleHostMessage(msg: HostMessage) {
 	lastSeen.set(HOST_ID, Date.now())
-	// Хост снова на связи: подвисший канал ожил (или пульс поспешил объявить его мёртвым).
+	// Host is back: a stalled channel came alive (or the heartbeat declared it dead too early).
 	if (connStatusAtom() !== 'connected' && guest?.open) connStatusAtom.set('connected')
 	switch (msg.t) {
 		case 'ping':
@@ -433,10 +433,10 @@ function handleHostMessage(msg: HostMessage) {
 				myTeamAtom.set(me.team)
 				myRoleAtom.set(me.role)
 			}
-			// На доску гостя переводит приход состояния (см. 'state' ниже) — там уже есть, что
-			// показать. По одному lobby переходить нельзя: состояние ещё в пути, доска оказалась бы
-			// пустой (view === null) и Board выкинул бы гостя в меню. Если состояние уже получено
-			// (повторный lobby во время партии), держим гостя на доске.
+			// The guest goes to the board when the state arrives (see 'state' below), then there's
+			// something to show. We can't switch on lobby alone: the state is still in flight, the board
+			// would be empty (view === null) and Board would kick the guest to the menu. If the state is
+			// already here (a repeated lobby mid-game), we keep the guest on the board.
 			if (msg.started && remoteViewAtom() != null) goTo('board')
 			break
 		}
@@ -448,7 +448,7 @@ function handleHostMessage(msg: HostMessage) {
 	}
 }
 
-// ================= общий выход =================
+// ================= common exit =================
 export function leaveSession() {
 	for (const t of removalTimers.values()) clearTimeout(t)
 	removalTimers.clear()
@@ -470,10 +470,10 @@ export function leaveSession() {
 	remoteViewAtom.set(null)
 }
 
-// ================= восстановление после перезапуска =================
+// ================= restore after restart =================
 /**
- * Сетевую партию держим в localStorage: iOS выгружает PWA из памяти, и без снимка возврат
- * в приложение означал бы потерю партии — у хоста вместе с каноном, то есть для всех сразу.
+ * We keep the network game in localStorage: iOS unloads the PWA from memory, and without a snapshot
+ * coming back to the app would mean losing the game. On the host that is the canonical state, i.e. for everyone.
  */
 export const savedSessionAtom = atom<SessionSnapshot | null>(loadSnapshot())
 
@@ -504,9 +504,9 @@ for (const source of [modeAtom, gameAtom, remoteViewAtom, rosterAtom, startedAto
 }
 
 /**
- * Возвращает игрока в сохранённую партию. Хост поднимает хаб и ждёт, пока гости подключатся
- * заново (их соединения перезапуск не пережили); гость оказывается на своей доске со статусом
- * «связь потеряна» и кнопкой переподключения.
+ * Returns the player to the saved game. The host brings up the hub and waits for guests to
+ * reconnect (their connections didn't survive the restart); the guest lands on their board with
+ * the "connection lost" status and a reconnect button.
  */
 export function resumeSession() {
 	const snap = savedSessionAtom()
@@ -521,7 +521,7 @@ export function resumeSession() {
 	myRoleAtom.set(snap.role)
 	viewRoleAtom.set(snap.role)
 	startedAtom.set(snap.started)
-	// Живых соединений после перезапуска нет ни у кого, кроме нас самих.
+	// After a restart nobody has a live connection except ourselves.
 	rosterAtom.set(snap.roster.map((p) => ({ ...p, connected: p.id === snap.id })))
 
 	if (snap.mode === 'host') {
@@ -538,7 +538,7 @@ export function resumeSession() {
 		setHostSubmit(null)
 		setIntentSender(null)
 		if (snap.transport === 'relay') {
-			// Комната и id известны — гость возвращается в партию сам, без единого действия.
+			// Room and id are known, so the guest rejoins on their own, without a single tap.
 			openGuestConnection()
 			goTo(snap.started && snap.view ? 'board' : 'join')
 		} else {
@@ -550,8 +550,8 @@ export function resumeSession() {
 	return true
 }
 
-// e2e-хук: обрывает канал у гостя. Усыпить устройство в тесте нельзя, а последствия сна —
-// именно такие: канал закрывается, состояние партии на экране остаётся. Под PUBLIC_E2E.
+// e2e hook: drops the guest's channel. We can't put a device to sleep in a test, and sleep has
+// exactly this effect: the channel closes, the game state stays on screen. Behind PUBLIC_E2E.
 if (E2E) {
 	;(window as unknown as { __e2eDropLink?: () => void }).__e2eDropLink = () => guest?.close()
 }

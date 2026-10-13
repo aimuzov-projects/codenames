@@ -17,7 +17,7 @@ function player(team: Team, role: Role, connected = true): PlayerInfo {
 	return { id: `p${seq++}`, name: 'Игрок', team, role, connected }
 }
 
-/** Детерминированный rng (mulberry32) для воспроизводимых перетасовок в тестах. */
+/** Deterministic rng (mulberry32) for reproducible shuffles in tests. */
 function makeRng(seed: number): () => number {
 	let a = seed >>> 0
 	return () => {
@@ -65,7 +65,7 @@ describe('pickSlot', () => {
 		const fourth = pickSlot(roster)
 		assert.equal(fourth.role, 'operative')
 		roster.push(player(fourth.team, fourth.role))
-		// По итогу — корректный 4-составный ростер.
+		// The result is a valid 4-player roster.
 		assert.equal(isRosterReady(roster), true)
 	})
 
@@ -129,7 +129,7 @@ describe('isRosterReady', () => {
 describe('randomSetup', () => {
 	it('никогда не назначает второго капитана в занятую команду', () => {
 		const roster = [player('red', 'spymaster'), player('blue', 'spymaster')]
-		// Доступны только red/blue-operative. Из синего всегда уходим в красный.
+		// Only red/blue operative are available. From blue we always move to red.
 		const current = { team: 'blue' as Team, role: 'operative' as Role }
 		assert.deepEqual(
 			randomSetup(roster, 'me', current, () => 0),
@@ -145,7 +145,7 @@ describe('randomSetup', () => {
 	})
 
 	it('может выдать капитана, если команда свободна', () => {
-		// current=red-operative исключается; rng=0 → первый из оставшихся (red-spymaster).
+		// current=red-operative is excluded; rng=0 → the first of the rest (red-spymaster).
 		assert.deepEqual(
 			randomSetup([], 'me', { team: 'red', role: 'operative' }, () => 0),
 			{
@@ -196,10 +196,10 @@ describe('reshuffleRoster', () => {
 			for (let seed = 0; seed < 25; seed++) {
 				const next = reshuffleRoster(roster, makeRng(seed))
 				assert.equal(isRosterReady(next), true)
-				// ровно один капитан на команду
+				// exactly one spymaster per team
 				assert.equal(spymastersOf(next, 'red').length, 1)
 				assert.equal(spymastersOf(next, 'blue').length, 1)
-				// все игроки сохранены
+				// all players are kept
 				assert.deepEqual([...next].map((p) => p.id).sort(), roster.map((p) => p.id).sort())
 			}
 		}
@@ -248,7 +248,7 @@ describe('reshuffleRoster', () => {
 		assert.equal(off.connected, false)
 		assert.equal(off.team, 'blue')
 		assert.equal(off.role, 'operative')
-		// баланс среди подключённых сохранён
+		// balance among connected players is kept
 		assert.equal(isRosterReady(next), true)
 	})
 })

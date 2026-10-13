@@ -1,13 +1,13 @@
-# Сборка живёт в образе: новый контейнер стартует только с готовым dist,
-# старый отдаёт сайт, пока образ собирается.
+# The build lives in the image: a new container starts only with a ready dist,
+# the old one serves the site while the image is being built.
 
 FROM node:26.11.1-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund --loglevel=error
 COPY . .
-# .env приходит секретом сборки: переменные нужны на этапе build,
-# но в слоях образа файла не остаётся.
+# .env comes in as a build secret: the variables are needed at build time,
+# but the file doesn't stay in the image layers.
 RUN --mount=type=secret,id=env,target=/app/.env npm run build
 
 FROM nginx:1.29-alpine

@@ -10,8 +10,8 @@ const ASSASSIN_CARDS = 1
 const other = (team: Team): Team => (team === 'red' ? 'blue' : 'red')
 
 /**
- * Создаёт новую партию: берёт 25 слов из пула, раздаёт ключ 9/8/7/1 в пользу
- * стартовой команды, выставляет фазу подсказки. RNG инъектируется для тестов.
+ * Creates a new game: takes 25 words from the pool, deals the 9/8/7/1 key in favor of
+ * the starting team, sets the clue phase. RNG is injected for tests.
  */
 export function createGame(config: GameConfig, rng: Rng = Math.random): GameState {
 	const uniqueWords = [...new Set(config.words)]
@@ -43,7 +43,7 @@ export function createGame(config: GameConfig, rng: Rng = Math.random): GameStat
 	}
 }
 
-/** Список из 25 типов карт согласно раскладу Codenames. */
+/** List of 25 card types per the Codenames layout. */
 function buildKey(startingTeam: Team): CardType[] {
 	return [
 		...Array<CardType>(STARTING_TEAM_CARDS).fill(startingTeam),

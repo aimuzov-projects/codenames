@@ -5,7 +5,7 @@ on:
     branches: [main]
   workflow_dispatch:
 
-# Выкладки идут по очереди, новая не обрывает уже начатую сборку.
+# Deploys run one at a time, a new one doesn't cut off a build already in progress.
 concurrency:
   group: deploy
   cancel-in-progress: false
@@ -17,8 +17,8 @@ jobs:
   check:
     uses: ./.github/workflows/check.yml
 
-  # Пока сервер не подготовлен (ключ, клон в /srv, сайт в Caddy), выкладка пропускается.
-  # Включается переменной репозитория DEPLOY_ENABLED=true. В самом infra-template-site её нет.
+  # Until the server is prepared (key, clone in /srv, site in Caddy), the deploy is skipped.
+  # Enabled by the repo variable DEPLOY_ENABLED=true. infra-template-site itself doesn't have it.
   deploy:
     needs: check
     if: vars.DEPLOY_ENABLED == 'true'
@@ -28,8 +28,8 @@ jobs:
       name: production
       url: https://codenames.aimuzov.online
     steps:
-      # Сервер сам знает, что делать: ключ в authorized_keys привязан к deploy/remote.sh,
-      # поэтому команду ssh не передаём.
+      # The server knows what to do on its own: the key in authorized_keys is bound to deploy/remote.sh,
+      # so we don't pass a command to ssh.
       - name: Deploy on server
         env:
           SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}

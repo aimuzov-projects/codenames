@@ -1,6 +1,6 @@
 <script lang="ts">
 	type Props = {
-		/** Цвет обводки; по умолчанию цвет текста. */
+		/** Ring color; defaults to the text color. */
 		color?: string
 		size?: number
 	}
@@ -8,7 +8,7 @@
 	let { color = 'currentcolor', size = 14 }: Props = $props()
 </script>
 
-<!-- Маркер найденного слова: галочка в тонком кольце. -->
+<!-- Found-word marker: a check in a thin ring. -->
 <svg width={size} height={size} viewBox="0 0 13 13" aria-hidden="true">
 	<circle cx="6.5" cy="6.5" r="6" fill="none" stroke={color} stroke-width="1.3" opacity="0.5" />
 	<path

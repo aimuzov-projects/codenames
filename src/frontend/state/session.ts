@@ -12,54 +12,54 @@ import {
 import { atom, computed } from '#frontend/lib/atom.ts'
 
 /**
- * Слой сессии. Три режима:
- *  - 'local'  — одно устройство (hot-seat): канон в gameAtom, ключ по кнопке.
- *  - 'host'   — сетевой хост: канон в gameAtom, рассылка состояния гостям (см. net.ts).
- *  - 'guest'  — сетевой клиент: рендер remoteViewAtom, интенты уходят хосту.
+ * Session layer. Three modes:
+ *  - 'local'  — single device (hot-seat): canonical state in gameAtom, the key behind a button.
+ *  - 'host'   — network host: canonical state in gameAtom, state broadcast to guests (see net.ts).
+ *  - 'guest'  — network client: renders remoteViewAtom, intents go to the host.
  */
 export type Mode = 'local' | 'host' | 'guest'
 
 export const modeAtom = atom<Mode>('local')
 
-/** Каноническое состояние партии (режимы local/host). */
+/** Canonical game state (local/host modes). */
 export const gameAtom = atom<GameState | null>(null)
 
-/** Состояние, полученное от хоста (режим guest). */
+/** State received from the host (guest mode). */
 export const remoteViewAtom = atom<RedactedState | null>(null)
 
-/** Назначенная роль игрока (сетевые режимы). */
+/** Player's assigned role (network modes). */
 export const myRoleAtom = atom<Role>('operative')
 export const myTeamAtom = atom<Team>('red')
 
-/** Роль, под которой редактируется/отображается поле. */
+/** Role the board is edited/shown as. */
 export const viewRoleAtom = atom<Role>('operative')
 
 /**
- * Причина передачи хода капитану (hot-seat): какое неверное слово открыли в прошлом ходу.
- * Показывается в попапе передачи телефона. null — старт/добровольное завершение хода.
+ * Why the turn passes to the spymaster (hot-seat): which wrong word was revealed last turn.
+ * Shown in the pass-the-phone popup. null means game start or the turn was ended voluntarily.
  */
 export const handoffReasonAtom = atom<{ word: string; type: 'neutral' | Team } | null>(null)
 
 /**
- * Блокировка попапов на время анимации открытия карты. Пока true — гейт передачи
- * телефона (PassPhone) и оверлей победы (Board) скрыты, чтобы сперва отыграла
- * реакция на открытие (заливка + галочка/крестик, см. CardTile).
+ * Holds popups back while the card reveal animation plays. While true, the pass-the-phone
+ * gate (PassPhone) and the win overlay (Board) are hidden, so the reveal reaction plays
+ * out first (fill + check/cross, see CardTile).
  */
 export const revealLockedAtom = atom(false)
 
-/** Задержка показа попапа после клика по карте — под длительность анимации открытия. */
+/** Popup delay after a card click, matched to the reveal animation length. */
 const REVEAL_POPUP_DELAY_MS = 1500
 
 export const isHostAtom = computed([modeAtom], () => modeAtom() !== 'guest')
 
-/** Что отображает UI. */
+/** What the UI shows. */
 export const viewAtom = computed<RedactedState | null>([modeAtom, remoteViewAtom, gameAtom, viewRoleAtom], () => {
 	if (modeAtom() === 'guest') return remoteViewAtom()
 	const game = gameAtom()
 	return game ? redactStateForRole(game, viewRoleAtom()) : null
 })
 
-/** Счёт — из публичной информации (открытые карты + известный расклад 9/8). */
+/** Score from public info only (revealed cards + the known 9/8 split). */
 export const scoreAtom = computed<Record<Team, number>>([viewAtom], () => {
 	const view = viewAtom()
 	if (!view) return { red: 0, blue: 0 }
@@ -71,7 +71,7 @@ export const scoreAtom = computed<Record<Team, number>>([viewAtom], () => {
 
 export const isOverAtom = computed([viewAtom], () => viewAtom()?.phase === 'over')
 
-// --- Сетевые хуки (регистрируются net.ts, чтобы избежать циклической зависимости) ---
+// --- Network hooks (registered by net.ts to avoid a circular dependency) ---
 let intentSender: ((event: GameEvent) => void) | null = null
 let hostSubmit: ((senderId: string, event: GameEvent) => void) | null = null
 
@@ -82,7 +82,7 @@ export function setHostSubmit(fn: ((senderId: string, event: GameEvent) => void)
 	hostSubmit = fn
 }
 
-/** Применяет событие к канону (только local/host). Возвращает true, если состояние есть. */
+/** Applies the event to the canonical state (local/host only). Returns true if there is a state. */
 export function applyEvent(event: GameEvent) {
 	const game = gameAtom()
 	if (!game) return false
@@ -90,13 +90,13 @@ export function applyEvent(event: GameEvent) {
 	return true
 }
 
-/** Действие игрока из UI. Маршрутизируется по режиму. */
+/** Player action from the UI. Routed by mode. */
 const playerAction = (event: GameEvent) => {
 	const mode = modeAtom()
 	if (mode === 'guest') {
 		intentSender?.(event)
 	} else if (mode === 'host') {
-		hostSubmit?.('host', event) // хост — тоже игрок с id 'host'
+		hostSubmit?.('host', event) // the host is a player too, with id 'host'
 	} else {
 		applyEvent(event)
 	}
@@ -110,7 +110,7 @@ export function startGame(config: GameConfig) {
 
 export function giveClue(word: string, count: number) {
 	playerAction({ type: 'GIVE_CLUE', word, count })
-	if (modeAtom() === 'local') viewRoleAtom.set('operative') // hot-seat: прячем ключ
+	if (modeAtom() === 'local') viewRoleAtom.set('operative') // hot-seat: hide the key
 }
 
 export function revealCard(index: number) {
@@ -120,13 +120,13 @@ export function revealCard(index: number) {
 		const after = gameAtom()
 		const card = after?.cards[index]
 		const turnPassed = !!after && after.phase === 'clue' && after.currentTeam !== before.currentTeam
-		// Ход перешёл из-за неверной карты (чужая или нейтральная, не ассасин) — покажем её в попапе.
+		// The turn passed because of a wrong card (opponent's or neutral, not the assassin), show it in the popup.
 		handoffReasonAtom.set(
 			turnPassed && card && card.type !== before.currentTeam && card.type !== 'assassin'
 				? { word: card.word, type: card.type as 'neutral' | Team }
 				: null,
 		)
-		// Попап (передача хода / победа) откладываем до конца анимации открытия карты.
+		// Hold the popup (turn handoff / win) until the card reveal animation is over.
 		if (turnPassed || after?.phase === 'over') {
 			revealLockedAtom.set(true)
 			setTimeout(() => revealLockedAtom.set(false), REVEAL_POPUP_DELAY_MS)

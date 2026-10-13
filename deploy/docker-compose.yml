@@ -1,5 +1,5 @@
-# Игра на сервере projects. Порты 80/443 держит общий Caddy из aimuzov-projects/infra-server,
-# он проксирует домен сюда по сети edge, а /ws -- релею комнат.
+# The game on the projects server. Ports 80/443 are held by the shared Caddy from aimuzov-projects/infra-server,
+# it proxies the domain here over the edge network, and /ws to the rooms relay.
 
 name: codenames
 
@@ -22,7 +22,7 @@ services:
       - edge
     logging: *logging
 
-  # Релей онлайн-комнат: пересылает сообщения между хостом и гостями, игровой логики в нём нет.
+  # Online rooms relay: forwards messages between the host and guests, there's no game logic in it.
   relay:
     build:
       context: ..
@@ -34,7 +34,7 @@ services:
       - edge
     logging: *logging
 
-# Переменные сборки лежат в /srv/codenames/.env, образец в .env.example.
+# Build variables live in /srv/codenames/.env, the sample is in .env.example.
 secrets:
   env:
     file: ../.env

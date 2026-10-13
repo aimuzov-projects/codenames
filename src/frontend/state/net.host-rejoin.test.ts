@@ -12,7 +12,7 @@ import {
 import { HostHub } from '#frontend/transport/host-hub.ts'
 import type { ClientMessage, HostMessage } from '#frontend/transport/messages.ts'
 
-/** Поддельное соединение хоста: копит отправленное и позволяет руками эмулировать события канала. */
+/** Fake host connection: collects what's sent and lets us emulate channel events by hand. */
 class FakeConn {
 	sent: HostMessage[] = []
 	private messageCb: (msg: ClientMessage) => void = () => {}
@@ -55,7 +55,7 @@ const words = Array.from({ length: 25 }, (_, i) => `слово${i}`)
 const player = (id: string) => rosterAtom().find((p) => p.id === id)
 
 describe('хост: возвращение игрока после обрыва', () => {
-	// Пульс сессии держит таймер: без выхода из неё процесс теста не завершится.
+	// The session heartbeat holds a timer: without leaving the session the test process won't exit.
 	after(() => leaveSession())
 
 	beforeEach(() => {
@@ -73,17 +73,17 @@ describe('хост: возвращение игрока после обрыва'
 		assert.equal(rosterAtom().length, 2)
 		assert.partialDeepStrictEqual(player('dev1'), { team: 'blue', role: 'spymaster', connected: true })
 
-		// Устройство уснуло — канал закрылся. Во время партии игрока из ростера не убираем.
+		// The device fell asleep, the channel closed. Mid-game we don't remove the player from the roster.
 		conns[0]!.emitClose()
 		assert.partialDeepStrictEqual(player('dev1'), { connected: false })
 
-		// Переподключение: новое соединение, тот же id устройства.
+		// Reconnect: new connection, same device id.
 		await acceptGuestOffer('offer2')
 		conns[1]!.emitMessage({ t: 'hello', id: 'dev1', name: 'Гость' })
 
-		assert.equal(rosterAtom().length, 2) // дубля не завелось
+		assert.equal(rosterAtom().length, 2) // no duplicate was created
 		assert.partialDeepStrictEqual(player('dev1'), { team: 'blue', role: 'spymaster', connected: true })
-		// Капитану уходит его вид состояния — доска у вернувшегося наполняется сразу.
+		// The spymaster gets their view of the state, so the returning player's board fills right away.
 		const state = conns[1]!.sent.find((m) => m.t === 'state')
 		assert.notEqual(state, undefined)
 		assert.equal(state?.t === 'state' && state.state.cards.every((c) => c.type !== undefined), true)
@@ -96,7 +96,7 @@ describe('хост: возвращение игрока после обрыва'
 
 		await acceptGuestOffer('offer2')
 		conns[1]!.emitMessage({ t: 'hello', id: 'dev1', name: 'Гость' })
-		// Обрыв WebRTC замечают с задержкой: close по старому каналу приходит после реконнекта.
+		// A WebRTC drop is noticed with a delay: close for the old channel arrives after the reconnect.
 		conns[0]!.emitClose()
 
 		assert.partialDeepStrictEqual(player('dev1'), { connected: true })

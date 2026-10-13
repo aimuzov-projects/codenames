@@ -8,24 +8,24 @@ import pwa from './src/frontend/integrations/pwa.ts'
 
 const { version } = JSON.parse(readFileSync(new URL('package.json', import.meta.url), 'utf8'))
 
-// На проде /ws отдаёт Caddy релею, локально его роль играет прокси Vite: и в dev, и в preview.
+// In prod Caddy hands /ws to the relay, locally the Vite proxy plays that role: both in dev and preview.
 const proxy = { '/ws': { target: 'ws://localhost:8787', ws: true } }
 
 export default defineConfig({
-	// Рядом с игрой в src/ лежат WS-релей и общий с ним протокол.
+	// Next to the game, src/ holds the WS relay and the protocol shared with it.
 	srcDir: './src/frontend',
-	// Абсолютные ссылки в canonical, og:url и sitemap.
+	// Absolute links in canonical, og:url and sitemap.
 	site: 'https://codenames.aimuzov.online',
-	// CSS немного: внутри HTML он не блокирует первую отрисовку отдельным запросом.
+	// There's little CSS: inlined into HTML it doesn't block the first paint with a separate request.
 	build: { inlineStylesheets: 'always' },
-	// Игра -- одно Svelte-приложение на главной, сервис-воркер для офлайна собирает pwa().
+	// The game is a single Svelte app on the index page, pwa() builds the service worker for offline.
 	integrations: [svelte(), sitemap(), pwa()],
-	// Подсветка Shiki несовместима с CSP.
+	// Shiki highlighting is incompatible with CSP.
 	markdown: { syntaxHighlight: false },
-	// Astro кладёт CSP с хешами своих скриптов и стилей в <meta> страницы. Снаружи ничего:
-	// релей на том же хосте (wss: нужен из-за схемы), QR рисуется в data:, камера -- blob:,
-	// мелкие файлы шрифта Vite встраивает в data:.
-	// frame-ancestors в <meta> не действует, встраивание запрещает X-Frame-Options в Caddy.
+	// Astro puts a CSP with hashes of its scripts and styles into the page <meta>. Nothing external:
+	// the relay is on the same host (wss: is needed because of the scheme), QR is drawn into data:, camera is blob:,
+	// Vite inlines small font files into data:.
+	// frame-ancestors has no effect in <meta>, embedding is blocked by X-Frame-Options in Caddy.
 	security: {
 		csp: {
 			directives: [
@@ -43,16 +43,16 @@ export default defineConfig({
 		},
 	},
 	server: { host: true },
-	// Тулбар dev-режима висит у нижней кромки и перекрывает кнопки игры, в том числе для e2e.
+	// The dev toolbar sits at the bottom edge and covers the game buttons, e2e included.
 	devToolbar: { enabled: false },
 	vite: {
-		// Версия и время сборки видны в настройках: по ним понятно, обновилось ли устройство.
+		// Build version and time are shown in settings: they tell whether the device has updated.
 		define: {
 			__APP_VERSION__: JSON.stringify(version),
 			__BUILD_TIME__: JSON.stringify(new Date().toISOString()),
 		},
-		// HTTPS в dev и preview: камера и сервис-воркер работают только в защищённом контексте,
-		// в том числе когда с телефона заходят по локальной сети.
+		// HTTPS in dev and preview: the camera and the service worker only work in a secure context,
+		// including when a phone connects over the local network.
 		plugins: [basicSsl()],
 		server: { proxy },
 		preview: { proxy },

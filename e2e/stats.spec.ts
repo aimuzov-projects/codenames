@@ -23,18 +23,18 @@ test.describe('статистика партии', () => {
 		const key = await readKey(page)
 		const mine = startingTeam(key)
 		const [a, b] = indicesOf(key, mine)
-		// Слова читаем в виде капитана до подачи подсказки — потом ключ скроется.
+		// Read the words in the captain view before submitting the clue, after that the key gets hidden.
 		const wordA = (await cards(page).nth(a!).innerText()).trim()
 		const wordB = (await cards(page).nth(b!).innerText()).trim()
 
 		await giveClue(page, 'кит', 3)
-		await revealCardAt(page, a!) // свои карты — ход остаётся, хедер доступен
+		await revealCardAt(page, a!) // own cards: the turn stays, the header is available
 		await revealCardAt(page, b!)
 
 		await page.getByRole('button', { name: 'Статистика' }).click()
 		await expect(page.getByRole('heading', { name: 'Статистика' })).toBeVisible()
 
-		// Таймлайн: подсказка хода и открытые под ней слова.
+		// Timeline: the turn's clue and the words revealed under it.
 		await expect(page.getByText('Таймлайн')).toBeVisible()
 		await expect(page.getByText('кит ·')).toBeVisible()
 		await expect(page.getByText(wordA, { exact: true })).toBeVisible()
@@ -49,9 +49,9 @@ test.describe('статистика партии', () => {
 		const label = mine === 'red' ? 'Красные' : 'Синие'
 
 		await giveClue(page, 'кит', 3)
-		await revealCardAt(page, indicesOf(key, mine)[0]!) // ход остаётся — чип кликабелен
+		await revealCardAt(page, indicesOf(key, mine)[0]!) // the turn stays, so the chip is clickable
 
-		// На доске два чипа счёта с одинаковым aria-label — различаем по названию команды.
+		// The board has two score chips with the same aria-label, tell them apart by team name.
 		await page.getByRole('button', { name: 'Открыть статистику' }).filter({ hasText: label }).click()
 
 		await expect(page.getByRole('heading', { name: `Статистика · ${label}` })).toBeVisible()

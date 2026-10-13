@@ -52,7 +52,7 @@
 
 	const updateBusy = $derived($updateStatusAtom !== 'idle')
 
-	// Подтверждение при включении звука.
+	// Confirmation when sound is turned on.
 	function onSound(v: boolean) {
 		setSound(v)
 		if (v) previewSound()
@@ -106,7 +106,7 @@
 		<h3 class="settings__section">Размер слов</h3>
 		<div class="settings__sizes">
 			{#each CARD_WORD_SIZES as s (s)}
-				<!-- Превью -- настоящая закрытая карта доски; нажатие ловит прозрачная кнопка поверх. -->
+				<!-- The preview is a real closed board card; taps are caught by a transparent button on top. -->
 				<div
 					class="settings__size"
 					class:settings__size--on={s === $cardWordSizeAtom}
@@ -322,7 +322,7 @@
 				transform: scale(0.97);
 			}
 
-			/* Выбранный размер -- карта в цвете primary, как активный пункт переключателя. */
+			/* Selected size -- the card in the primary color, like the active toggle item. */
 			&--on :global(.card-tile) {
 				color: var(--primary-foreground);
 				background: var(--primary);

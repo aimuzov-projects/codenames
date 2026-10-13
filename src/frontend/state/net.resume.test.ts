@@ -16,7 +16,7 @@ import { screenAtom } from '#frontend/state/ui.ts'
 import { HostHub } from '#frontend/transport/host-hub.ts'
 import type { PlayerInfo } from '#frontend/transport/messages.ts'
 
-// Восстановление поднимает транспорт заново; в Node WebRTC нет, хватает пустых заглушек.
+// Restore brings the transport up again; Node has no WebRTC, empty stubs are enough.
 qrTransports.host = () => new HostHub()
 qrTransports.guest = () => ({
 	open: false,
@@ -64,7 +64,7 @@ describe('восстановление сессии после перезапу�
 		assert.equal(modeAtom(), 'host')
 		assert.equal(gameAtom()?.cards.length, 25)
 		assert.equal(screenAtom(), 'board')
-		// Соединений после перезапуска нет ни у кого, кроме нас самих.
+		// After a restart nobody has a connection except ourselves.
 		assert.equal(rosterAtom().find((p) => p.id === 'dev1')?.connected, false)
 		assert.equal(rosterAtom().find((p) => p.id === 'host')?.connected, true)
 	})
