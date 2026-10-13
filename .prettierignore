@@ -2,6 +2,7 @@ dist
 .astro
 node_modules
 package-lock.json
+CHANGELOG.md
 .claude
 .serena
 # Локальные файлы под chezmoi: в git их нет, а prettier про .git/info/exclude не знает.
