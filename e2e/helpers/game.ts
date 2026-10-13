@@ -1,4 +1,4 @@
-import { type Page, type Locator, expect } from '@playwright/test'
+import { expect, type Locator, type Page } from '@playwright/test'
 
 export type CardType = 'red' | 'blue' | 'neutral' | 'assassin'
 
@@ -25,9 +25,7 @@ export async function revealSpymasterView(page: Page) {
  */
 export async function readKey(page: Page): Promise<CardType[]> {
 	await expect(cards(page)).toHaveCount(25)
-	const types = await cards(page).evaluateAll((els) =>
-		els.map((el) => el.getAttribute('data-card-type')),
-	)
+	const types = await cards(page).evaluateAll((els) => els.map((el) => el.getAttribute('data-card-type')))
 	if (types.some((t) => t === null)) {
 		throw new Error('readKey должен вызываться в виде капитана — ключ виден не полностью')
 	}
@@ -68,10 +66,8 @@ export async function revealCardAt(page: Page, index: number) {
 export async function revealedCount(page: Page, type: CardType): Promise<number> {
 	return await cards(page).evaluateAll(
 		(els, t) =>
-			els.filter(
-				(el) =>
-					el.getAttribute('data-revealed') === 'true' && el.getAttribute('data-card-type') === t,
-			).length,
+			els.filter((el) => el.getAttribute('data-revealed') === 'true' && el.getAttribute('data-card-type') === t)
+				.length,
 		type,
 	)
 }

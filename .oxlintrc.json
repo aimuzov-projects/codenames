@@ -1,20 +1,9 @@
 {
 	"$schema": "./node_modules/oxlint/configuration_schema.json",
-	"plugins": ["typescript", "unicorn", "oxc", "react", "import", "vitest"],
-	"categories": {
-		"correctness": "error",
-		"suspicious": "warn",
-		"perf": "warn"
-	},
-	"env": {
-		"browser": true,
-		"es2024": true,
-		"node": true
-	},
+	"plugins": ["eslint", "typescript", "unicorn", "oxc", "import"],
 	"rules": {
-		"react/react-in-jsx-scope": "off",
-		"vitest/require-to-throw-message": "off",
-		"vitest/require-mock-type-parameters": "off"
-	},
-	"ignorePatterns": ["dist", "dev-dist", "coverage"]
+		"typescript/consistent-type-definitions": ["error", "type"],
+		"import/no-relative-parent-imports": "error",
+		"unicorn/filename-case": "error"
+	}
 }

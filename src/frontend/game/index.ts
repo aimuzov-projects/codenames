@@ -1,0 +1,6 @@
+export * from '#frontend/game/types.ts'
+export { BOARD_SIZE, createGame } from '#frontend/game/create-game.ts'
+export { reducer } from '#frontend/game/reducer.ts'
+export { detectWinner, otherTeam, remainingFor, score } from '#frontend/game/rules.ts'
+export { redactStateForRole } from '#frontend/game/redact.ts'
+export { shuffle } from '#frontend/game/random.ts'

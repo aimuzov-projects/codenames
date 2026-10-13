@@ -1,13 +1,7 @@
-import { test, expect, type Browser } from '@playwright/test'
+import { expect, test, type Browser } from '@playwright/test'
+
+import { giveClue, indicesOf, readKey, revealCardAt, revealedCount, startingTeam } from './helpers/game'
 import { connectGuest, guestPick, mobileCtx, startHost } from './helpers/net'
-import {
-	giveClue,
-	indicesOf,
-	readKey,
-	revealCardAt,
-	revealedCount,
-	startingTeam,
-} from './helpers/game'
 
 /** Поднимает N изолированных мобильных контекстов и их страницы. */
 async function openPeers(browser: Browser, n: number) {
@@ -53,9 +47,7 @@ test.describe('сетевой режим (P2P)', () => {
 		}
 	})
 
-	test('партия по сети: старт, анти-чит, синхронизация подсказки и открытий', async ({
-		browser,
-	}) => {
+	test('партия по сети: старт, анти-чит, синхронизация подсказки и открытий', async ({ browser }) => {
 		const { ctxs, pages } = await openPeers(browser, 4)
 		const [host, g1, g2, g3] = pages
 		try {

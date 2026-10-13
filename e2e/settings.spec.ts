@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
+
 import { openApp } from './helpers/app'
 
 test.describe('настройки', () => {

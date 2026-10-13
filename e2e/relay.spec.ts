@@ -1,4 +1,5 @@
-import { test, expect, type Browser, type BrowserContext, type Page } from '@playwright/test'
+import { expect, test, type Browser, type BrowserContext, type Page } from '@playwright/test'
+
 import { openApp } from './helpers/app'
 import { mobileCtx } from './helpers/net'
 
@@ -72,9 +73,7 @@ test.describe('онлайн-режим (релей)', () => {
 		}
 	})
 
-	test('уснувший хост возвращается в свою комнату — гости остаются на местах', async ({
-		browser,
-	}) => {
+	test('уснувший хост возвращается в свою комнату — гости остаются на местах', async ({ browser }) => {
 		const { ctxs, pages } = await openPeers(browser, 2)
 		const [host, guest] = pages
 		try {

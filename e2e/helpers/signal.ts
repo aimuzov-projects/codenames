@@ -1,4 +1,4 @@
-import { type Page, expect } from '@playwright/test'
+import { expect, type Page } from '@playwright/test'
 
 /**
  * Хуки сигналинга для e2e (за VITE_E2E). Заменяют камеру: код offer/answer читается строкой

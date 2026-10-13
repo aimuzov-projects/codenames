@@ -1,4 +1,5 @@
-import { type Page, expect, devices } from '@playwright/test'
+import { devices, expect, type Page } from '@playwright/test'
+
 import { openApp } from './app'
 import { readSignalOut, submitSignalIn } from './signal'
 

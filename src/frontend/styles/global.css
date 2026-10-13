@@ -1,0 +1,201 @@
+/* Токены темы. Тёмная включается классом .dark на <html> (см. state/theme.ts и скрипт в layouts/base.astro). */
+:root {
+	--font-sans: 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
+
+	--radius: 0.625rem;
+	--radius-sm: calc(var(--radius) * 0.6);
+	--radius-md: calc(var(--radius) * 0.8);
+	--radius-lg: var(--radius);
+	--radius-xl: calc(var(--radius) * 1.4);
+	--radius-2xl: calc(var(--radius) * 1.8);
+
+	--safe-top: env(safe-area-inset-top);
+	--safe-bottom: env(safe-area-inset-bottom);
+
+	/* Размер слова на карте меняется в настройках (state/settings.ts). */
+	--card-word-size: 13px;
+
+	--background: oklch(1 0 0);
+	--foreground: oklch(0.147 0.004 49.25);
+	--card: oklch(1 0 0);
+	--card-foreground: oklch(0.147 0.004 49.25);
+	--popover: oklch(1 0 0);
+	--popover-foreground: oklch(0.147 0.004 49.25);
+	--primary: oklch(0.216 0.006 56.043);
+	--primary-foreground: oklch(0.985 0.001 106.423);
+	--secondary: oklch(0.97 0.001 106.424);
+	--secondary-foreground: oklch(0.216 0.006 56.043);
+	--muted: oklch(0.97 0.001 106.424);
+	--muted-foreground: oklch(0.553 0.013 58.071);
+	--destructive: oklch(0.577 0.245 27.325);
+	--border: oklch(0.923 0.003 48.717);
+	--input: oklch(0.923 0.003 48.717);
+	--ring: oklch(0.709 0.01 56.259);
+	--overlay: oklch(0 0 0 / 50%);
+
+	--warn-bg: oklch(0.7 0.175 55);
+	--warn-border: oklch(0.63 0.17 52);
+	--warn-text: oklch(1 0 0);
+
+	/* Игровые цвета: команды и типы карт */
+	--team-red: oklch(0.585 0.222 27.3);
+	--team-red-foreground: oklch(0.985 0 0);
+	--team-red-tint: oklch(0.93 0.05 27.3);
+	--team-red-tint-foreground: oklch(0.45 0.16 27.3);
+	/* Яркий вариант -- точка открывшей команды, заметнее любого фона в обеих темах. */
+	--team-red-bright: oklch(0.78 0.23 27.3);
+	--team-blue: oklch(0.55 0.17 256);
+	--team-blue-foreground: oklch(0.985 0 0);
+	--team-blue-tint: oklch(0.93 0.04 256);
+	--team-blue-tint-foreground: oklch(0.44 0.13 256);
+	--team-blue-bright: oklch(0.74 0.19 256);
+	--card-neutral: oklch(0.84 0.02 80);
+	--card-neutral-foreground: oklch(0.3 0.02 60);
+	--card-neutral-tint: oklch(0.94 0.012 80);
+	--card-neutral-tint-foreground: oklch(0.5 0.02 70);
+	--card-assassin: oklch(0.24 0.006 60);
+	--card-assassin-foreground: oklch(0.96 0.003 106);
+	--card-assassin-tint: oklch(0.3 0.006 60);
+	--card-assassin-tint-foreground: oklch(0.96 0.003 106);
+
+	color-scheme: light;
+}
+
+.dark {
+	--background: oklch(0.147 0.004 49.25);
+	--foreground: oklch(0.985 0.001 106.423);
+	--card: oklch(0.216 0.006 56.043);
+	--card-foreground: oklch(0.985 0.001 106.423);
+	--popover: oklch(0.216 0.006 56.043);
+	--popover-foreground: oklch(0.985 0.001 106.423);
+	--primary: oklch(0.923 0.003 48.717);
+	--primary-foreground: oklch(0.216 0.006 56.043);
+	--secondary: oklch(0.268 0.007 34.298);
+	--secondary-foreground: oklch(0.985 0.001 106.423);
+	--muted: oklch(0.268 0.007 34.298);
+	--muted-foreground: oklch(0.709 0.01 56.259);
+	--destructive: oklch(0.704 0.191 22.216);
+	--border: oklch(1 0 0 / 10%);
+	--input: oklch(1 0 0 / 15%);
+	--ring: oklch(0.553 0.013 58.071);
+
+	--warn-bg: oklch(0.66 0.17 55);
+	--warn-border: oklch(0.6 0.16 52);
+
+	--team-red: oklch(0.62 0.21 27.3);
+	--team-red-tint: oklch(0.36 0.1 27.3);
+	--team-red-tint-foreground: oklch(0.9 0.06 27.3);
+	--team-blue: oklch(0.6 0.16 256);
+	--team-blue-tint: oklch(0.36 0.09 256);
+	--team-blue-tint-foreground: oklch(0.9 0.05 256);
+	--card-neutral: oklch(0.55 0.02 80);
+	--card-neutral-foreground: oklch(0.96 0.005 106);
+	--card-neutral-tint: oklch(0.34 0.012 80);
+	--card-neutral-tint-foreground: oklch(0.85 0.012 80);
+	--card-assassin: oklch(0.2 0.006 60);
+	--card-assassin-tint: oklch(0.24 0.006 60);
+	--card-assassin-tint-foreground: oklch(0.92 0.006 60);
+
+	color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+	border-color: var(--border);
+	outline-color: color-mix(in oklch, var(--ring) 50%, transparent);
+}
+
+/* Документ не скроллится: прокрутка только внутри экрана. fixed гасит rubber-band старых iOS,
+   overscroll-behavior -- pull-to-refresh, touch-action -- double-tap-zoom и задержку тапа. */
+html,
+body {
+	touch-action: manipulation;
+	user-select: none;
+	position: fixed;
+	inset: 0;
+	overflow: hidden;
+	overscroll-behavior: none;
+	width: 100%;
+	height: 100%;
+	-webkit-touch-callout: none;
+}
+
+body {
+	margin: 0;
+	font-family: var(--font-sans);
+	line-height: 1.5;
+	color: var(--foreground);
+	background: var(--background);
+	-webkit-font-smoothing: antialiased;
+}
+
+input,
+textarea {
+	user-select: text;
+}
+
+button,
+input,
+textarea,
+select {
+	font: inherit;
+	color: inherit;
+}
+
+button {
+	cursor: pointer;
+}
+
+h1,
+h2,
+h3,
+p {
+	margin: 0;
+}
+
+img,
+svg {
+	display: block;
+}
+
+/* Оболочка приложения прижимается к visualViewport (см. app.svelte): при клавиатуре видимая область
+   не уезжает. fixed делает её containing block для оверлеев, overflow не режем -- затемнению
+   композера нужно вытечь за нижнюю кромку. */
+#root {
+	position: fixed;
+	inset: 0;
+}
+
+/* Только для скринридеров. */
+.visually-hidden {
+	position: absolute;
+	overflow: hidden;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	border: 0;
+	white-space: nowrap;
+	clip-path: inset(50%);
+}
+
+/* Въезд экрана слева при возврате назад (screen.svelte, menu-layout.svelte). */
+@keyframes screen-in-left {
+	from {
+		transform: translateX(-10%);
+		opacity: 0;
+	}
+
+	to {
+		transform: translateX(0);
+		opacity: 1;
+	}
+}
+
+@keyframes spin {
+	to {
+		transform: rotate(360deg);
+	}
+}

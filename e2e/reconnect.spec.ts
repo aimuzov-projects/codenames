@@ -1,7 +1,8 @@
-import { test, expect, type Browser, type Page } from '@playwright/test'
+import { expect, test, type Browser, type Page } from '@playwright/test'
+
+import { cards, giveClue, indicesOf, readKey, revealCardAt, startingTeam } from './helpers/game'
 import { connectGuest, guestPick, mobileCtx, startHost } from './helpers/net'
 import { readSignalOut, submitSignalIn } from './helpers/signal'
-import { cards, giveClue, indicesOf, readKey, revealCardAt, startingTeam } from './helpers/game'
 
 /** Поднимает N изолированных мобильных контекстов и их страницы. */
 async function openPeers(browser: Browser, n: number) {

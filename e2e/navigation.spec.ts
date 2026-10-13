@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
+
 import { openApp } from './helpers/app'
 import { revealSpymasterView, startHotSeat } from './helpers/game'
 
@@ -12,10 +13,7 @@ test.describe('навигация по меню', () => {
 		const before = await logo.getAttribute('src')
 		await page.getByRole('button', { name: 'Сменить логотип' }).click()
 		await expect(logo).not.toHaveAttribute('src', before ?? '')
-		await expect(page.getByRole('link', { name: /aimuzov/ })).toHaveAttribute(
-			'href',
-			'https://t.me/aimuzov',
-		)
+		await expect(page.getByRole('link', { name: /aimuzov/ })).toHaveAttribute('href', 'https://t.me/aimuzov')
 	})
 
 	test('Словари открываются и «назад» возвращает в меню', async ({ page }) => {
