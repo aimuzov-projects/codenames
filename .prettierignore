@@ -4,3 +4,6 @@ node_modules
 package-lock.json
 .claude
 .serena
+# Локальные файлы под chezmoi: в git их нет, а prettier про .git/info/exclude не знает.
+.mcp.json
+mise.local.toml
