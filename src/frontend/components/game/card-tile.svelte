@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Check from '@lucide/svelte/icons/check'
 	import X from '@lucide/svelte/icons/x'
+	import { untrack } from 'svelte'
 
 	import type { RedactedCard } from '#frontend/game/index.ts'
 
@@ -31,7 +32,7 @@
 	const masked = $derived(revealed && hideWord && !showIcon)
 
 	// Реакция только на переход «закрыта → открыта», не на маунт уже открытой карты.
-	let wasRevealed = card.revealed
+	let wasRevealed = untrack(() => card.revealed)
 	$effect(() => {
 		const was = wasRevealed
 		wasRevealed = card.revealed

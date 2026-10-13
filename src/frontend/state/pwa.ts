@@ -1,6 +1,5 @@
-import { toast } from 'svelte-sonner'
-
 import { atom } from '#frontend/lib/atom.ts'
+import { toast } from '#frontend/lib/toast.ts'
 
 /** Версия и время сборки (подставляются через vite.define в astro.config.mjs). */
 export const APP_VERSION = __APP_VERSION__

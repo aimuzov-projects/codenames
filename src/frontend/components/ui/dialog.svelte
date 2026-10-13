@@ -11,10 +11,27 @@
 		actions?: Snippet
 		/** Закрывается ли по тапу мимо окна. */
 		dismissible?: boolean
+		/** Подтверждение действия: роль alertdialog, как у прежнего AlertDialog. */
+		alert?: boolean
+		/** Крупный заголовок по центру -- попапы-события доски (победа, передача хода). */
+		centered?: boolean
+		/** Содержимое над заголовком (иконка, причина события). */
+		lead?: Snippet
 		children?: Snippet
 	}
 
-	let { open, onclose, title, description, actions, dismissible = true, children }: Props = $props()
+	let {
+		open,
+		onclose,
+		title,
+		description,
+		actions,
+		dismissible = true,
+		alert = false,
+		centered = false,
+		lead,
+		children,
+	}: Props = $props()
 
 	const uid = $props.id()
 	let dialog: HTMLDialogElement
@@ -34,6 +51,8 @@
 <dialog
 	bind:this={dialog}
 	class="dialog"
+	class:dialog--centered={centered}
+	role={alert ? 'alertdialog' : undefined}
 	aria-labelledby="{uid}-title"
 	onclick={backdrop}
 	oncancel={(event) => {
@@ -42,10 +61,13 @@
 	}}
 >
 	<div class="dialog__body">
-		<h2 id="{uid}-title" class="dialog__title">{title}</h2>
-		{#if description}
-			<p class="dialog__description">{@render description()}</p>
-		{/if}
+		{@render lead?.()}
+		<div class="dialog__heading">
+			<h2 id="{uid}-title" class="dialog__title">{title}</h2>
+			{#if description}
+				<p class="dialog__description">{@render description()}</p>
+			{/if}
+		</div>
 		{@render children?.()}
 		{#if actions}
 			<div class="dialog__actions">{@render actions()}</div>
@@ -76,10 +98,30 @@
 			padding: 1rem;
 		}
 
+		&__heading {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5rem;
+		}
+
 		&__title {
 			font-size: 1rem;
 			font-weight: 500;
 			line-height: 1.3;
+		}
+
+		&--centered &__body {
+			gap: 1rem;
+			align-items: center;
+			text-align: center;
+		}
+
+		&--centered &__heading {
+			gap: 0.25rem;
+		}
+
+		&--centered &__title {
+			font-size: 1.5rem;
 		}
 
 		&__description {
