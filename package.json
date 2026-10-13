@@ -50,6 +50,7 @@
 		"@zxing/library": "0.22.0",
 		"astro": "7.3.7",
 		"commitizen": "4.3.2",
+		"conventional-commits-filter": "5.0.0",
 		"cz-git": "1.13.1",
 		"husky": "9.1.7",
 		"idb-keyval": "6.2.5",
