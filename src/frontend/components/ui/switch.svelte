@@ -59,7 +59,7 @@
 			}
 
 			.switch--checked & {
-				transform: translateX(calc(100% - 2px));
+				transform: translateX(calc(100% - 4px));
 			}
 
 			:global(.dark) .switch--checked & {

@@ -1,127 +1,135 @@
-# Codenames — офлайн PWA
+<p align="center">
+	<img src="https://img.shields.io/badge/English-3b82f6?logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2MCAzMCI+PGNsaXBQYXRoIGlkPSJ0Ij48cGF0aCBkPSJNMzAsMTVoMzB2MTV6djE1aC0zMHpoLTMwdi0xNXp2LTE1aDMweiIvPjwvY2xpcFBhdGg+PHBhdGggZD0iTTAsMHYzMGg2MHYtMzB6IiBmaWxsPSIjMDEyMTY5Ii8+PHBhdGggZD0iTTAsMCA2MCwzME02MCwwIDAsMzAiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSI2Ii8+PHBhdGggZD0iTTAsMCA2MCwzME02MCwwIDAsMzAiIGNsaXAtcGF0aD0idXJsKCN0KSIgc3Ryb2tlPSIjQzgxMDJFIiBzdHJva2Utd2lkdGg9IjQiLz48cGF0aCBkPSJNMzAsMHYzME0wLDE1aDYwIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMTAiLz48cGF0aCBkPSJNMzAsMHYzME0wLDE1aDYwIiBzdHJva2U9IiNDODEwMkUiIHN0cm9rZS13aWR0aD0iNiIvPjwvc3ZnPg==" alt="English">
+	<a href="README.ru.md"><img src="https://img.shields.io/badge/%D0%A0%D1%83%D1%81%D1%81%D0%BA%D0%B8%D0%B9-555?logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5IDYiPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0wIDBoOXYzSDB6Ii8+PHBhdGggZmlsbD0iIzAwMzlhNiIgZD0iTTAgMmg5djJIMHoiLz48cGF0aCBmaWxsPSIjZDUyYjFlIiBkPSJNMCA0aDl2MkgweiIvPjwvc3ZnPg==" alt="Русский"></a>
+</p>
 
-Настольная игра Codenames на вебе, работающая **полностью без интернета**. Устанавливается
-как PWA на телефон (вместе со словарями), играть можно каждому со своего телефона.
+<p align="center">
+	<a href="https://codenames.aimuzov.online"><img src=".github/assets/banner.en.jpg" alt="Codenames: an offline party word game" width="100%"></a>
+</p>
 
-## Возможности
+<p align="center">
+	<a href="https://github.com/aimuzov-projects/codenames/actions/workflows/deploy.yml"><img src="https://img.shields.io/github/actions/workflow/status/aimuzov-projects/codenames/deploy.yml?branch=main&label=deploy" alt="Deploy"></a>
+	<a href="https://codenames.aimuzov.online"><img src="https://img.shields.io/website?url=https%3A%2F%2Fcodenames.aimuzov.online&label=site" alt="Site status"></a>
+	<a href="package.json"><img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Faimuzov-projects%2Fcodenames%2Fmain%2Fpackage.json&query=%24.engines.node&label=node&logo=nodedotjs&logoColor=white&color=5fa04e" alt="Node"></a>
+	<a href="https://astro.build"><img src="https://img.shields.io/github/package-json/dependency-version/aimuzov-projects/codenames/dev/astro?logo=astro&logoColor=white&color=bc52ee" alt="Astro"></a>
+	<a href="https://svelte.dev"><img src="https://img.shields.io/github/package-json/dependency-version/aimuzov-projects/codenames/dev/svelte?logo=svelte&logoColor=white&color=ff3e00" alt="Svelte"></a>
+	<a href="LICENSE"><img src="https://img.shields.io/github/license/aimuzov-projects/codenames" alt="License"></a>
+</p>
 
-- **Три режима**:
-    - **На одном устройстве** — hot-seat: телефон/планшет лежит на столе, капитан тапает «показать
-      ключ», чтобы приватно увидеть раскраску.
-    - **Сетевой (хост)** — раздаёт игру, держит каноническое состояние, рассылает поле игрокам.
-    - **Сетевой (подключиться)** — каждый со своего телефона, живая синхронизация.
-- **Офлайн-сеть без Wi-Fi**: один телефон включает **режим модема (хотспот)**, остальные
-  подключаются к нему. Синхронизация — через **WebRTC DataChannel**, рукопожатие — по **QR-кодам**
-  (или ручной вставкой строки). Интернет не нужен.
-- **Комната по коду** (нужен интернет): хост получает шестизначный код, остальные входят по нему. Связь чинится сама — сон телефона, потеря сети
-  и перезапуск приложения не выбивают из партии.
-- **Возврат в игру**: уснувшее устройство не теряет место — игрок возвращается с той же командой,
-  ролью и текущим состоянием партии; экран во время игры не гаснет (отключается в настройках).
-- **Анти-чит**: цвета карт (ключ) рассылаются хостом только капитанам; игроки по сети
-  получают лишь слова и уже открытые карты — подсмотреть ключ через devtools нельзя.
-- **Словари**: встроенные русские паки (база, «Еда и напитки», «Космос») + импорт своих списков
-  (хранятся в IndexedDB). Всё кэшируется для офлайна.
-- **Таймер хода, звук, анимации** (настраиваются).
-- **PWA**: устанавливается на домашний экран, запускается и играет без сети.
+<h3 align="center">Codenames for a phone that needs no internet</h3>
+<p align="center">One device on the table, a room code or a hotspot network, a PWA with the word packs inside</p>
 
-## Запуск
+<table>
+	<tr>
+		<td width="50%" align="center"><img src=".github/assets/board.jpg" alt="Player board"><br><b>Board</b> for the players</td>
+		<td width="50%" align="center"><img src=".github/assets/spymaster.jpg" alt="Spymaster board"><br><b>Key</b> for the spymaster</td>
+	</tr>
+</table>
 
-Стек и раскладка -- как в [infra-template-site](https://github.com/aimuzov-projects/infra-template-site):
-Astro + Svelte 5, Prettier, oxlint, stylelint (BEM), `node --test`. Node берётся из `mise.toml`.
+Lives at [codenames.aimuzov.online](https://codenames.aimuzov.online). It installs to the home screen as a PWA together with the word packs, and once installed it starts and plays with no network. A static [Astro](https://astro.build) site with Svelte islands plus a small WebSocket relay (`src/backend/`) for room codes.
 
-```bash
+The interface and the built-in word packs are in Russian, so the button names below are translated.
+
+## Game modes
+
+### One device
+
+A phone or a tablet lies on the table, no network needed. Before a team's turn the app asks to hand the phone to the spymaster: they tap "Show board", see the key and give a clue. Then the key hides and the team reveals words on the same screen. Once the turn passes, the app covers the board again and calls the other team's spymaster.
+
+### Room code
+
+Everyone plays on their own phone, internet required: rooms live on a relay on the same server as the game.
+
+1. Host: "Create" → a six-digit code and a QR with it appear on the screen.
+2. Everyone else: "Join" → "Enter code" → type the code or scan the QR.
+3. Then as usual: team, role, "Start game".
+
+> A phone fell asleep, the network dropped, the app was unloaded from memory: the player comes back on their own, to their own seat. If the host falls asleep, the room waits for them for half an hour and the guests stay in it.
+
+### No internet
+
+Everyone plays on their own phone, yet neither Wi-Fi nor mobile data is needed: phones connect directly over WebRTC and the handshake goes through QR codes.
+
+1. Host: "Create" → "Play offline", picks the word packs, a team and a role.
+2. The host turns on the **personal hotspot**, everyone else joins it over Wi-Fi.
+3. Guest: "Join" → enters a name → "Nearby, no internet" → shows their **QR (offer)** to the host.
+4. Host: "Add player" → scans the guest's QR → shows the **QR (answer)** in return.
+5. The guest scans the answer and the connection is up. The guest picks a team and a role.
+6. When everyone is in, the host taps "Start game".
+
+> If the camera is unavailable, the scanner has "Enter code manually": codes can be passed as text.
+
+## What's inside
+
+- **Anti-cheat**: the host sends card colors to spymasters only, players get just the words and the cards already revealed, so the key can't be peeked at through devtools.
+- **Rejoining**: a device that fell asleep keeps its seat, the player comes back with the same team, role and the current game state. The screen stays on during a game (can be turned off in settings).
+- **Word packs**: built-in Russian packs (base, "Food and drinks", "Space") and importing your own lists, stored in IndexedDB. Everything is cached for offline play.
+- **Turn timer, sound, animations, theme**: configurable.
+
+## Running
+
+Stack and layout follow [infra-template-site](https://github.com/aimuzov-projects/infra-template-site): Astro + Svelte 5, Prettier, oxlint, stylelint (BEM), `node --test`. Node comes from `mise.toml`, the same version is pinned in `package.json`.
+
+```sh
 cp .env.example .env
 npm ci
-npm run dev       # https://localhost:4321, доступен и по сети для теста с телефона
-npm run relay     # WS-релей комнат на :8787, dev-сервер проксирует к нему /ws
+npm run dev       # https://localhost:4321, also reachable over the network for testing from a phone
+npm run relay     # room relay on :8787, the dev server proxies /ws to it
 ```
 
-Перед коммитом -- те же проверки, что в CI:
+Before committing, the same checks as in CI:
 
-```bash
+```sh
 npm run format:check && npm run lint:js && npm run lint:css && npm run check && npm test && npm run build
 ```
 
-Сквозные тесты сами поднимают dev-сервер и релей: `npm run test:e2e`.
+End-to-end tests start the dev server and the relay on their own: `npm run test:e2e`.
 
-## Деплой
+## Architecture
 
-Сервер projects из [infra-server](https://github.com/aimuzov-projects/infra-server): пуш в `main`
-запускает `deploy.yml`, тот прогоняет проверки и по SSH дёргает `deploy/remote.sh`. На сервере
-`docker compose` собирает два контейнера: `codenames` (nginx со статикой) и `codenames-relay`
-(релей комнат). Домен, TLS и маршрут `/ws` к релею держит общий Caddy (`sites/codenames.caddy`).
-
-> HTTPS нужен камере (`getUserMedia`) и сервис-воркеру. Сервер -- лишь точка раздачи и установки
-> PWA: игра по QR после установки работает офлайн, WebRTC-сигналинг идёт по локальной сети.
-
-## Как играть по коду комнаты
-
-Нужен интернет: комнаты держит релей на том же сервере, что и игра.
-
-1. Хост: «Создать» → на экране появляется шестизначный код и QR с ним.
-2. Остальные: «Подключиться» → «Войти по коду» → вводят код (или сканируют QR).
-3. Дальше как обычно: команда, роль, «Начать игру».
-
-> Уснул телефон, пропала сеть, приложение выгрузилось из памяти — игрок возвращается сам,
-> на своё место. Если хост уснул, комната ждёт его полчаса, а гости остаются в ней.
-
-## Как играть по сети без Wi-Fi
-
-1. Один игрок (**хост**): «Создать» → «Играть без интернета», выбирает словари, команду и роль.
-2. Хост включает на телефоне **режим модема (личный хотспот)**. Остальные подключаются к этому
-   хотспоту по Wi-Fi (интернет не требуется).
-3. Гость: «Подключиться» → вводит имя → «Рядом, без интернета» → показывает свой **QR (offer)** хосту.
-4. Хост: «Добавить игрока» → сканирует QR гостя → показывает ответный **QR (answer)**.
-5. Гость сканирует ответный QR — соединение установлено. Гость выбирает команду и роль.
-6. Когда все в сборе — хост жмёт «Начать игру».
-
-> Если камера недоступна, в сканере есть «Ввести код вручную» — коды можно передать строкой.
-
-## Архитектура
-
-Главный принцип -- **игровое ядро не знает о сети**, что даёт тестируемость и режим «одно устройство».
+The main principle: **the game core knows nothing about the network**, which makes it testable and gives the one-device mode for free.
 
 ```
 src/
-  frontend/      игра (Astro + Svelte)
-    game/        чистое ядро: createGame, reducer, rules, redact (анти-чит), типы
-    data/        паки слов (JSON), реестр, импорт кастомных в IndexedDB
-    signaling/   codec (сжатие SDP в строку), base45, sdp
-    transport/   types (контракт транспорта), webrtc + host-hub (QR/P2P), ws-relay (комнаты),
-                 протокол игровых сообщений
-    state/       session (режимы и действия), net (оркестрация хост/гость), persist-session,
+  frontend/      the game (Astro + Svelte)
+    game/        pure core: createGame, reducer, rules, redact (anti-cheat), types
+    data/        word packs (JSON), registry, custom pack import into IndexedDB
+    signaling/   codec (SDP compressed into a string), base45, sdp
+    transport/   types (transport contract), webrtc + host-hub (QR/P2P), ws-relay (rooms),
+                 game message protocol
+    state/       session (modes and actions), net (host/guest orchestration), persist-session,
                  device-id, settings, ui
-    screens/     экраны: home, host-lobby, join, board, packs, settings…
-    components/  общие компоненты, ui/ -- примитивы, game/ и net/ -- доска и подключение
+    screens/     screens: home, host-lobby, join, board, packs, settings…
+    components/  shared components, ui/ for primitives, game/ and net/ for the board and connecting
     audio/       sfx (Web Audio)
-  backend/       WS-релей комнат (Node, без сборки -- TypeScript исполняется напрямую)
-  shared/        конверт сообщений релея, общий для игры и сервера
+  backend/       room relay (Node, no build step: TypeScript runs directly)
+  shared/        relay message envelope shared by the game and the server
 ```
 
-- **Состояние**: атомы на `svelte/store` (`lib/atom.ts`): в компонентах это обычные сторы (`$atom`),
-  а модули состояния не зависят от компилятора Svelte и тестируются в чистом Node.
-- **Хост-авторитет**: хост применяет события через `reducer` после валидации (`validateIntent`)
-  и рассылает каждому игроку состояние, отредактированное под его роль (`redactStateForRole`).
-- **Транспорт**: два взаимозаменяемых (общий контракт в `transport/types.ts`, слой сессии не знает,
-  какой под ним) — WebRTC поверх локальной сети без STUN/TURN (SDP сжимается pako и кодируется в QR)
-  и WS-релей с комнатами по коду. Релей не разбирает игровые сообщения, а лишь маршрутизирует их.
-- **Личность игрока**: id устройства живёт в localStorage и приходит в `hello`, поэтому хост
-  узнаёт вернувшегося после обрыва игрока и сажает его на прежнее место. Транспортное соединение
-  и игрок разведены: за партию соединений у одного игрока может смениться сколько угодно.
-- **Живучесть**: пульс в обе стороны (замороженный вебвью часто умирает без `close`), снимок
-  сессии в localStorage на случай выгрузки PWA из памяти, Screen Wake Lock во время игры.
+- **State**: atoms on `svelte/store` (`lib/atom.ts`). In components they are plain stores (`$atom`), while state modules don't depend on the Svelte compiler and are tested in plain Node.
+- **Host authority**: the host applies events through `reducer` after validation (`validateIntent`) and sends each player a state redacted for their role (`redactStateForRole`).
+- **Transport**: two interchangeable ones behind a shared contract in `transport/types.ts`, the session layer doesn't know which is underneath. WebRTC over the local network with no STUN/TURN (SDP is compressed with pako and encoded into a QR) and a WebSocket relay with room codes. The relay doesn't parse game messages, it only routes them.
+- **Player identity**: the device id lives in localStorage and arrives in `hello`, so the host recognizes a player coming back after a drop and puts them in their old seat. Transport connection and player are separate: one player may go through any number of connections during a game.
+- **Resilience**: a heartbeat both ways (a frozen webview often dies without `close`), a session snapshot in localStorage in case the PWA is unloaded from memory, Screen Wake Lock during a game.
 
-## Тесты
+## Tests
 
-Юнит-тесты (`node --test`) покрывают чистое ядро и протокол:
+Unit tests (`node --test`) cover the pure core and the protocol:
 
-- раздача 9/8/7/1, переходы ходов, победа/проигрыш, лимит угадываний;
-- редактирование ключа по роли (анти-чит);
-- кодек сигналинга (roundtrip, сжатие);
-- валидация интентов (кто и когда вправе действовать);
-- лобби, возврат игрока и восстановление сессии на подменённом транспорте.
+- the 9/8/7/1 deal, turn changes, winning and losing, the guess limit;
+- key redaction by role (anti-cheat);
+- the signaling codec (roundtrip, compression);
+- intent validation (who may act and when);
+- lobby, player rejoin and session restore over a stubbed transport.
 
-Сквозные тесты (playwright, реальный WebRTC DataChannel и настоящий релей) покрывают рукопожатие,
-синхронизацию подсказки и открытий, приватность ключа, отклонение нелегальных действий, а также
-живучесть: возврат в партию после обрыва, перезапуск приложения у гостя и у хоста, автоматическое
-переподключение в комнате (обрыв имитируется через `context.setOffline`).
+End-to-end tests (Playwright, a real WebRTC DataChannel and a real relay) cover the handshake, clue and reveal sync, key privacy, rejection of illegal actions, and resilience: rejoining after a drop, restarting the app on a guest and on the host, automatic reconnection in a room (the drop is simulated with `context.setOffline`).
+
+## Deployment
+
+The projects server from [infra-server](https://github.com/aimuzov-projects/infra-server): a push to `main` runs `deploy.yml`, which runs the checks and calls [`deploy/remote.sh`](deploy/remote.sh) over SSH. On the server `docker compose` builds two containers: `codenames` (nginx with the static site) and `codenames-relay` (the room relay). The domain, TLS and the `/ws` route to the relay are handled by the shared Caddy (`sites/codenames.caddy`).
+
+> HTTPS is required by the camera (`getUserMedia`) and the service worker. The server only hands out and installs the PWA: after installation the QR game works offline, and WebRTC signaling goes over the local network.
+
+## License
+
+[MIT](LICENSE)
