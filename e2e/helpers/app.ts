@@ -1,4 +1,4 @@
-import { type Page, expect } from '@playwright/test'
+import { expect, type Page } from '@playwright/test'
 
 /** Открывает приложение и ждёт главное меню (после ухода стартового лоадера из index.html). */
 export async function openApp(page: Page) {

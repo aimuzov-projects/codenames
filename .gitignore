@@ -1,18 +1,9 @@
-node_modules
-dist
-dist-ssr
-*.local
+node_modules/
+dist/
+.astro/
 .DS_Store
-.vite
-coverage
-dev-dist
-.playwright-mcp
-playwright-report
-test-results
+.env
 *.tsbuildinfo
-
-# deploy (исключён из VCS — механизм деплоя ещё меняется)
-deploy/
-Dockerfile
-docker-compose.yml
-.dockerignore
+playwright-report/
+test-results/
+.playwright-mcp/

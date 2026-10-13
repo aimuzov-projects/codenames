@@ -1,0 +1,53 @@
+---
+import App from '#frontend/app.svelte'
+import { LOGOS } from '#frontend/components/logo.ts'
+import Base from '#frontend/layouts/base.astro'
+---
+
+<Base>
+	<Fragment slot="head">
+		<!-- Прогреваем кэш всеми вариантами логотипа до загрузки JS: первый показ и смена по клику
+		     мгновенные, без подгрузки по сети. -->
+		{LOGOS.map((src) => (
+			<link rel="preload" as="image" href={src} />
+		))}
+	</Fragment>
+	<div id="root">
+		<App client:only="svelte" />
+	</div>
+	<!-- Виден сразу, до загрузки бандла; убирает его app.svelte после первого рендера. -->
+	<div id="initial-loader" class="loader">
+		<div class="loader__spinner"></div>
+	</div>
+</Base>
+
+<style>
+	/* Переменные темы уже есть: global.css инлайнится в страницу вместе с этим блоком. */
+	.loader {
+		position: fixed;
+		z-index: 9999;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--background);
+		transition: opacity 200ms ease-out;
+
+		&--hiding {
+			opacity: 0;
+		}
+
+		&__spinner {
+			width: 38px;
+			height: 38px;
+			border: 3px solid color-mix(in oklch, var(--muted-foreground) 25%, transparent);
+			border-top-color: var(--muted-foreground);
+			border-radius: 50%;
+			animation: spin 0.7s linear infinite;
+
+			@media (--reduced-motion) {
+				animation-duration: 1.6s;
+			}
+		}
+	}
+</style>

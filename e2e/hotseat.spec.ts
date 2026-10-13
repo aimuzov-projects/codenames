@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
+
 import { openApp } from './helpers/app'
 import {
 	cards,
@@ -6,8 +7,8 @@ import {
 	indicesOf,
 	readKey,
 	revealCardAt,
-	revealSpymasterView,
 	revealedCount,
+	revealSpymasterView,
 	startHotSeat,
 	startingTeam,
 } from './helpers/game'

@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
+
 import { openApp } from './helpers/app'
 import {
 	cards,
@@ -16,9 +17,7 @@ test.describe('статистика партии', () => {
 		await openApp(page)
 	})
 
-	test('после ходов статистика показывает подсказку и открытые слова в таймлайне', async ({
-		page,
-	}) => {
+	test('после ходов статистика показывает подсказку и открытые слова в таймлайне', async ({ page }) => {
 		await startHotSeat(page)
 		await revealSpymasterView(page)
 		const key = await readKey(page)
@@ -53,10 +52,7 @@ test.describe('статистика партии', () => {
 		await revealCardAt(page, indicesOf(key, mine)[0]!) // ход остаётся — чип кликабелен
 
 		// На доске два чипа счёта с одинаковым aria-label — различаем по названию команды.
-		await page
-			.getByRole('button', { name: 'Открыть статистику' })
-			.filter({ hasText: label })
-			.click()
+		await page.getByRole('button', { name: 'Открыть статистику' }).filter({ hasText: label }).click()
 
 		await expect(page.getByRole('heading', { name: `Статистика · ${label}` })).toBeVisible()
 		await expect(page.getByText('кит ·')).toBeVisible()

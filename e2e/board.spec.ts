@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
+
 import { openApp } from './helpers/app'
 import {
 	cards,
@@ -16,9 +17,7 @@ test.describe('доска: хедер, попапы и переходы', () => 
 		await openApp(page)
 	})
 
-	test('кнопка «назад» во время партии показывает подтверждение; «Отмена» оставляет в игре', async ({
-		page,
-	}) => {
+	test('кнопка «назад» во время партии показывает подтверждение; «Отмена» оставляет в игре', async ({ page }) => {
 		await startHotSeat(page)
 		await revealSpymasterView(page)
 		const key = await readKey(page)
@@ -46,9 +45,7 @@ test.describe('доска: хедер, попапы и переходы', () => 
 		await expect(page.getByRole('button', { name: 'Играть' })).toBeVisible()
 	})
 
-	test('передача хода на нейтральной карте показывает её как причину в гейте капитана', async ({
-		page,
-	}) => {
+	test('передача хода на нейтральной карте показывает её как причину в гейте капитана', async ({ page }) => {
 		await startHotSeat(page)
 		await revealSpymasterView(page)
 		const key = await readKey(page)
@@ -65,9 +62,7 @@ test.describe('доска: хедер, попапы и переходы', () => 
 		await expect(gate.getByText(word, { exact: false })).toBeVisible()
 	})
 
-	test('передача хода на карте соперника показывает её как причину в гейте капитана', async ({
-		page,
-	}) => {
+	test('передача хода на карте соперника показывает её как причину в гейте капитана', async ({ page }) => {
 		await startHotSeat(page)
 		await revealSpymasterView(page)
 		const key = await readKey(page)
@@ -84,9 +79,7 @@ test.describe('доска: хедер, попапы и переходы', () => 
 		await expect(gate.getByText(word, { exact: false })).toBeVisible()
 	})
 
-	test('приглушение отгаданных слов делает слово на открытой карте полупрозрачным', async ({
-		page,
-	}) => {
+	test('приглушение отгаданных слов делает слово на открытой карте полупрозрачным', async ({ page }) => {
 		// Включаем «приглушать отгаданные» в настройках (второй переключатель), возвращаемся в меню.
 		await page.getByRole('button', { name: /Настройки/ }).click()
 		const dim = page.getByRole('switch').nth(1)

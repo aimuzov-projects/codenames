@@ -1,4 +1,5 @@
-import { type Page, expect, devices } from '@playwright/test'
+import { devices, expect, type Page } from '@playwright/test'
+
 import { openApp } from './app'
 import { readSignalOut, submitSignalIn } from './signal'
 
@@ -7,7 +8,7 @@ export const mobileCtx = { ...devices['Pixel 7'], ignoreHTTPSErrors: true }
 
 /**
  * Хост создаёт игру и оказывается в лобби «Создание игры» (по умолчанию — красный капитан).
- * В e2e-сборке задан VITE_RELAY_URL, поэтому лобби стартует в онлайн-режиме — переключаем его
+ * Релей доступен всегда, поэтому лобби стартует в онлайн-режиме -- переключаем его
  * на офлайновое рукопожатие по QR, которое и проверяют эти тесты.
  */
 export async function startHost(host: Page) {

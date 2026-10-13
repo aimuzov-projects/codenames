@@ -1,0 +1,12 @@
+.git
+.astro
+.claude
+.serena
+.DS_Store
+node_modules
+dist
+.env
+**/*.test.ts
+e2e
+playwright-report
+test-results

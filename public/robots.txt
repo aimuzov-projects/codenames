@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://codenames.aimuzov.online/sitemap-index.xml
