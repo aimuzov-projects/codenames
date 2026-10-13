@@ -17,9 +17,9 @@
 </script>
 
 <!--
-	Гейт передачи телефона капитану (только hot-seat). Появляется, когда наступает ход капитана
-	(фаза clue в виде игрока), и блокирует поле, пока капитан не подтвердит, что телефон у него --
-	только тогда открывается вид капитана с ключом. Закрывается единственной кнопкой.
+	Phone handoff gate to the spymaster (hot-seat only). Shows up when it's the spymaster's turn
+	(clue phase in the operative view) and blocks the board until the spymaster confirms they have the phone --
+	only then does the spymaster view with the key open. Closed by its single button.
 -->
 <Dialog {open} onclose={() => {}} dismissible={false} centered title="Ход капитана">
 	{#snippet lead()}
@@ -87,7 +87,7 @@
 			}
 		}
 
-		/* Кнопка в цвет команды: перекрашиваем её через собственные переменные primary. */
+		/* Button in the team color: repaint it via its own primary variables. */
 		&__action {
 			width: 100%;
 			max-width: 20rem;

@@ -1,8 +1,8 @@
-/** Минимальное описание WebRTC-сигнала (структурно совместимо с RTCSessionDescriptionInit). */
+/** Minimal WebRTC signal description (structurally compatible with RTCSessionDescriptionInit). */
 export type SignalDescription = {
 	type: 'offer' | 'answer'
 	sdp: string
 }
 
-// Псевдоним для читаемости в codec (исторически использовался DOM-тип).
+// Alias for readability in codec (historically a DOM type was used here).
 export type RTCSessionDescriptionInit = SignalDescription

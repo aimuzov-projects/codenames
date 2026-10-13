@@ -2,7 +2,7 @@
 	import Heart from '@lucide/svelte/icons/heart'
 </script>
 
-<!-- Подпись автора у нижней кромки экранов-меню: menu-layout растягивается и прижимает её к низу. -->
+<!-- Author credit at the bottom edge of menu screens: menu-layout stretches and pushes it down. -->
 <footer class="footer">
 	<a class="footer__link" href="https://t.me/aimuzov" target="_blank" rel="noreferrer">
 		made with

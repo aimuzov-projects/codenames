@@ -17,12 +17,12 @@ export type WordPack = {
 	id: string
 	title: string
 	lang: string
-	/** true — встроенный пак, false — пользовательский (IndexedDB). */
+	/** true: built-in pack, false: custom (IndexedDB). */
 	builtin: boolean
 	words: string[]
 }
 
-/** Встроенные паки сгруппированы по темам — их и миксуют по 3-5 за раз. */
+/** Built-in packs are grouped by theme: those are what get mixed, 3-5 at a time. */
 export const BUILTIN_PACKS: WordPack[] = [
 	{ id: 'ru-animals', title: 'Животные', lang: 'ru', builtin: true, words: ruAnimals },
 	{ id: 'ru-nature', title: 'Природа и стихии', lang: 'ru', builtin: true, words: ruNature },
@@ -39,10 +39,10 @@ export const BUILTIN_PACKS: WordPack[] = [
 	{ id: 'ru-hiking', title: 'Походы', lang: 'ru', builtin: true, words: ruHiking },
 ]
 
-/** Паки, выбранные по умолчанию, — стартовый микс из трёх тем. */
+/** Packs selected by default: a starter mix of three themes. */
 export const DEFAULT_PACK_IDS = ['ru-animals', 'ru-nature', 'ru-food']
 
-/** Разбирает пользовательский текст в список слов: разделители — перенос строки, запятая, `;`. */
+/** Parses user text into a list of words: separators are newline, comma, `;`. */
 export function parseWordList(text: string): string[] {
 	const words = text
 		.split(/[\n,;]+/)
@@ -51,12 +51,12 @@ export function parseWordList(text: string): string[] {
 	return [...new Set(words)]
 }
 
-/** Объединяет слова нескольких паков, убирая дубли. */
+/** Merges words from several packs, removing duplicates. */
 export function mergeWords(packs: WordPack[]): string[] {
 	return [...new Set(packs.flatMap((p) => p.words))]
 }
 
-/** Пак можно использовать в одиночку, если в нём хватает уникальных слов на поле. */
+/** A pack can be used on its own if it has enough unique words for the board. */
 export function isPlayable(words: string[]): boolean {
 	return new Set(words).size >= BOARD_SIZE
 }

@@ -1,6 +1,6 @@
 name: Check
 
-# На main проверки зовёт деплой перед выкладкой, отдельный прогон там был бы вторым.
+# On main the deploy calls the checks before rollout, a separate run there would be a duplicate.
 on:
   push:
     branches-ignore: [main]
@@ -26,5 +26,5 @@ jobs:
       - run: npm run lint:css
       - run: npm run check
       - run: npm test
-      # Сайт собирается на сервере, но упасть сборке лучше здесь.
+      # The site is built on the server, but the build had better fail here.
       - run: npm run build

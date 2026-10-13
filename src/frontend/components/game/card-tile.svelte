@@ -9,13 +9,13 @@
 		card: RedactedCard
 		interactive: boolean
 		onreveal?: () => void
-		/** Приглушить слово на открытой карте. */
+		/** Dim the word on a revealed card. */
 		hideWord?: boolean
 	}
 
 	let { card, interactive, onreveal, hideWord = false }: Props = $props()
 
-	/** Сколько держим галочку или крестик перед возвратом к слову (см. REVEAL_POPUP_DELAY_MS в session.ts). */
+	/** How long the check or cross stays before going back to the word (see REVEAL_POPUP_DELAY_MS in session.ts). */
 	const ICON_HOLD_MS = 1000
 	const SHAKE_MS = 500
 
@@ -23,15 +23,15 @@
 	const revealed = $derived(card.revealed && type !== null)
 	const tinted = $derived(!card.revealed && type !== null)
 	const clickable = $derived(interactive && !card.revealed && type === null)
-	// Чужая открытая карта: открыта не своим типом (соперник, нейтрал или ассасин).
+	// Foreign revealed card: revealed as a type that isn't ours (opponent, neutral or assassin).
 	const foreign = $derived(revealed && card.openedBy !== undefined && card.openedBy !== type)
 
 	let showIcon = $state(false)
 	let shake = $state(false)
-	// Слово приглушается, как только отыграла галочка, -- проявляется сразу приглушённым, без вспышки.
+	// The word dims as soon as the check has played -- it appears already dimmed, no flash.
 	const masked = $derived(revealed && hideWord && !showIcon)
 
-	// Реакция только на переход «закрыта → открыта», не на маунт уже открытой карты.
+	// React only to the "closed → revealed" transition, not to mounting an already revealed card.
 	let wasRevealed = untrack(() => card.revealed)
 	$effect(() => {
 		const was = wasRevealed
@@ -48,8 +48,8 @@
 </script>
 
 <!--
-	Корень всегда один и тот же <button>: при открытии фон и текст плавно перетекают в цвет карты.
-	Тип попадает в DOM, только когда он раскрыт зрителю: в виде игрока ключ через DOM не подсмотреть.
+	The root is always the same <button>: on reveal the background and text blend into the card color.
+	The type lands in the DOM only once revealed to the viewer: in operative view the key can't be read from it.
 -->
 <button
 	type="button"
@@ -75,18 +75,18 @@
 		<span class="card-tile__text" class:card-tile__text--hidden={showIcon} class:card-tile__text--masked={masked}>
 			{card.word}
 		</span>
-		<!-- Галочка (своя) или крестик (чужая) поверх слова, блёклым тоном текста карты. -->
+		<!-- Check (ours) or cross (theirs) over the word, in a faded tone of the card text. -->
 		<span class="card-tile__reaction" class:card-tile__reaction--shown={showIcon} aria-hidden="true">
 			{#if foreign}<X size={24} />{:else}<Check size={24} />{/if}
 		</span>
 	</span>
 
-	<!-- Капитан видит тип закрытой карты по полоске снизу. -->
+	<!-- The spymaster sees a closed card's type by the strip at the bottom. -->
 	{#if tinted}
 		<span class="card-tile__bar card-tile__bar--{type}"></span>
 	{/if}
 
-	<!-- Открыта чужой командой: точка открывшего в правом нижнем углу. -->
+	<!-- Revealed by the other team: the revealer's dot in the bottom right corner. -->
 	{#if foreign && card.openedBy}
 		<span class="card-tile__opened card-tile__opened--{card.openedBy}"></span>
 	{/if}
@@ -242,7 +242,7 @@
 			}
 		}
 
-		/* Яркий оттенок светлее любого фона карты: точка видна и на своём цвете, и на чужом. */
+		/* A bright shade lighter than any card background: the dot shows both on its own color and on others. */
 		&__opened {
 			position: absolute;
 			right: 0.5rem;

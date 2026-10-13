@@ -25,21 +25,21 @@ test.describe('доска: хедер, попапы и переходы', () => 
 		const myCard = indicesOf(key, mine)[0]!
 
 		await giveClue(page, 'тест', 3)
-		await revealCardAt(page, myCard) // своя карта — ход остаётся, партия идёт
+		await revealCardAt(page, myCard) // own card: the turn stays, the game is in progress
 		await expect(cards(page).nth(myCard)).toHaveAttribute('data-revealed', 'true')
 
-		// «Назад» во время начатой партии не выходит сразу, а спрашивает подтверждение.
+		// "Back" during a started game does not exit right away, it asks for confirmation.
 		await page.getByRole('button', { name: 'Назад' }).click()
 		await expect(page.getByText('Выйти из игры?')).toBeVisible()
 
-		// «Отмена» — остаёмся на доске, прогресс не потерян.
+		// "Cancel": we stay on the board, progress is not lost.
 		await page.getByRole('button', { name: 'Отмена' }).click()
 		await expect(page.getByText('Выйти из игры?')).toBeHidden()
 		await expect(cards(page).nth(myCard)).toHaveAttribute('data-revealed', 'true')
 		await expect(page.getByRole('button', { name: 'Назад' })).toBeVisible()
 		await expect(page.getByRole('button', { name: 'Играть' })).toBeHidden()
 
-		// Повторный «Назад» → «Выйти» уводит в меню.
+		// Another "Back" → "Exit" leads to the menu.
 		await page.getByRole('button', { name: 'Назад' }).click()
 		await page.getByRole('button', { name: 'Выйти' }).click()
 		await expect(page.getByRole('button', { name: 'Играть' })).toBeVisible()
@@ -50,13 +50,13 @@ test.describe('доска: хедер, попапы и переходы', () => 
 		await revealSpymasterView(page)
 		const key = await readKey(page)
 		const neutral = indicesOf(key, 'neutral')[0]!
-		// Слово читаем в виде капитана до подачи подсказки (потом ключ скроется).
+		// Read the word in the captain view before submitting the clue (the key gets hidden after).
 		const word = (await cards(page).nth(neutral).innerText()).trim()
 
 		await giveClue(page, 'тест', 3)
-		await revealCardAt(page, neutral) // нейтраль → ход переходит
+		await revealCardAt(page, neutral) // neutral → the turn passes
 
-		// Гейт передачи телефона показывается после анимации открытия (revealLocked ~1.5с).
+		// The phone handoff gate shows after the reveal animation (revealLocked ~1.5s).
 		const gate = page.getByRole('dialog')
 		await expect(gate.getByText('Вы открыли общее слово')).toBeVisible({ timeout: 5_000 })
 		await expect(gate.getByText(word, { exact: false })).toBeVisible()
@@ -72,7 +72,7 @@ test.describe('доска: хедер, попапы и переходы', () => 
 		const word = (await cards(page).nth(oppCard).innerText()).trim()
 
 		await giveClue(page, 'тест', 3)
-		await revealCardAt(page, oppCard) // карта соперника → ход переходит
+		await revealCardAt(page, oppCard) // opponent's card → the turn passes
 
 		const gate = page.getByRole('dialog')
 		await expect(gate.getByText('Вы открыли слово соперников')).toBeVisible({ timeout: 5_000 })
@@ -80,7 +80,7 @@ test.describe('доска: хедер, попапы и переходы', () => 
 	})
 
 	test('приглушение отгаданных слов делает слово на открытой карте полупрозрачным', async ({ page }) => {
-		// Включаем «приглушать отгаданные» в настройках (второй переключатель), возвращаемся в меню.
+		// Turn on "dim guessed words" in settings (the second switch), go back to the menu.
 		await page.getByRole('button', { name: /Настройки/ }).click()
 		const dim = page.getByRole('switch').nth(1)
 		await dim.click()
@@ -97,8 +97,8 @@ test.describe('доска: хедер, попапы и переходы', () => 
 		await giveClue(page, 'кит', 3)
 		await revealCardAt(page, idx)
 
-		// После анимации открытия (галочка ~1с) слово проявляется приглушённым (opacity-30).
-		// .last() — самый внутренний span со словом (внешний-родитель содержит тот же текст).
+		// After the reveal animation (checkmark ~1s) the word shows up dimmed (opacity-30).
+		// .last() is the innermost span with the word (the outer parent contains the same text).
 		const wordEl = cards(page).nth(idx).getByText(word, { exact: true }).last()
 		await expect(wordEl).toHaveCSS('opacity', '0.3')
 	})
@@ -116,10 +116,10 @@ test.describe('доска: хедер, попапы и переходы', () => 
 		const label = mine === 'red' ? 'Красные победили' : 'Синие победили'
 		await expect(page.getByText(label)).toBeVisible({ timeout: 5_000 })
 
-		// «Новая игра» в оверлее победы (а не в хедере) — отдельный путь без подтверждения.
+		// "New game" in the win overlay (not in the header) is a separate path without confirmation.
 		await page.getByRole('dialog').getByRole('button', { name: 'Новая игра' }).click()
 
-		// Новое поле: снова гейт капитана, открытых карт нет.
+		// New board: the captain gate again, no revealed cards.
 		await expect(page.getByRole('button', { name: 'Показать поле' })).toBeVisible()
 		await expect(page.locator('[data-testid="card"][data-revealed="true"]')).toHaveCount(0)
 	})

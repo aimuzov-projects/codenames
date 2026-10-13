@@ -4,7 +4,7 @@
 	let { children }: { children: Snippet } = $props()
 </script>
 
-<!-- Мелкий капс-заголовок секции внутри карточки лобби. -->
+<!-- Small caps section title inside a lobby card. -->
 <h3 class="section-title">{@render children()}</h3>
 
 <style>

@@ -1,35 +1,35 @@
 /**
- * Конверт сообщений WS-релея. Сервер — тупой маршрутизатор: он знает только комнаты, кто в них
- * хост и кто гости, а `data` (игровые сообщения) не разбирает, поэтому её тип задаёт клиент.
+ * WS relay message envelope. The server is a dumb router: it only knows the rooms, who is the host
+ * in each and who the guests are, and doesn't parse `data` (game messages), so its type is set by the client.
  *
- * Формат общий для сервера (src/backend/server.ts) и клиента (transport/ws-relay.ts), поэтому
- * лежит в src/shared: так стороны не разъезжаются.
+ * The format is shared by the server (src/backend/server.ts) and the client (transport/ws-relay.ts), so
+ * it lives in src/shared: this way the sides don't drift apart.
  */
 
-/** Гость→сервер и хост→сервер. */
+/** Guest→server and host→server. */
 export type RelayIn<Data = unknown> =
-	/** Хост открывает комнату; `code` — вернуться в свою после обрыва или перезапуска. */
+	/** The host opens a room; `code` is for returning to its own after a drop or restart. */
 	| { t: 'host'; code?: string }
-	/** Гость входит в комнату под своим id устройства. */
+	/** A guest joins a room under its device id. */
 	| { t: 'join'; code: string; id: string }
-	/** Переслать полезную нагрузку: хост указывает id гостя, гость — всегда хосту. */
+	/** Forward a payload: the host specifies the guest id, a guest always sends to the host. */
 	| { t: 'to'; to?: string; data: Data }
 
-/** Сервер→клиенту. */
+/** Server→client. */
 export type RelayOut<Data = unknown> =
-	/** Комната открыта (хосту). */
+	/** Room opened (to the host). */
 	| { t: 'hosting'; code: string }
-	/** Вход выполнен (гостю). */
+	/** Joined (to the guest). */
 	| { t: 'joined'; code: string }
-	/** Полезная нагрузка от собеседника: гостю приходит от 'host'. */
+	/** Payload from the peer: a guest gets it from 'host'. */
 	| { t: 'from'; from: string; data: Data }
-	/** Хосту — гость появился или пропал. */
+	/** To the host: a guest appeared or disappeared. */
 	| { t: 'peer'; id: string; online: boolean }
-	/** Гостю — хост на связи или нет (он мог уснуть или перезапуститься). */
+	/** To a guest: whether the host is online (it may have fallen asleep or restarted). */
 	| { t: 'host-online'; online: boolean }
 	| { t: 'error'; reason: 'no-room' | 'room-taken' | 'bad-message' }
 
-/** Алфавит кода комнаты — без символов, которые путаются при диктовке и наборе (0/O, 1/I). */
+/** Room code alphabet, without characters that get mixed up when dictating and typing (0/O, 1/I). */
 export const ROOM_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 export const ROOM_CODE_LENGTH = 6
 

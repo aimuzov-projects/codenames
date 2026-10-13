@@ -54,10 +54,10 @@ describe('minifySdp', () => {
 				'a=candidate:101278190 1 udp 2113937151 37d389a6-af47-438d-aa1d-eff810022811.local 60215 typ host generation 0 network-cost 999',
 				[
 					'a=candidate:1 1 udp 2113937151 192.168.1.5 50000 typ host',
-					'a=candidate:1 1 udp 2113937151 192.168.1.5 50000 typ host', // дубль
-					'a=candidate:2 1 tcp 2105458943 192.168.1.5 9 typ host', // tcp — отбросить
-					'a=candidate:3 1 udp 2113937151 fe80::1 50001 typ host', // IPv6 — отбросить
-					'a=candidate:4 1 udp 2113937151 127.0.0.1 50002 typ host', // loopback — отбросить
+					'a=candidate:1 1 udp 2113937151 192.168.1.5 50000 typ host', // duplicate
+					'a=candidate:2 1 tcp 2105458943 192.168.1.5 9 typ host', // tcp: drop
+					'a=candidate:3 1 udp 2113937151 fe80::1 50001 typ host', // IPv6: drop
+					'a=candidate:4 1 udp 2113937151 127.0.0.1 50002 typ host', // loopback: drop
 				].join('\r\n'),
 			),
 		}
@@ -66,7 +66,7 @@ describe('minifySdp', () => {
 		assert.ok(!code.includes('tcp'))
 		assert.ok(!code.includes('fe80'))
 		assert.ok(!code.includes('127.0.0.1'))
-		// остаётся ровно один кандидат (дубль схлопнут)
+		// exactly one candidate remains (the duplicate is collapsed)
 		assert.equal(code.split('192.168.1.5').length - 1, 1)
 	})
 })

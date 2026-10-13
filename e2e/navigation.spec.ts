@@ -44,16 +44,16 @@ test.describe('навигация по меню', () => {
 	})
 
 	test('просмотр журнала гасит индикатор «новое» на кнопке настроек', async ({ page }) => {
-		// На свежем профиле есть непрочитанные изменения — кнопка настроек помечена «новое».
+		// A fresh profile has unread changes, so the settings button is marked "new".
 		await expect(page.getByRole('button', { name: 'Настройки (есть новое)' })).toBeVisible()
 
 		await page.getByRole('button', { name: /Настройки/ }).click()
 		await page.getByRole('button', { name: 'Весь список изменений' }).click()
 		await expect(page.getByRole('heading', { name: 'Что нового', level: 1 })).toBeVisible()
 
-		// Возвращаемся в меню — индикатор погас.
-		await page.getByRole('button', { name: 'Назад' }).click() // журнал → настройки
-		await page.getByRole('button', { name: 'Назад' }).click() // настройки → меню
+		// Back to the menu: the indicator is off.
+		await page.getByRole('button', { name: 'Назад' }).click() // changelog → settings
+		await page.getByRole('button', { name: 'Назад' }).click() // settings → menu
 		await expect(page.getByRole('button', { name: 'Настройки (есть новое)' })).toBeHidden()
 		await expect(page.getByRole('button', { name: 'Настройки', exact: true })).toBeVisible()
 	})
@@ -81,7 +81,7 @@ test.describe('навигация по меню', () => {
 
 	test('Статистика открывается с доски', async ({ page }) => {
 		await startHotSeat(page)
-		// Снимаем гейт «Ход капитана» (модальный) — иначе он перекрывает шапку с кнопкой.
+		// Dismiss the "Captain's turn" gate (modal), otherwise it covers the header with the button.
 		await revealSpymasterView(page)
 		await page.getByRole('button', { name: 'Статистика' }).click()
 		await expect(page.getByRole('heading', { name: 'Статистика' })).toBeVisible()
@@ -91,7 +91,7 @@ test.describe('навигация по меню', () => {
 		await page.getByRole('button', { name: 'Играть' }).click()
 		await page.getByRole('button', { name: /Настройки/ }).click()
 		await expect(page.getByRole('heading', { name: 'Настройки' })).toBeVisible()
-		// Возврат ведёт обратно на экран «Играть», а не на главную.
+		// Going back leads to the "Play" screen, not the main one.
 		await page.getByRole('button', { name: 'Назад' }).click()
 		await expect(page.getByRole('heading', { name: 'Играть' })).toBeVisible()
 	})

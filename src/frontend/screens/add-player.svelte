@@ -11,14 +11,14 @@
 	let answer = $state<string | null>(null)
 	let pendingConnId = $state<string | null>(null)
 
-	// Защита от повторного возврата: список подключившихся может обновиться ещё раз до того,
-	// как экран успеет размонтироваться -- тогда вышло бы два goBack подряд (за HostLobby
-	// улетели бы и в Lobby).
+	// Guard against a double return: the list of connected players may update once more before
+	// the screen gets to unmount -- that would mean two goBack calls in a row (we'd fly past HostLobby
+	// into Lobby too).
 	let left = false
 
-	// Как только гость представился (`hello`) -- возвращаемся к настройке игры. Ждём именно
-	// `hello`, а не появления в ростере: игрок мог подключаться повторно и уже быть в списке.
-	// Сессию не рвём: ростер сохраняется, HostLobby его покажет.
+	// As soon as the guest introduces itself (`hello`), go back to game setup. We wait for
+	// `hello` specifically, not for a roster entry: the player may be reconnecting and already listed.
+	// The session stays up: the roster is kept and HostLobby will show it.
 	$effect(() => {
 		if (!left && pendingConnId && $joinedConnIdsAtom.includes(pendingConnId)) {
 			left = true

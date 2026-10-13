@@ -3,9 +3,9 @@ import type { AstroIntegration } from 'astro'
 import { generateSW } from 'workbox-build'
 
 /**
- * Сервис-воркер для офлайна: после сборки Workbox прекэширует всё из dist -- оболочку, словари,
- * шрифты, иконки. Игра по QR не ходит в сеть вовсе, так что приложению хватает кэша.
- * Манифест лежит статикой в public/manifest.webmanifest, регистрирует воркер state/pwa.ts.
+ * Offline service worker: after the build Workbox precaches everything in dist -- the shell, dictionaries,
+ * fonts, icons. A QR game never touches the network, so the cache is all the app needs.
+ * The manifest is static in public/manifest.webmanifest; the worker is registered by state/pwa.ts.
  */
 export default function pwa(): AstroIntegration {
 	return {
@@ -18,9 +18,9 @@ export default function pwa(): AstroIntegration {
 					globPatterns: ['**/*.{js,css,html,svg,png,woff2,webmanifest}'],
 					globIgnores: ['404.html', 'sitemap-*.xml'],
 					swDest: `${root}/sw.js`,
-					// Любой адрес открывает игру: экраны переключаются внутри приложения.
+					// Any URL opens the game: screens switch inside the app.
 					navigateFallback: '/index.html',
-					// Новая версия берёт управление сразу, страница перезагрузится сама (см. state/pwa.ts).
+					// A new version takes over right away, the page reloads itself (see state/pwa.ts).
 					skipWaiting: true,
 					clientsClaim: true,
 					cleanupOutdatedCaches: true,

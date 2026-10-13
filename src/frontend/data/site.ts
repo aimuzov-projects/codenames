@@ -1,6 +1,6 @@
 export const site = {
-	/** Название сайта: `<title>` главной, `og:site_name`, хвост заголовков остальных страниц. */
+	/** Site name: `<title>` of the home page, `og:site_name`, suffix of the other pages' titles. */
 	name: 'Codenames',
-	/** `meta description` и `og:description` по умолчанию. */
+	/** Default `meta description` and `og:description`. */
 	description: 'Настольная Codenames для игры офлайн, каждый со своего телефона',
 }

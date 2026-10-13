@@ -1,6 +1,6 @@
 import { expect, type Page } from '@playwright/test'
 
-/** Открывает приложение и ждёт главное меню (после ухода стартового лоадера из index.html). */
+/** Opens the app and waits for the main menu (after the startup loader from index.html is gone). */
 export async function openApp(page: Page) {
 	await page.goto('/')
 	await expect(page.getByRole('button', { name: 'Играть' })).toBeVisible()

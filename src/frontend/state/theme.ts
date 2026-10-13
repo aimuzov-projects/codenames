@@ -26,7 +26,7 @@ function resolveDark(mode: ThemeMode): boolean {
 	return media?.matches ?? false
 }
 
-/** Применяет тему к <html>: класс `.dark` для тёмной (учитывая системный режим). */
+/** Applies the theme to <html>: `.dark` class for dark (taking the system mode into account). */
 export function applyTheme(mode: ThemeMode = themeAtom()): void {
 	document.documentElement.classList.toggle('dark', resolveDark(mode))
 }
@@ -36,12 +36,12 @@ export function setTheme(mode: ThemeMode) {
 	try {
 		localStorage.setItem(KEY, mode)
 	} catch {
-		// приватный режим / нет доступа — тема просто не сохранится
+		// private mode / no access: the theme just won't be saved
 	}
 	applyTheme(mode)
 }
 
-// Реагируем на смену системной темы, пока выбран режим «Системная».
+// Follow system theme changes while the "System" mode is selected.
 media?.addEventListener('change', () => {
 	if (themeAtom() === 'system') applyTheme('system')
 })

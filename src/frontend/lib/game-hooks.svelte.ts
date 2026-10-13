@@ -7,13 +7,13 @@ import { endTurnLockLeft, turnSecondsLeft, turnStartedAt } from '#frontend/lib/t
 import { endTurn, type Mode } from '#frontend/state/session.ts'
 import { soundEnabledAtom, timerSecondsAtom } from '#frontend/state/settings.ts'
 
-/** За сколько секунд до конца хода предупреждаем, что время заканчивается. */
+/** How many seconds before the turn ends we warn that time is running out. */
 const TURN_WARN_SECONDS = 20
 
-/** На сколько секунд блокируется «Завершить ход» в начале хода -- гасит случайный тап при передаче телефона. */
+/** How long "End turn" stays locked at the start of a turn: absorbs an accidental tap when handing the phone over. */
 const END_TURN_LOCK_SECONDS = 5
 
-/** Звук на открытие карт и завершение партии. Вызывать при инициализации компонента. */
+/** Sound on card reveals and game end. Call during component initialization. */
 export function gameFeedback(view: () => RedactedState | null) {
 	let prevRevealed = new Set<number>()
 	let prevOver = false
@@ -35,7 +35,7 @@ export function gameFeedback(view: () => RedactedState | null) {
 			}
 		})
 
-		// Меньше открытых, чем было → новая партия: без звуков.
+		// Fewer revealed than before → a new game: no sounds.
 		const isReset = now.size < prevRevealed.size
 		if (!isReset) {
 			for (const i of newly) {
@@ -53,15 +53,15 @@ export function gameFeedback(view: () => RedactedState | null) {
 }
 
 /**
- * Обратный отсчёт хода. `fraction` -- доля оставшегося времени 0..1 (или null, если таймера нет).
- * Хост и локаль по истечении сами завершают ход.
+ * Turn countdown. `fraction` is the share of time left, 0..1 (or null if there's no timer).
+ * The host and local mode end the turn themselves when it runs out.
  */
 export function turnTimer(view: () => RedactedState | null, mode: () => Mode) {
 	const timerSec = fromStore(timerSecondsAtom)
 	let left = $state<number | null>(null)
 
-	// Старт хода берём из лога партии (см. turnStartedAt): он переживает перемонтирование доски
-	// и синхронизируется гостям, поэтому заход в настройки и обратно не перезапускает отсчёт.
+	// The turn start comes from the game log (see turnStartedAt): it survives the board remounting
+	// and syncs to guests, so going to settings and back doesn't restart the countdown.
 	const startedAt = $derived(turnStartedAt(view()))
 
 	$effect(() => {
@@ -74,8 +74,8 @@ export function turnTimer(view: () => RedactedState | null, mode: () => Mode) {
 		}
 		const remaining = () => turnSecondsLeft(start, sec, Date.now())
 		left = remaining()
-		// Предупреждаем один раз за ход. Если на момент маунта время уже на исходе (короткий ход
-		// или вернулись из настроек под конец) -- повторно не тревожим.
+		// Warn once per turn. If time is already running out at mount (a short turn
+		// or came back from settings near the end), don't alarm again.
 		let warned = remaining() <= TURN_WARN_SECONDS
 		const id = setInterval(() => {
 			const rem = remaining()
@@ -95,7 +95,7 @@ export function turnTimer(view: () => RedactedState | null, mode: () => Mode) {
 	})
 
 	return {
-		/** 1 в начале хода, 0 в конце. */
+		/** 1 at the start of the turn, 0 at the end. */
 		get fraction(): number | null {
 			return left === null || !timerSec.current ? null : left / timerSec.current
 		},
@@ -103,10 +103,10 @@ export function turnTimer(view: () => RedactedState | null, mode: () => Mode) {
 }
 
 /**
- * Блокировка кнопки «Завершить ход» в начале хода. `left` -- целое число секунд до разблокировки
- * (0 -- кнопка доступна) для показа отсчёта на кнопке. Якорь -- старт хода (turnStartedAt), а не
- * маунт: возврат из настроек отсчёт не перезапускает, а слишком долгая передача телефона застанет
- * кнопку уже открытой.
+ * Lock on the "End turn" button at the start of a turn. `left` is whole seconds until unlock
+ * (0: the button is available), for the countdown on the button. Anchored to the turn start
+ * (turnStartedAt), not the mount: coming back from settings doesn't restart the countdown, and a
+ * handover that takes too long finds the button already unlocked.
  */
 export function endTurnLock(view: () => RedactedState | null) {
 	let left = $state(0)
@@ -121,7 +121,7 @@ export function endTurnLock(view: () => RedactedState | null) {
 		const remaining = () => Math.ceil(endTurnLockLeft(start, END_TURN_LOCK_SECONDS, Date.now()))
 		const initial = remaining()
 		left = initial
-		if (initial <= 0) return // блокировка уже истекла -- интервал не нужен
+		if (initial <= 0) return // the lock has already expired: no interval needed
 		const id = setInterval(() => {
 			const rem = remaining()
 			left = rem

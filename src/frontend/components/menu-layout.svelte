@@ -8,9 +8,9 @@
 </script>
 
 <!--
-	Логотип над кнопками, по центру по вертикали. Блок кнопок фиксированной высоты под три пункта,
-	поэтому логотип не прыгает при переходе между меню с разным числом кнопок. Въезд при возврате
-	анимирует только кнопки, экрану нужен staticBody.
+	Logo above the buttons, vertically centered. The button block has a fixed height for three items,
+	so the logo doesn't jump between menus with a different number of buttons. On return only the
+	buttons slide in, so the screen needs staticBody.
 -->
 <div class="menu-layout">
 	<Logo />

@@ -10,12 +10,12 @@ export type Toast = {
 }
 
 type Options = {
-	/** Обновить уже показанный тост: «проверяю» сменяется результатом на том же месте. */
+	/** Update an already shown toast: "checking" is replaced by the result in the same spot. */
 	id?: number
 	description?: string
 }
 
-/** Сколько тост висит; загрузка висит, пока её не сменят результатом. */
+/** How long a toast stays; loading stays until it's replaced by a result. */
 const DURATION_MS = 4000
 
 export const toastsAtom = atom<Toast[]>([])

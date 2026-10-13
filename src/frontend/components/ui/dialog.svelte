@@ -3,19 +3,19 @@
 
 	type Props = {
 		open: boolean
-		/** Закрытие крестиком системы: Esc, тап по затемнению. */
+		/** Closing through the system "cross": Esc, a tap on the backdrop. */
 		onclose: () => void
 		title: string
 		description?: Snippet
-		/** Кнопки внизу; закрывать диалог -- их забота. */
+		/** Buttons at the bottom; closing the dialog is up to them. */
 		actions?: Snippet
-		/** Закрывается ли по тапу мимо окна. */
+		/** Whether it closes on a tap outside the window. */
 		dismissible?: boolean
-		/** Подтверждение действия: роль alertdialog, как у прежнего AlertDialog. */
+		/** Action confirmation: role alertdialog, like the former AlertDialog. */
 		alert?: boolean
-		/** Крупный заголовок по центру -- попапы-события доски (победа, передача хода). */
+		/** Large centered title -- board event popups (victory, turn handoff). */
 		centered?: boolean
-		/** Содержимое над заголовком (иконка, причина события). */
+		/** Content above the title (icon, event reason). */
 		lead?: Snippet
 		children?: Snippet
 	}
@@ -46,7 +46,7 @@
 	}
 </script>
 
-<!-- Нативный <dialog>: фокус, Esc и затемнение даёт браузер. -->
+<!-- Native <dialog>: focus, Esc and the backdrop come from the browser. -->
 <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
 <dialog
 	bind:this={dialog}

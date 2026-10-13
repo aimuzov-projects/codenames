@@ -1,23 +1,23 @@
 /**
- * Журнал изменений для игроков — человеческим языком, не conventional-commits.
- * Записи идут от новых к старым; первая (`LATEST`) показывается в настройках.
+ * Changelog for players: in plain human language, not conventional-commits.
+ * Entries go from newest to oldest; the first one (`LATEST`) is shown in settings.
  */
 
-/** Раздел релиза: заголовок и список изменений. */
+/** Release section: a heading and a list of changes. */
 export type ChangelogSection = {
 	title: string
 	items: string[]
 }
 
-/** Одна версия в журнале изменений. */
+/** One version in the changelog. */
 export type ChangelogEntry = {
-	/** Семвер, совпадает с `APP_VERSION` на момент релиза. */
+	/** Semver, matches `APP_VERSION` at release time. */
 	version: string
-	/** Дата релиза в формате `YYYY-MM-DD`. */
+	/** Release date in `YYYY-MM-DD` format. */
 	date: string
-	/** Короткий заголовок релиза. */
+	/** Short release title. */
 	title: string
-	/** Одна фраза для карточки «Что нового» в настройках. */
+	/** One sentence for the "What's new" card in settings. */
 	highlight: string
 	sections: ChangelogSection[]
 }
@@ -121,5 +121,5 @@ export const CHANGELOG: ChangelogEntry[] = [
 	},
 ]
 
-/** Последний релиз — для карточки «Что нового» и индикатора непрочитанного. */
+/** Latest release: for the "What's new" card and the unread indicator. */
 export const LATEST = CHANGELOG[0]

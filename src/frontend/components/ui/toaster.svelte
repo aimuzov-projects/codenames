@@ -15,7 +15,7 @@
 	}
 </script>
 
-<!-- Тосты опущены на уровень хедера, иначе на iOS их прячет чёлка. -->
+<!-- Toasts are lowered to the header level, otherwise the notch hides them on iOS. -->
 <section class="toaster" aria-live="polite" aria-label="Уведомления">
 	{#each $toastsAtom as toast (toast.id)}
 		{@const Icon = icons[toast.type]}
@@ -65,8 +65,8 @@
 			background: var(--popover);
 			box-shadow: 0 4px 12px oklch(0 0 0 / 10%);
 
-			/* Предупреждение о конце хода: крупное и оранжевое, по высоте дотягивается до строки
-			   чипов под хедером. */
+			/* End-of-turn warning: large and orange, tall enough to reach the row
+			   of chips under the header. */
 			&--warning {
 				min-height: 6rem;
 				border-color: var(--warn-border);

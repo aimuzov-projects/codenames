@@ -6,8 +6,8 @@ import Base from '#frontend/layouts/base.astro'
 
 <Base>
 	<Fragment slot="head">
-		<!-- Прогреваем кэш всеми вариантами логотипа до загрузки JS: первый показ и смена по клику
-		     мгновенные, без подгрузки по сети. -->
+		<!-- Warm the cache with every logo variant before JS loads: the first show and the switch on click
+		     are instant, no network fetch. -->
 		{LOGOS.map((src) => (
 			<link rel="preload" as="image" href={src} />
 		))}
@@ -15,14 +15,14 @@ import Base from '#frontend/layouts/base.astro'
 	<div id="root">
 		<App client:only="svelte" />
 	</div>
-	<!-- Виден сразу, до загрузки бандла; убирает его app.svelte после первого рендера. -->
+	<!-- Visible right away, before the bundle loads; app.svelte removes it after the first render. -->
 	<div id="initial-loader" class="loader">
 		<div class="loader__spinner"></div>
 	</div>
 </Base>
 
 <style>
-	/* Переменные темы уже есть: global.css инлайнится в страницу вместе с этим блоком. */
+	/* Theme variables are already there: global.css is inlined into the page along with this block. */
 	.loader {
 		position: fixed;
 		z-index: 9999;

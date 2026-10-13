@@ -28,13 +28,13 @@ test.describe('hot-seat (одно устройство)', () => {
 
 		await giveClue(page, 'подсказка', 9)
 
-		// Своя карта: раскрывается своим цветом, ход остаётся (гейта капитана нет).
+		// Own card: revealed in its own color, the turn stays (no captain gate).
 		await revealCardAt(page, myCards[0]!)
 		await expect(cards(page).nth(myCards[0]!)).toHaveAttribute('data-revealed', 'true')
 		expect(await revealedCount(page, mine)).toBe(1)
 		await expect(page.getByRole('button', { name: 'Показать поле' })).toBeHidden()
 
-		// Нейтральная карта: ход переходит — снова появляется гейт передачи телефона.
+		// Neutral card: the turn passes, the phone handoff gate shows up again.
 		await revealCardAt(page, neutral[0]!)
 		await expect(page.getByRole('button', { name: 'Показать поле' })).toBeVisible({
 			timeout: 5_000,
@@ -65,7 +65,7 @@ test.describe('hot-seat (одно устройство)', () => {
 		await giveClue(page, 'риск', 1)
 		await revealCardAt(page, assassin)
 
-		// Открывшая команда проигрывает → побеждает соперник.
+		// The revealing team loses → the opponent wins.
 		const winner = mine === 'red' ? 'Синие победили' : 'Красные победили'
 		await expect(page.getByText(winner)).toBeVisible({ timeout: 5_000 })
 	})
@@ -80,7 +80,7 @@ test.describe('hot-seat (одно устройство)', () => {
 		await giveClue(page, 'тест', 3)
 		await revealCardAt(page, indicesOf(key, opp)[0]!)
 
-		// Карта открыта цветом соперника, ход переходит — гейт капитана.
+		// The card is revealed in the opponent's color, the turn passes: captain gate.
 		expect(await revealedCount(page, opp)).toBe(1)
 		await expect(page.getByRole('button', { name: 'Показать поле' })).toBeVisible({
 			timeout: 5_000,
@@ -95,7 +95,7 @@ test.describe('hot-seat (одно устройство)', () => {
 
 		await giveClue(page, 'тест', 3)
 		await revealCardAt(page, indicesOf(key, mine)[0]!)
-		// Кнопка залочена ~5с от начала хода — Playwright дождётся enabled сам.
+		// The button is locked for ~5s from the start of the turn, Playwright waits for enabled by itself.
 		await page.getByRole('button', { name: 'Завершить ход' }).click()
 		await expect(page.getByRole('button', { name: 'Показать поле' })).toBeVisible({
 			timeout: 5_000,
@@ -109,7 +109,7 @@ test.describe('hot-seat (одно устройство)', () => {
 		void key
 
 		await giveClue(page, 'тест', 2)
-		// Без единой догадки клик открывает подтверждение.
+		// Without a single guess the click opens a confirmation.
 		await page.getByRole('button', { name: 'Завершить ход' }).click()
 		await expect(page.getByText('Завершить ход без догадок?')).toBeVisible()
 		await page.getByRole('alertdialog').getByRole('button', { name: 'Завершить ход' }).click()
@@ -128,12 +128,12 @@ test.describe('hot-seat (одно устройство)', () => {
 		await revealCardAt(page, indicesOf(key, mine)[0]!)
 		expect(await revealedCount(page, mine)).toBe(1)
 
-		// Новая игра во время партии — через подтверждение.
+		// A new game in the middle of a game goes through confirmation.
 		await page.getByRole('button', { name: 'Новая игра' }).click()
 		await expect(page.getByText('Начать новую игру?')).toBeVisible()
 		await page.getByRole('button', { name: 'Начать заново' }).click()
 
-		// Поле новое: открытых карт нет, снова гейт капитана.
+		// Fresh board: no revealed cards, the captain gate again.
 		await expect(page.getByRole('button', { name: 'Показать поле' })).toBeVisible()
 		await expect(page.locator('[data-testid="card"][data-revealed="true"]')).toHaveCount(0)
 	})
@@ -141,7 +141,7 @@ test.describe('hot-seat (одно устройство)', () => {
 	test('выход из партии возвращает в меню', async ({ page }) => {
 		await startHotSeat(page)
 		await revealSpymasterView(page)
-		await giveClue(page, 'тест', 2) // партия идёт — подсказка дана
+		await giveClue(page, 'тест', 2) // game in progress: the clue is given
 
 		await page.getByRole('button', { name: 'Назад' }).click()
 		await expect(page.getByText('Выйти из игры?')).toBeVisible()

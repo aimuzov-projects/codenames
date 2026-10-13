@@ -4,12 +4,12 @@ import { describe, it } from 'node:test'
 import { reducer } from '#frontend/game/reducer.ts'
 import type { Card, CardType, GameState } from '#frontend/game/types.ts'
 
-/** Строит поле из явного списка типов. Слова — w0, w1, ... */
+/** Builds a board from an explicit list of types. Words are w0, w1, ... */
 function board(types: CardType[]): Card[] {
 	return types.map((type, i) => ({ word: `w${i}`, type, revealed: false }))
 }
 
-/** Базовое состояние в фазе подсказки для red. */
+/** Base state in the clue phase for red. */
 function clueState(types: CardType[]): GameState {
 	return {
 		cards: board(types),
@@ -24,7 +24,7 @@ function clueState(types: CardType[]): GameState {
 	}
 }
 
-/** Состояние в фазе угадывания (после подсказки count). */
+/** State in the guess phase (after a clue with `count`). */
 function guessState(types: CardType[], count: number): GameState {
 	return {
 		...clueState(types),
@@ -34,7 +34,7 @@ function guessState(types: CardType[], count: number): GameState {
 	}
 }
 
-// Удобный мини-расклад: индексы 0,1 — red; 2,3 — blue; 4 — neutral; 5 — assassin.
+// Handy mini layout: indices 0,1 are red; 2,3 blue; 4 neutral; 5 assassin.
 const LAYOUT: CardType[] = ['red', 'red', 'blue', 'blue', 'neutral', 'assassin']
 
 describe('reducer / GIVE_CLUE', () => {
@@ -67,10 +67,10 @@ describe('reducer / REVEAL_CARD', () => {
 	})
 
 	it('исчерпание попыток на верной карте передаёт ход (без победы)', () => {
-		// 3 красных, чтобы открытие двух не завершило команду. count=1 -> 2 попытки.
+		// 3 reds, so revealing two doesn't finish the team. count=1 -> 2 guesses.
 		const s = guessState(['red', 'red', 'red', 'blue', 'neutral', 'assassin'], 1)
-		const afterFirst = reducer(s, { type: 'REVEAL_CARD', index: 0 }) // 1 попытка осталась
-		const afterSecond = reducer(afterFirst, { type: 'REVEAL_CARD', index: 1 }) // 0 -> пас
+		const afterFirst = reducer(s, { type: 'REVEAL_CARD', index: 0 }) // 1 guess left
+		const afterSecond = reducer(afterFirst, { type: 'REVEAL_CARD', index: 1 }) // 0 -> pass
 		assert.equal(afterSecond.phase, 'clue')
 		assert.equal(afterSecond.currentTeam, 'blue')
 		assert.equal(afterSecond.clue, null)
@@ -100,7 +100,7 @@ describe('reducer / REVEAL_CARD', () => {
 	})
 
 	it('открытие последней карты своей команды — победа', () => {
-		// Откроем index 0 заранее, останется одна красная (index 1)
+		// Reveal index 0 beforehand, leaving one red (index 1)
 		const s = guessState(LAYOUT, 3)
 		const opened: GameState = {
 			...s,
@@ -151,9 +151,9 @@ describe('reducer / END_TURN', () => {
 
 	it('запоминает поданную подсказку как прошлую для этой команды (для бонуса)', () => {
 		const afterClue = reducer(clueState(LAYOUT), { type: 'GIVE_CLUE', word: 'река', count: 2 })
-		// В первый ход прошлой подсказки ещё нет.
+		// On the first turn there's no previous clue yet.
 		assert.equal(afterClue.prevClueWord.red, null)
-		// После передачи хода запоминаем «реку» как прошлую подсказку красных.
+		// After the turn passes, the clue word is remembered as red's previous clue.
 		const afterTurn = reducer(afterClue, { type: 'END_TURN' })
 		assert.equal(afterTurn.prevClueWord.red, 'река')
 		assert.equal(afterTurn.prevClueWord.blue, null)
@@ -208,7 +208,7 @@ describe('reducer / log (таймлайн)', () => {
 	})
 
 	it('авто-передача хода после неверной карты не создаёт лишний «пас» (только открытие)', () => {
-		// index 4 — нейтральная, ход переходит автоматически.
+		// index 4 is neutral, the turn passes automatically.
 		const next = reducer(guessState(LAYOUT, 3), { type: 'REVEAL_CARD', index: 4 })
 		assert.deepEqual(next.log, [{ kind: 'reveal', team: 'red', word: 'w4', type: 'neutral', at: 0 }])
 	})
@@ -216,8 +216,8 @@ describe('reducer / log (таймлайн)', () => {
 	it('накапливает записи по ходу партии в порядке событий', () => {
 		const s0 = clueState(LAYOUT)
 		const s1 = reducer(s0, { type: 'GIVE_CLUE', word: 'река', count: 2 }, 100)
-		const s2 = reducer(s1, { type: 'REVEAL_CARD', index: 0 }, 200) // верная red, ход продолжается
-		const s3 = reducer(s2, { type: 'REVEAL_CARD', index: 4 }, 300) // нейтральная, пас
+		const s2 = reducer(s1, { type: 'REVEAL_CARD', index: 0 }, 200) // correct red, the turn continues
+		const s3 = reducer(s2, { type: 'REVEAL_CARD', index: 4 }, 300) // neutral, pass
 		assert.deepEqual(s3.log, [
 			{ kind: 'clue', team: 'red', word: 'река', count: 2, at: 100 },
 			{ kind: 'reveal', team: 'red', word: 'w0', type: 'red', at: 200 },

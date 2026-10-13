@@ -2,20 +2,20 @@ import { detectWinner, otherTeam } from '#frontend/game/rules.ts'
 import type { Card, GameEvent, GameState, LogEntry } from '#frontend/game/types.ts'
 
 /**
- * Чистый редьюсер партии: применяет событие, возвращая новое состояние.
- * Поверх результата дописывает запись таймлайна (`log`); `at` — метка времени
- * (мс epoch), которую проставляет применятель события (в тестах по умолчанию 0).
+ * Pure game reducer: applies an event and returns the new state.
+ * On top of the result it appends a timeline entry (`log`); `at` is the timestamp
+ * (ms epoch) set by whoever applies the event (0 by default in tests).
  */
 export function reducer(state: GameState, event: GameEvent, at = 0): GameState {
 	if (state.phase === 'over') return state
 	const next = apply(state, event)
-	// Тот же ref — событие невалидно/ничего не изменило, лог не трогаем.
+	// Same ref: the event is invalid or changed nothing, leave the log alone.
 	if (next === state) return state
 	const entry = logEntryFor(state, event, at)
 	return entry ? { ...next, log: [...next.log, entry] } : next
 }
 
-/** Применение события без логирования (прежняя чистая логика). */
+/** Applies the event without logging (the old pure logic). */
 function apply(state: GameState, event: GameEvent): GameState {
 	switch (event.type) {
 		case 'GIVE_CLUE':
@@ -28,9 +28,9 @@ function apply(state: GameState, event: GameEvent): GameState {
 }
 
 /**
- * Запись таймлайна для применённого события, исходя из состояния ДО него
- * (там видны открывшая команда и тип открываемой карты). Вызывается только
- * когда событие реально изменило состояние.
+ * Timeline entry for the applied event, based on the state BEFORE it
+ * (that's where the revealing team and the revealed card type are visible). Called only
+ * when the event actually changed the state.
  */
 function logEntryFor(state: GameState, event: GameEvent, at: number): LogEntry | null {
 	switch (event.type) {
@@ -65,7 +65,7 @@ function revealCard(state: GameState, index: number): GameState {
 		i === index ? { ...c, revealed: true, openedBy: state.currentTeam } : c,
 	)
 
-	// Ассасин — мгновенный проигрыш открывшей команды.
+	// Assassin: instant loss for the revealing team.
 	if (target.type === 'assassin') {
 		return {
 			...state,
@@ -76,23 +76,23 @@ function revealCard(state: GameState, index: number): GameState {
 		}
 	}
 
-	// Открыли последнюю карту какой-то команды — она побеждает (даже если открыл соперник).
+	// Revealed some team's last card: that team wins (even if the opponent revealed it).
 	const winner = detectWinner(cards)
 	if (winner) {
 		return { ...state, cards, phase: 'over', winner, guessesRemaining: 0 }
 	}
 
-	// Верная карта своей команды — тратим попытку, ход продолжается пока есть попытки.
+	// Correct card of your own team: spend a guess, the turn goes on while guesses remain.
 	if (target.type === state.currentTeam) {
 		const guessesRemaining = state.guessesRemaining - 1
 		return guessesRemaining > 0 ? { ...state, cards, guessesRemaining } : { ...endTurn(state), cards }
 	}
 
-	// Нейтральная или карта соперника — ход переходит.
+	// Neutral or opponent's card: the turn passes.
 	return { ...endTurn(state), cards }
 }
 
-/** Передача хода: смена команды, сброс подсказки и попыток. */
+/** Passing the turn: switch team, reset the clue and guesses. */
 function endTurn(state: GameState): GameState {
 	return {
 		...state,
@@ -100,7 +100,7 @@ function endTurn(state: GameState): GameState {
 		phase: 'clue',
 		clue: null,
 		guessesRemaining: 0,
-		// Запоминаем поданную подсказку как «прошлую» для этой команды — покажем её в её следующем бонусе.
+		// Remember the given clue as this team's "previous" one: it's shown in the team's next bonus.
 		prevClueWord: state.clue ? { ...state.prevClueWord, [state.clue.team]: state.clue.word } : state.prevClueWord,
 	}
 }

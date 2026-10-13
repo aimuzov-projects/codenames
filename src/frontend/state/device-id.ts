@@ -3,9 +3,9 @@ const KEY = 'codenames.device'
 let cached: string | null = null
 
 /**
- * Стабильный идентификатор устройства — он же игровой id участника. Переживает разрыв связи и
- * перезапуск приложения, поэтому хост узнаёт вернувшегося игрока и сажает его на прежнее место
- * с той же командой и ролью (см. приём `hello` в net.ts), а не заводит дубль.
+ * Stable device id, which is also the player's game id. It survives a dropped connection and
+ * an app restart, so the host recognizes a returning player and puts them back in their old seat
+ * with the same team and role (see `hello` handling in net.ts) instead of creating a duplicate.
  */
 export function deviceId(): string {
 	if (cached) return cached
@@ -16,14 +16,14 @@ export function deviceId(): string {
 			return saved
 		}
 	} catch {
-		// приватный режим / нет доступа — id проживёт до перезагрузки
+		// private mode / no access: the id lives until reload
 	}
 	const id = crypto.randomUUID().slice(0, 8)
 	cached = id
 	try {
 		localStorage.setItem(KEY, id)
 	} catch {
-		// см. выше
+		// see above
 	}
 	return id
 }

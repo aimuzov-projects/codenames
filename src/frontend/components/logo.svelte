@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { LOGOS } from '#frontend/components/logo.ts'
 
-	/** Случайный вариант; с `exclude` -- заведомо другой. */
+	/** A random variant; with `exclude`, guaranteed to be a different one. */
 	function pick(exclude?: number): number {
 		const candidates = LOGOS.map((_, i) => i).filter((i) => i !== exclude)
 		return candidates[Math.floor(Math.random() * candidates.length)]!
@@ -10,7 +10,7 @@
 	let index = $state(pick())
 </script>
 
-<!-- В тёмной теме рисунок инвертируется фильтром: чёрный становится белым. -->
+<!-- In dark theme the drawing is inverted by a filter: black turns white. -->
 <button type="button" class="logo" onclick={() => (index = pick(index))} aria-label="Сменить логотип">
 	<img class="logo__image" src={LOGOS[index]} alt="Codenames" draggable="false" />
 </button>
