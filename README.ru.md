@@ -66,7 +66,7 @@
 
 ## Запуск
 
-Стек и раскладка как в [infra-template-site](https://github.com/aimuzov-projects/infra-template-site): Astro + Svelte 5, Prettier, oxlint, stylelint (BEM), `node --test`. Node берётся из `mise.toml`, та же версия закреплена в `package.json`.
+Стек и раскладка как в [infra-site-template](https://github.com/aimuzov-projects/infra-site-template): Astro + Svelte 5, Prettier, oxlint, stylelint (BEM), `node --test`. Node берётся из `mise.toml`, та же версия закреплена в `package.json`.
 
 ```sh
 cp .env.example .env
