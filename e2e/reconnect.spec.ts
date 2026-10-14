@@ -101,8 +101,8 @@ test.describe('переподключение после обрыва', () => {
 			await giveClue(captain, 'память', 2)
 			await revealCardAt(operative, indicesOf(key, start)[0]!)
 
-			// Both must have the move before the reload: the guest saves the snapshot it got from the host,
-			// and on the fast production build the reload could otherwise outrun the broadcast.
+			// Ход должен дойти до обоих до перезагрузки: гость сохраняет снимок, полученный от хоста,
+			// а на быстрой прод-сборке перезагрузка иначе может обогнать рассылку.
 			for (const page of [host!, g1!]) {
 				await expect(page.locator('[data-testid="card"][data-revealed="true"]')).toHaveCount(1, {
 					timeout: 20_000,
