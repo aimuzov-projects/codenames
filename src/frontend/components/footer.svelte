@@ -4,7 +4,7 @@
 
 <!-- Author credit at the bottom edge of menu screens: menu-layout stretches and pushes it down. -->
 <footer class="footer">
-	<Credit repo="https://github.com/aimuzov-projects/codenames" />
+	<Credit repo="https://github.com/aimuzov-projects/codenames" align="center" />
 </footer>
 
 <style>
@@ -15,6 +15,5 @@
 		padding-bottom: 0.25rem;
 		font-size: 0.75rem;
 		color: var(--muted-foreground);
-		text-align: center;
 	}
 </style>
