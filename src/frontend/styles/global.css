@@ -1,4 +1,4 @@
-/* Theme tokens. Dark is toggled by .dark on <html> (see state/theme.ts and the script in layouts/base.astro). */
+/* Theme tokens. Dark is toggled by .dark on <html> (see state/theme.ts and public/theme.js). */
 :root {
 	--font-sans: 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
 
