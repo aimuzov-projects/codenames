@@ -1,9 +1,11 @@
 <script lang="ts">
+	import '@aimuzov-projects/infra-site-kit/theme-peek.css'
+	import { themePeek } from '@aimuzov-projects/infra-site-kit/theme-peek.js'
 	import ChevronRight from '@lucide/svelte/icons/chevron-right'
-	import Monitor from '@lucide/svelte/icons/monitor'
 	import Moon from '@lucide/svelte/icons/moon'
 	import RefreshCw from '@lucide/svelte/icons/refresh-cw'
 	import Sun from '@lucide/svelte/icons/sun'
+	import SunMoon from '@lucide/svelte/icons/sun-moon'
 	import TimerOff from '@lucide/svelte/icons/timer-off'
 
 	import { previewSound } from '#frontend/audio/sfx.ts'
@@ -37,9 +39,16 @@
 
 	const THEMES: { mode: ThemeMode; label: string; icon: typeof Sun }[] = [
 		{ mode: 'light', label: 'Светлая', icon: Sun },
-		{ mode: 'system', label: 'Системная', icon: Monitor },
+		{ mode: 'system', label: 'Системная', icon: SunMoon },
 		{ mode: 'dark', label: 'Тёмная', icon: Moon },
 	]
+
+	/** The scheme a theme button switches to: for "system" it is whatever the system has now. */
+	function schemeOf(mode: ThemeMode): 'light' | 'dark' {
+		if (mode !== 'system') return mode
+
+		return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+	}
 
 	const WORD_SIZE_LABELS: Record<CardWordSize, string> = {
 		'11px': 'Мелкий',
@@ -78,6 +87,7 @@
 					aria-pressed={$themeAtom === mode}
 					aria-label={label}
 					onclick={() => setTheme(mode)}
+					{@attach (node) => themePeek(node, { target: () => schemeOf(mode) })}
 				>
 					<Icon size={24} />
 				</button>

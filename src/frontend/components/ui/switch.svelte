@@ -54,7 +54,7 @@
 			background: var(--background);
 			transition: transform 150ms;
 
-			:global(.dark) .switch:not(.switch--checked) & {
+			:global(.dark) .switch:not(.switch--checked) &:not(:global(.dark .light *)) {
 				background: var(--foreground);
 			}
 
@@ -62,7 +62,7 @@
 				transform: translateX(calc(100% - 4px));
 			}
 
-			:global(.dark) .switch--checked & {
+			:global(.dark) .switch--checked &:not(:global(.dark .light *)) {
 				background: var(--primary-foreground);
 			}
 		}

@@ -40,7 +40,7 @@
 			width: 14rem;
 			height: auto;
 
-			:global(.dark) & {
+			:global(.dark) &:not(:global(.dark .light *)) {
 				filter: invert(1);
 			}
 		}
