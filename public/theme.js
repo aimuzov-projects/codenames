@@ -5,5 +5,6 @@
 try {
 	const t = localStorage.getItem('codenames.theme')
 	const dark = t === 'dark' || ((t === 'system' || !t) && matchMedia('(prefers-color-scheme: dark)').matches)
+
 	if (dark) document.documentElement.classList.add('dark')
 } catch {}

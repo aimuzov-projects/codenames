@@ -26,7 +26,9 @@ export default function pwa(): AstroIntegration {
 					cleanupOutdatedCaches: true,
 					sourcemap: false,
 				})
+
 				for (const warning of warnings) logger.warn(warning)
+
 				logger.info(`sw.js: ${count} файлов, ${Math.round(size / 1024)} КБ в прекэше`)
 			},
 		},

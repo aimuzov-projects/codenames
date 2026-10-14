@@ -42,16 +42,19 @@ describe('validateIntent', () => {
 
 	it('игрок текущей команды может открывать карту в фазе guess', () => {
 		const g = game({ phase: 'guess' })
+
 		assert.equal(validateIntent(roster, g, 'ro', { type: 'REVEAL_CARD', index: 0 }), true)
 	})
 
 	it('капитан не может открывать карты', () => {
 		const g = game({ phase: 'guess' })
+
 		assert.equal(validateIntent(roster, g, 'rs', { type: 'REVEAL_CARD', index: 0 }), false)
 	})
 
 	it('игрок другой команды не может открывать карту', () => {
 		const g = game({ phase: 'guess' })
+
 		assert.equal(validateIntent(roster, g, 'bo', { type: 'REVEAL_CARD', index: 0 }), false)
 	})
 
@@ -64,6 +67,7 @@ describe('validateIntent', () => {
 			}),
 			false,
 		)
+
 		assert.equal(validateIntent(roster, game({ phase: 'clue' }), 'ro', { type: 'REVEAL_CARD', index: 0 }), false)
 	})
 
@@ -77,6 +81,7 @@ describe('validateIntent', () => {
 
 	it('в завершённой игре любые интенты отклоняются', () => {
 		const over = game({ phase: 'over', winner: 'red' })
+
 		assert.equal(validateIntent(roster, over, 'rs', { type: 'GIVE_CLUE', word: 'x', count: 1 }), false)
 	})
 })

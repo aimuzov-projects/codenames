@@ -55,17 +55,22 @@ export const isHostAtom = computed([modeAtom], () => modeAtom() !== 'guest')
 /** What the UI shows. */
 export const viewAtom = computed<RedactedState | null>([modeAtom, remoteViewAtom, gameAtom, viewRoleAtom], () => {
 	if (modeAtom() === 'guest') return remoteViewAtom()
+
 	const game = gameAtom()
+
 	return game ? redactStateForRole(game, viewRoleAtom()) : null
 })
 
 /** Score from public info only (revealed cards + the known 9/8 split). */
 export const scoreAtom = computed<Record<Team, number>>([viewAtom], () => {
 	const view = viewAtom()
+
 	if (!view) return { red: 0, blue: 0 }
+
 	const totalRed = view.startingTeam === 'red' ? 9 : 8
 	const totalBlue = view.startingTeam === 'blue' ? 9 : 8
 	const revealed = (team: Team) => view.cards.filter((c) => c.revealed && c.type === team).length
+
 	return { red: totalRed - revealed('red'), blue: totalBlue - revealed('blue') }
 })
 
@@ -85,14 +90,18 @@ export function setHostSubmit(fn: ((senderId: string, event: GameEvent) => void)
 /** Applies the event to the canonical state (local/host only). Returns true if there is a state. */
 export function applyEvent(event: GameEvent) {
 	const game = gameAtom()
+
 	if (!game) return false
+
 	gameAtom.set(reducer(game, event, Date.now()))
+
 	return true
 }
 
 /** Player action from the UI. Routed by mode. */
 const playerAction = (event: GameEvent) => {
 	const mode = modeAtom()
+
 	if (mode === 'guest') {
 		intentSender?.(event)
 	} else if (mode === 'host') {
@@ -110,22 +119,27 @@ export function startGame(config: GameConfig) {
 
 export function giveClue(word: string, count: number) {
 	playerAction({ type: 'GIVE_CLUE', word, count })
+
 	if (modeAtom() === 'local') viewRoleAtom.set('operative') // hot-seat: hide the key
 }
 
 export function revealCard(index: number) {
 	const before = gameAtom()
+
 	playerAction({ type: 'REVEAL_CARD', index })
+
 	if (modeAtom() === 'local' && before?.phase === 'guess') {
 		const after = gameAtom()
 		const card = after?.cards[index]
 		const turnPassed = !!after && after.phase === 'clue' && after.currentTeam !== before.currentTeam
+
 		// The turn passed because of a wrong card (opponent's or neutral, not the assassin), show it in the popup.
 		handoffReasonAtom.set(
 			turnPassed && card && card.type !== before.currentTeam && card.type !== 'assassin'
 				? { word: card.word, type: card.type as 'neutral' | Team }
 				: null,
 		)
+
 		// Hold the popup (turn handoff / win) until the card reveal animation is over.
 		if (turnPassed || after?.phase === 'over') {
 			revealLockedAtom.set(true)

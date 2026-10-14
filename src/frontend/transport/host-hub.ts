@@ -47,9 +47,11 @@ export class HostHub {
 	async acceptGuest(offerCode: string): Promise<{ connId: string; answerCode: string }> {
 		const connId = crypto.randomUUID().slice(0, 8)
 		const conn = this.connect(connId)
+
 		// Subscribe before the handshake so the channel open event isn't missed.
 		conn.onMessage((m) => this.messageCb(connId, m))
 		conn.onOpen(() => this.connectCb(connId))
+
 		conn.onClose(() => {
 			// A dead connection is dropped right away: one piles up per guest reconnect during a game,
 			// and broadcasts walk the whole map.
@@ -57,8 +59,11 @@ export class HostHub {
 			conn.close()
 			this.disconnectCb(connId)
 		})
+
 		const answerCode = await conn.acceptOfferCode(offerCode)
+
 		this.conns.set(connId, conn)
+
 		return { connId, answerCode }
 	}
 
@@ -76,6 +81,7 @@ export class HostHub {
 
 	close() {
 		for (const conn of this.conns.values()) conn.close()
+
 		this.conns.clear()
 	}
 }

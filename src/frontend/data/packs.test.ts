@@ -30,6 +30,7 @@ describe('mergeWords', () => {
 	it('объединяет слова паков и убирает дубли между ними', () => {
 		const a = { id: 'a', title: 'A', lang: 'ru', builtin: true, words: ['кот', 'пёс'] }
 		const b = { id: 'b', title: 'B', lang: 'ru', builtin: true, words: ['пёс', 'мышь'] }
+
 		assert.deepEqual(mergeWords([a, b]), ['кот', 'пёс', 'мышь'])
 	})
 
@@ -48,6 +49,7 @@ describe('isPlayable', () => {
 describe('BUILTIN_PACKS', () => {
 	it('каждый встроенный пак играбелен сам по себе', () => {
 		assert.ok(BUILTIN_PACKS.length > 0)
+
 		for (const pack of BUILTIN_PACKS) {
 			assert.equal(isPlayable(pack.words), true)
 		}
@@ -61,11 +63,13 @@ describe('BUILTIN_PACKS', () => {
 
 	it('у встроенных паков уникальные id', () => {
 		const ids = BUILTIN_PACKS.map((p) => p.id)
+
 		assert.equal(new Set(ids).size, ids.length)
 	})
 
 	it('паки из дефолтного выбора существуют', () => {
 		const ids = new Set(BUILTIN_PACKS.map((p) => p.id))
+
 		for (const id of DEFAULT_PACK_IDS) {
 			assert.equal(ids.has(id), true)
 		}

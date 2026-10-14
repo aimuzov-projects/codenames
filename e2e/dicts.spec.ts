@@ -10,8 +10,10 @@ test.describe('словари и паки', () => {
 		// Uncheck all selected packs.
 		const checks = page.getByRole('checkbox')
 		const n = await checks.count()
+
 		for (let i = 0; i < n; i++) {
 			const c = checks.nth(i)
+
 			if (await c.isChecked()) await c.click()
 		}
 

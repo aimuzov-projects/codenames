@@ -52,6 +52,7 @@ describe('гость: переходы доски при старте/реста
 			phase: 'over' as const,
 			winner: 'red' as const,
 		}
+
 		deliver!({ t: 'state', state: redactStateForRole(overGame, 'operative') })
 
 		assert.equal(screenAtom(), 'board')
@@ -59,6 +60,7 @@ describe('гость: переходы доски при старте/реста
 
 		// RESTART: the host taps "New game" → broadcasts lobby(started) + a fresh state.
 		const fresh = createGame({ words, startingTeam: 'blue' })
+
 		deliver!({ t: 'lobby', players, started: true })
 		deliver!({ t: 'state', state: redactStateForRole(fresh, 'operative') })
 

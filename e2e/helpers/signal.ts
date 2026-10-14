@@ -9,10 +9,13 @@ import { expect, type Page } from '@playwright/test'
 /** Reads the offer/answer code shown on the current screen (instead of shooting the QR). */
 export async function readSignalOut(page: Page): Promise<string> {
 	const out = page.getByTestId('signal-out')
+
 	// The code appears after ICE candidates are gathered (non-trickle), so wait with a margin.
 	await expect(out).toHaveCount(1, { timeout: 20_000 })
 	const code = await out.textContent()
+
 	if (!code) throw new Error('signal-out пуст')
+
 	return code
 }
 

@@ -8,7 +8,9 @@ import type { PlayerInfo } from '#frontend/transport/messages.ts'
  */
 export function validateIntent(roster: PlayerInfo[], game: GameState, senderId: string, event: GameEvent): boolean {
 	if (game.phase === 'over') return false
+
 	const sender = roster.find((p) => p.id === senderId)
+
 	if (!sender || sender.team !== game.currentTeam) return false
 
 	const requirePhase = (phase: GameState['phase'], role: Role) => game.phase === phase && sender.role === role

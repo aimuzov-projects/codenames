@@ -12,6 +12,7 @@ test.describe('настройки', () => {
 	test('переключатель звука меняет состояние', async ({ page }) => {
 		// The visible switch is button[role=switch]; #sound is a hidden input for the form.
 		const sound = page.getByRole('switch').first()
+
 		await expect(sound).toBeChecked() // on by default
 		await sound.click()
 		await expect(sound).not.toBeChecked()
@@ -31,6 +32,7 @@ test.describe('настройки', () => {
 
 	test('таймер хода выбирается', async ({ page }) => {
 		const t = page.getByRole('button', { name: '2 мин' })
+
 		await t.click()
 		await expect(t).toHaveAttribute('aria-pressed', 'true')
 	})
@@ -38,6 +40,7 @@ test.describe('настройки', () => {
 	test('приглушение отгаданных слов переключается', async ({ page }) => {
 		// The second switch on the screen is "dim guessed words".
 		const dim = page.getByRole('switch').nth(1)
+
 		await expect(dim).not.toBeChecked()
 		await dim.click()
 		await expect(dim).toBeChecked()

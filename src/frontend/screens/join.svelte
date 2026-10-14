@@ -59,8 +59,10 @@
 		if (transportAtom() === 'relay') {
 			guestReconnect()
 			stage = 'setup'
+
 			return
 		}
+
 		offerCode = ''
 		stage = 'offer'
 		guestReconnect()
@@ -83,10 +85,13 @@
 	// Online path: a relay room. From here the channel repairs itself, no camera needed again.
 	function connectByCode(raw: string) {
 		const code = normalizeRoomCode(raw)
+
 		if (!isRoomCode(code)) {
 			codeError = 'Код из 6 символов, например ABC123'
+
 			return
 		}
+
 		codeError = ''
 		startJoining(name.trim() || suggestedName, { transport: 'relay', code })
 		stage = 'setup'
@@ -99,6 +104,7 @@
 
 	function random() {
 		const s = randomSetup(rosterAtom(), myIdAtom(), { team: myTeamAtom(), role: myRoleAtom() })
+
 		guestSetup(s.team, s.role)
 	}
 
@@ -106,6 +112,7 @@
 	// or the player would lose the very game they're returning to.
 	function back() {
 		if (!reconnecting) leaveSession()
+
 		goBack()
 	}
 </script>

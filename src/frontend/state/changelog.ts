@@ -24,7 +24,9 @@ export const hasUnseenChangelogAtom = computed([seenVersionAtom], () => seenVers
 /** Marks the changelog as seen, which turns off the "new" badge. Called when the screen opens. */
 export function markChangelogSeen() {
 	if (seenVersionAtom() === LATEST.version) return
+
 	seenVersionAtom.set(LATEST.version)
+
 	try {
 		localStorage.setItem(KEY, LATEST.version)
 	} catch {

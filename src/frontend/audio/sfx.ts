@@ -9,8 +9,11 @@ function audio(): AudioContext | null {
 			? (window.AudioContext ??
 				(window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)
 			: undefined
+
 	if (!Ctor) return null
+
 	ctx ??= new Ctor()
+
 	return ctx
 }
 
@@ -21,14 +24,18 @@ export function resumeAudio() {
 
 function tone(freq: number, dur: number, type: OscillatorType = 'sine', delay = 0, gain = 0.07) {
 	const c = audio()
+
 	if (!c) return
+
 	const osc = c.createOscillator()
 	const g = c.createGain()
+
 	osc.type = type
 	osc.frequency.value = freq
 	osc.connect(g)
 	g.connect(c.destination)
 	const t = c.currentTime + delay
+
 	g.gain.setValueAtTime(gain, t)
 	g.gain.exponentialRampToValueAtTime(0.0001, t + dur)
 	osc.start(t)
@@ -38,10 +45,13 @@ function tone(freq: number, dur: number, type: OscillatorType = 'sine', delay = 
 /** Quiet short click on a button press (UI feedback). */
 export function sfxTap() {
 	const c = audio()
+
 	if (!c) return
+
 	const osc = c.createOscillator()
 	const g = c.createGain()
 	const t = c.currentTime
+
 	osc.type = 'triangle'
 	osc.frequency.setValueAtTime(1100, t)
 	osc.frequency.exponentialRampToValueAtTime(560, t + 0.04)
@@ -65,6 +75,7 @@ export function sfxReveal(type: CardType) {
 		case 'assassin':
 			tone(150, 0.5, 'sawtooth')
 			tone(95, 0.7, 'sawtooth', 0.08)
+
 			return
 	}
 }

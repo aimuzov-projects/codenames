@@ -8,10 +8,14 @@ import type { Card, GameEvent, GameState, LogEntry } from '#frontend/game/types.
  */
 export function reducer(state: GameState, event: GameEvent, at = 0): GameState {
 	if (state.phase === 'over') return state
+
 	const next = apply(state, event)
+
 	// Same ref: the event is invalid or changed nothing, leave the log alone.
 	if (next === state) return state
+
 	const entry = logEntryFor(state, event, at)
+
 	return entry ? { ...next, log: [...next.log, entry] } : next
 }
 
@@ -38,6 +42,7 @@ function logEntryFor(state: GameState, event: GameEvent, at: number): LogEntry |
 			return { kind: 'clue', team: state.currentTeam, word: event.word, count: event.count, at }
 		case 'REVEAL_CARD': {
 			const card = state.cards[event.index]!
+
 			return { kind: 'reveal', team: state.currentTeam, word: card.word, type: card.type, at }
 		}
 		case 'END_TURN':
@@ -47,7 +52,9 @@ function logEntryFor(state: GameState, event: GameEvent, at: number): LogEntry |
 
 function giveClue(state: GameState, word: string, count: number): GameState {
 	if (state.phase !== 'clue') return state
+
 	if (!word.trim() || !Number.isInteger(count) || count < 1) return state
+
 	return {
 		...state,
 		clue: { word, count, team: state.currentTeam },
@@ -58,7 +65,9 @@ function giveClue(state: GameState, word: string, count: number): GameState {
 
 function revealCard(state: GameState, index: number): GameState {
 	if (state.phase !== 'guess') return state
+
 	const target = state.cards[index]
+
 	if (!target || target.revealed) return state
 
 	const cards: Card[] = state.cards.map((c, i) =>
@@ -78,6 +87,7 @@ function revealCard(state: GameState, index: number): GameState {
 
 	// Revealed some team's last card: that team wins (even if the opponent revealed it).
 	const winner = detectWinner(cards)
+
 	if (winner) {
 		return { ...state, cards, phase: 'over', winner, guessesRemaining: 0 }
 	}
@@ -85,6 +95,7 @@ function revealCard(state: GameState, index: number): GameState {
 	// Correct card of your own team: spend a guess, the turn goes on while guesses remain.
 	if (target.type === state.currentTeam) {
 		const guessesRemaining = state.guessesRemaining - 1
+
 		return guessesRemaining > 0 ? { ...state, cards, guessesRemaining } : { ...endTurn(state), cards }
 	}
 

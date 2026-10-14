@@ -11,6 +11,7 @@ test.describe('навигация по меню', () => {
 	test('логотип меняется по клику, подпись автора ведёт в телеграм', async ({ page }) => {
 		const logo = page.getByRole('img', { name: 'Codenames' })
 		const before = await logo.getAttribute('src')
+
 		await page.getByRole('button', { name: 'Сменить логотип' }).click()
 		await expect(logo).not.toHaveAttribute('src', before ?? '')
 		await expect(page.getByRole('link', { name: /aimuzov/ })).toHaveAttribute('href', 'https://t.me/aimuzov')

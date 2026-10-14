@@ -28,6 +28,7 @@ const fullOffer = {
 describe('codec сигналинга', () => {
 	it('кодирует в компактную сжатую строку из QR-alphanumeric набора', () => {
 		const encoded = encodeSignal(fullOffer)
+
 		assert.ok(encoded.length < fullOffer.sdp.length / 2)
 		// Base45 fits entirely in QR alphanumeric mode: characters only from that set.
 		assert.match(encoded, /^[0-9A-Z $%*+\-./:]+$/)
@@ -35,6 +36,7 @@ describe('codec сигналинга', () => {
 
 	it('roundtrip сохраняет тип и существенные ICE-поля', () => {
 		const decoded = decodeSignal(encodeSignal(fullOffer))
+
 		assert.equal(decoded.type, 'offer')
 		assert.ok(decoded.sdp.includes('a=ice-ufrag:abcd'))
 		assert.ok(decoded.sdp.includes('a=ice-pwd:0123456789abcdef0123456789'))

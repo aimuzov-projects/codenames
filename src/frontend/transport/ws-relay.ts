@@ -42,39 +42,51 @@ class ReconnectingSocket {
 
 	private wake = () => {
 		if (this.stopped || document.visibilityState !== 'visible') return
+
 		if (this.ws?.readyState === WebSocket.OPEN) return
+
 		this.delay = RETRY_MIN_MS
 		this.connect()
 	}
 
 	private connect() {
 		if (this.stopped) return
+
 		if (this.timer !== null) {
 			clearTimeout(this.timer)
 			this.timer = null
 		}
+
 		this.ws?.close()
 		const ws = new WebSocket(this.url)
+
 		this.ws = ws
+
 		ws.onopen = () => {
 			this.delay = RETRY_MIN_MS
 			this.onOpen()
 		}
+
 		ws.onmessage = (e) => this.onMessage(JSON.parse(e.data as string) as RelayOut)
+
 		ws.onclose = () => {
 			if (this.ws !== ws) return // already replaced by a newer attempt
+
 			this.onDown()
 			this.scheduleRetry()
 		}
+
 		ws.onerror = () => ws.close()
 	}
 
 	private scheduleRetry() {
 		if (this.stopped || this.timer !== null) return
+
 		this.timer = setTimeout(() => {
 			this.timer = null
 			this.connect()
 		}, this.delay)
+
 		this.delay = Math.min(this.delay * 2, RETRY_MAX_MS)
 	}
 
@@ -88,7 +100,9 @@ class ReconnectingSocket {
 
 	close() {
 		this.stopped = true
+
 		if (this.timer !== null) clearTimeout(this.timer)
+
 		globalThis.removeEventListener('online', this.wake)
 		document.removeEventListener('visibilitychange', this.wake)
 		this.ws?.close()
@@ -116,6 +130,7 @@ export class WsHostTransport implements HostTransport {
 		this.code = code
 		this.onCode = onCode
 		this.onFatal = onFatal
+
 		this.socket = new ReconnectingSocket(
 			url,
 			// Same code after a drop: guests stay in the room and wait for the host to return.
@@ -134,6 +149,7 @@ export class WsHostTransport implements HostTransport {
 			case 'peer':
 				if (msg.online) this.guests.add(msg.id)
 				else if (this.guests.delete(msg.id)) this.disconnectCb(msg.id)
+
 				break
 			case 'from':
 				this.guests.add(msg.from)
@@ -141,6 +157,7 @@ export class WsHostTransport implements HostTransport {
 				break
 			case 'error':
 				if (msg.reason !== 'bad-message') this.onFatal(msg.reason)
+
 				break
 		}
 	}
@@ -177,6 +194,7 @@ export class WsGuestTransport implements GuestTransport {
 		this.code = code
 		this.playerId = playerId
 		this.onFatal = onFatal
+
 		this.socket = new ReconnectingSocket(
 			url,
 			() => this.socket.send({ t: 'join', code: this.code, id: this.playerId }),
@@ -192,7 +210,9 @@ export class WsGuestTransport implements GuestTransport {
 	 */
 	private setHostOnline(online: boolean) {
 		if (online === this.hostOnline) return
+
 		this.hostOnline = online
+
 		for (const cb of online ? this.openCbs : this.closeCbs) cb()
 	}
 
@@ -206,6 +226,7 @@ export class WsGuestTransport implements GuestTransport {
 				break
 			case 'error':
 				if (msg.reason !== 'bad-message') this.onFatal(msg.reason)
+
 				break
 		}
 	}

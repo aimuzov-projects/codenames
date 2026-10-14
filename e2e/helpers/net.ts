@@ -32,14 +32,17 @@ export async function connectGuest(host: Page, guest: Page) {
 	await guest.getByRole('button', { name: 'Подключиться' }).click()
 	await guest.getByRole('button', { name: 'Рядом, без интернета' }).click()
 	const offer = await readSignalOut(guest)
+
 	await guest.getByRole('button', { name: 'Далее' }).click()
 
 	await host.getByRole('button', { name: 'Добавить игрока' }).click()
 	await submitSignalIn(host, offer)
 	const answer = await readSignalOut(host)
+
 	await submitSignalIn(guest, answer)
 
 	await expect(guest.getByText('Подключено ✓')).toBeVisible({ timeout: 20_000 })
+
 	await expect(host.getByRole('heading', { name: 'Создание игры' })).toBeVisible({
 		timeout: 20_000,
 	})

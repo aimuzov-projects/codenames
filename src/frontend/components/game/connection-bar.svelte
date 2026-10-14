@@ -14,10 +14,12 @@
 
 		if ($modeAtom === 'guest') {
 			if ($connStatusAtom === 'connected') return null
+
 			const connecting = $connStatusAtom === 'connecting'
 			// In a relay room the channel comes back by itself -- the button only hurries the next attempt.
 			// Over QR the only way back is a new handshake, so we send them to the join screen.
 			const retry = $transportAtom === 'relay' ? () => guestReconnect() : () => goToJoin('reconnect')
+
 			return {
 				connecting,
 				text: connecting ? 'Восстанавливаем связь…' : 'Связь с хостом потеряна',
@@ -26,7 +28,9 @@
 		}
 
 		const offline = $rosterAtom.filter((p) => !p.connected)
+
 		if (offline.length === 0) return null
+
 		return {
 			connecting: false,
 			text: `Не на связи: ${offline.map((p) => p.name).join(', ')}`,

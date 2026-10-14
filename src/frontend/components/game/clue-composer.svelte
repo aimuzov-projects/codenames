@@ -42,15 +42,19 @@
 	$effect(() => {
 		if (!open) {
 			barShown = false
+
 			return
 		}
+
 		const id = setTimeout(() => (barShown = true), 250)
+
 		return () => clearTimeout(id)
 	})
 
 	// Reset on leaving clue mode (clue given / role changed / game over).
 	$effect(() => {
 		if (canCompose) return
+
 		composerOpenAtom.set(false)
 		word = ''
 		num = 2
@@ -59,10 +63,13 @@
 	// Close on Esc (desktop).
 	$effect(() => {
 		if (!open) return
+
 		const onKey = (event: KeyboardEvent) => {
 			if (event.key === 'Escape') composerOpenAtom.set(false)
 		}
+
 		window.addEventListener('keydown', onKey)
+
 		return () => window.removeEventListener('keydown', onKey)
 	})
 
@@ -70,7 +77,9 @@
 
 	function submit() {
 		const w = word.trim()
+
 		if (!w) return
+
 		giveClue(w, num)
 		word = ''
 		num = 2
@@ -94,11 +103,13 @@
 	 */
 	function portal(node: HTMLElement) {
 		;(document.getElementById('root') ?? document.body).append(node)
+
 		return () => node.remove()
 	}
 
 	function inputRef(node: HTMLInputElement) {
 		clueInputEl = node
+
 		return () => {
 			if (clueInputEl === node) clueInputEl = null
 		}

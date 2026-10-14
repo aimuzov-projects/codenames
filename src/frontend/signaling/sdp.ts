@@ -22,7 +22,9 @@ function trimCandidate(candidate: string): string {
 	const parts = candidate.split(' ')
 	// foundation component transport priority address port "typ" type  (= 8 tokens)
 	let end = 8
+
 	if (parts[8] === 'raddr') end = 12 // + raddr <ip> rport <port> for srflx/relay
+
 	return parts.slice(0, end).join(' ')
 }
 
@@ -33,10 +35,15 @@ function trimCandidate(candidate: string): string {
  */
 function isUsefulCandidate(candidate: string): boolean {
 	const p = candidate.split(' ')
+
 	if ((p[2] ?? '').toLowerCase() !== 'udp') return false
+
 	const addr = p[4] ?? ''
+
 	if (addr.includes(':')) return false // IPv6
+
 	if (addr.startsWith('127.') || addr.startsWith('169.254.')) return false // loopback / link-local
+
 	return true
 }
 
@@ -45,11 +52,15 @@ function selectCandidates(all: string[]): string[] {
 	const useful = all.filter(isUsefulCandidate)
 	const source = useful.length ? useful : all
 	const seen = new Set<string>()
+
 	return source.filter((c) => {
 		const p = c.split(' ')
 		const key = `${p[4] ?? ''}:${p[5] ?? ''}`
+
 		if (seen.has(key)) return false
+
 		seen.add(key)
+
 		return true
 	})
 }
@@ -59,6 +70,7 @@ export function minifySdp(desc: SignalDescription): string {
 	const get = (re: RegExp) => sdp.match(re)?.[1] ?? ''
 	const allCandidates = [...sdp.matchAll(/a=candidate:(.+)/g)].map((m) => trimCandidate(m[1]!.trim()))
 	const candidates = selectCandidates(allCandidates)
+
 	return [
 		'M',
 		desc.type === 'offer' ? '0' : '1',
@@ -72,9 +84,11 @@ export function minifySdp(desc: SignalDescription): string {
 
 export function expandSdp(code: string): SignalDescription {
 	const [tag, t, ufrag, pwd, fpHex, setup, candsJoined] = code.split(SEP)
+
 	if (tag !== 'M' || !ufrag || !pwd || !fpHex) {
 		throw new Error('Некорректный код подключения')
 	}
+
 	const fingerprint = (fpHex.match(/.{2}/g) ?? []).join(':').toUpperCase()
 	const candidates = candsJoined ? candsJoined.split(CAND_SEP) : []
 	const lines = [
@@ -97,6 +111,7 @@ export function expandSdp(code: string): SignalDescription {
 		'a=sctp-port:5000',
 		'a=max-message-size:262144',
 	]
+
 	return { type: t === '0' ? 'offer' : 'answer', sdp: lines.join('\r\n') + '\r\n' }
 }
 

@@ -9,10 +9,13 @@ import type { RedactedState } from '#frontend/game/index.ts'
  */
 export function turnStartedAt(view: RedactedState | null): number | null {
 	if (!view || view.phase !== 'guess' || !view.clue) return null
+
 	for (let i = view.log.length - 1; i >= 0; i--) {
 		const entry = view.log[i]!
+
 		if (entry.kind === 'clue') return entry.at
 	}
+
 	return null
 }
 

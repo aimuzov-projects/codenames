@@ -45,6 +45,7 @@ function newRoomCode(): string {
 	for (;;) {
 		const bytes = crypto.getRandomValues(new Uint8Array(ROOM_CODE_LENGTH))
 		const code = [...bytes].map((b) => ROOM_CODE_ALPHABET[b % ROOM_CODE_ALPHABET.length]).join('')
+
 		if (!rooms.has(code)) return code
 	}
 }
@@ -52,21 +53,28 @@ function newRoomCode(): string {
 function openRoom(ws: WebSocket, requested?: string) {
 	const code = requested && isRoomCode(requested) ? requested : newRoomCode()
 	const existing = rooms.get(code)
+
 	// You can return to your room as long as nobody has taken it: a room has exactly one host.
 	if (existing && existing.host !== null && existing.host !== ws) {
 		send(ws, { t: 'error', reason: 'room-taken' })
+
 		return
 	}
+
 	if (!existing && rooms.size >= MAX_ROOMS) {
 		send(ws, { t: 'error', reason: 'room-taken' })
+
 		return
 	}
+
 	const room = existing ?? { code, host: null, guests: new Map(), orphanedAt: 0 }
+
 	room.host = ws
 	room.orphanedAt = 0
 	rooms.set(code, room)
 	membership.set(ws, { room, id: null })
 	send(ws, { t: 'hosting', code })
+
 	// Guests waiting for the host to come back will introduce themselves again (see wsRelay: open → hello).
 	for (const [id, guest] of room.guests) {
 		send(guest, { t: 'host-online', online: true })
@@ -76,26 +84,34 @@ function openRoom(ws: WebSocket, requested?: string) {
 
 function joinRoom(ws: WebSocket, rawCode: string, id: string) {
 	const room = rooms.get(normalizeRoomCode(rawCode))
+
 	if (!room) {
 		send(ws, { t: 'error', reason: 'no-room' })
+
 		return
 	}
+
 	// A reconnect of the same player evicts their previous socket.
 	room.guests.get(id)?.close()
 	room.guests.set(id, ws)
 	membership.set(ws, { room, id })
 	send(ws, { t: 'joined', code: room.code })
 	send(ws, { t: 'host-online', online: room.host !== null })
+
 	if (room.host) send(room.host, { t: 'peer', id, online: true })
 }
 
 function route(ws: WebSocket, msg: Extract<RelayIn, { t: 'to' }>) {
 	const seat = membership.get(ws)
+
 	if (!seat) return
+
 	const { room, id } = seat
+
 	if (id === null) {
 		// The sender is the host: address a specific guest.
 		const guest = msg.to === undefined ? undefined : room.guests.get(msg.to)
+
 		if (guest) send(guest, { t: 'from', from: 'host', data: msg.data })
 	} else if (room.host) {
 		send(room.host, { t: 'from', from: id, data: msg.data })
@@ -104,19 +120,28 @@ function route(ws: WebSocket, msg: Extract<RelayIn, { t: 'to' }>) {
 
 function leave(ws: WebSocket) {
 	const seat = membership.get(ws)
+
 	if (!seat) return
+
 	membership.delete(ws)
 	const { room, id } = seat
+
 	if (id === null) {
 		if (room.host !== ws) return
+
 		room.host = null
 		room.orphanedAt = Date.now()
+
 		for (const guest of room.guests.values()) send(guest, { t: 'host-online', online: false })
+
 		return
 	}
+
 	// The socket may already be evicted by the same player's reconnect, then there's nothing to touch.
 	if (room.guests.get(id) !== ws) return
+
 	room.guests.delete(id)
+
 	if (room.host) send(room.host, { t: 'peer', id, online: false })
 }
 
@@ -129,26 +154,32 @@ const wss = new WebSocketServer({ server: http, maxPayload: MAX_MESSAGE_BYTES })
 
 wss.on('connection', (ws) => {
 	let alive = true
+
 	ws.on('pong', () => (alive = true))
 
 	// Half-dead sockets (a sleeping phone) stay silent and never close, so we kill them by ping.
 	const ping = setInterval(() => {
 		if (!alive) {
 			ws.terminate()
+
 			return
 		}
+
 		alive = false
 		ws.ping()
 	}, 25_000)
 
 	ws.on('message', (raw) => {
 		let msg: RelayIn
+
 		try {
 			msg = JSON.parse(String(raw)) as RelayIn
 		} catch {
 			send(ws, { t: 'error', reason: 'bad-message' })
+
 			return
 		}
+
 		switch (msg.t) {
 			case 'host':
 				openRoom(ws, msg.code)
@@ -168,15 +199,18 @@ wss.on('connection', (ws) => {
 		clearInterval(ping)
 		leave(ws)
 	})
+
 	ws.on('error', () => ws.terminate())
 })
 
 // Rooms the host has left for long are removed, otherwise codes pile up forever.
 setInterval(() => {
 	const now = Date.now()
+
 	for (const [code, room] of rooms) {
 		if (room.host === null && now - room.orphanedAt > ROOM_TTL_MS) {
 			for (const guest of room.guests.values()) guest.close()
+
 			rooms.delete(code)
 		}
 	}

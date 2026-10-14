@@ -32,6 +32,7 @@ describe('turnStartedAt', () => {
 		const view = viewWith({
 			log: [clue(1000), { kind: 'reveal', team: 'red', word: 'a', type: 'red', at: 1500 }, clue(5000)],
 		})
+
 		assert.equal(turnStartedAt(view), 5000)
 	})
 
@@ -48,6 +49,7 @@ describe('turnSecondsLeft — отсчёт привязан к старту хо
 	it('не сбрасывается при повторном расчёте (возврат из настроек)', () => {
 		const startedAt = 10_000
 		const timerSec = 180
+
 		// Entered the game: 30 s have passed since the turn started.
 		assert.equal(turnSecondsLeft(startedAt, timerSec, 40_000), 150)
 		// Went to settings and back (+20 s more): the timer keeps going instead of restarting from 180.
@@ -67,6 +69,7 @@ describe('endTurnLockLeft — блокировка «Завершить ход»
 	it('убывает от старта хода, а не от повторного расчёта (возврат из настроек)', () => {
 		const startedAt = 10_000
 		const lockSec = 5
+
 		// 2 s have passed since the turn started.
 		assert.equal(endTurnLockLeft(startedAt, lockSec, 12_000), 3)
 		// Went to settings and back (+1.5 s more): the countdown keeps going instead of restarting from 5.

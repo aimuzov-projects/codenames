@@ -7,6 +7,7 @@ import { connectGuest, guestPick, mobileCtx, startHost } from './helpers/net'
 async function openPeers(browser: Browser, n: number) {
 	const ctxs = await Promise.all(Array.from({ length: n }, () => browser.newContext(mobileCtx)))
 	const pages = await Promise.all(ctxs.map((c) => c.newPage()))
+
 	return { ctxs, pages }
 }
 
@@ -14,6 +15,7 @@ test.describe('сетевой режим (P2P)', () => {
 	test('рукопожатие хост↔гость и блокировка старта при неполном составе', async ({ browser }) => {
 		const { ctxs, pages } = await openPeers(browser, 2)
 		const [host, guest] = pages
+
 		try {
 			await startHost(host!)
 			await connectGuest(host!, guest!)
@@ -31,6 +33,7 @@ test.describe('сетевой режим (P2P)', () => {
 	test('гость выбирает команду/роль — правило «один капитан на команду»', async ({ browser }) => {
 		const { ctxs, pages } = await openPeers(browser, 2)
 		const [host, guest] = pages
+
 		try {
 			await startHost(host!) // the host is the red captain
 			await connectGuest(host!, guest!)
@@ -50,6 +53,7 @@ test.describe('сетевой режим (P2P)', () => {
 	test('партия по сети: старт, анти-чит, синхронизация подсказки и открытий', async ({ browser }) => {
 		const { ctxs, pages } = await openPeers(browser, 4)
 		const [host, g1, g2, g3] = pages
+
 		try {
 			await startHost(host!) // red captain
 			// Assemble a full roster: g1 is a red player, g2 the blue captain, g3 a blue player.
@@ -92,6 +96,7 @@ test.describe('сетевой режим (P2P)', () => {
 	test('хост перезапускает партию — гость получает свежее поле', async ({ browser }) => {
 		const { ctxs, pages } = await openPeers(browser, 4)
 		const [host, g1, g2, g3] = pages
+
 		try {
 			await startHost(host!) // red captain
 			await connectGuest(host!, g1!)
@@ -109,6 +114,7 @@ test.describe('сетевой режим (P2P)', () => {
 			const start = startingTeam(key)
 			const captain = start === 'red' ? host! : g2!
 			const operative = start === 'red' ? g1! : g3!
+
 			await giveClue(captain, 'рестарт', 3)
 			await revealCardAt(operative, indicesOf(key, start)[0]!)
 			await expect.poll(() => revealedCount(host!, start), { timeout: 20_000 }).toBe(1)
@@ -131,6 +137,7 @@ test.describe('сетевой режим (P2P)', () => {
 	test('перетасовка ростера даёт играбельный состав', async ({ browser }) => {
 		const { ctxs, pages } = await openPeers(browser, 4)
 		const [host, g1, g2, g3] = pages
+
 		try {
 			await startHost(host!)
 			await connectGuest(host!, g1!)

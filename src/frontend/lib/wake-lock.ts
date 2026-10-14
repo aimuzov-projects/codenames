@@ -12,13 +12,18 @@ export function keepScreenAwake(): () => void {
 
 	const acquire = async () => {
 		if (stopped || lock || document.visibilityState !== 'visible') return
+
 		try {
 			const sentinel = await navigator.wakeLock.request('screen')
+
 			if (stopped) {
 				void sentinel.release()
+
 				return
 			}
+
 			lock = sentinel
+
 			sentinel.addEventListener('release', () => {
 				if (lock === sentinel) lock = null
 			})
@@ -29,6 +34,7 @@ export function keepScreenAwake(): () => void {
 
 	void acquire()
 	document.addEventListener('visibilitychange', acquire)
+
 	return () => {
 		stopped = true
 		document.removeEventListener('visibilitychange', acquire)

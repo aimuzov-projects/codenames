@@ -57,6 +57,7 @@
 	// ended while the dialog is open (e.g. the turn timer ran out) -- close it, otherwise it
 	// stays hanging under the phone handoff gate.
 	const guessTurnActive = $derived(!!view && view.phase === 'guess' && !!view.clue)
+
 	$effect(() => {
 		if (!guessTurnActive) confirmEmptyPass = false
 	})
@@ -97,6 +98,7 @@
 
 	function toMenu() {
 		if (!isLocal) leaveSession()
+
 		goTo('home')
 	}
 

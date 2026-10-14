@@ -15,6 +15,7 @@ const other = (team: Team): Team => (team === 'red' ? 'blue' : 'red')
  */
 export function createGame(config: GameConfig, rng: Rng = Math.random): GameState {
 	const uniqueWords = [...new Set(config.words)]
+
 	if (uniqueWords.length < BOARD_SIZE) {
 		throw new Error(`Нужно минимум ${BOARD_SIZE} уникальных слов, получено ${uniqueWords.length}`)
 	}

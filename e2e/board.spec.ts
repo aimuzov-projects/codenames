@@ -58,6 +58,7 @@ test.describe('доска: хедер, попапы и переходы', () => 
 
 		// The phone handoff gate shows after the reveal animation (revealLocked ~1.5s).
 		const gate = page.getByRole('dialog')
+
 		await expect(gate.getByText('Вы открыли общее слово')).toBeVisible({ timeout: 5_000 })
 		await expect(gate.getByText(word, { exact: false })).toBeVisible()
 	})
@@ -75,6 +76,7 @@ test.describe('доска: хедер, попапы и переходы', () => 
 		await revealCardAt(page, oppCard) // opponent's card → the turn passes
 
 		const gate = page.getByRole('dialog')
+
 		await expect(gate.getByText('Вы открыли слово соперников')).toBeVisible({ timeout: 5_000 })
 		await expect(gate.getByText(word, { exact: false })).toBeVisible()
 	})
@@ -83,6 +85,7 @@ test.describe('доска: хедер, попапы и переходы', () => 
 		// Turn on "dim guessed words" in settings (the second switch), go back to the menu.
 		await page.getByRole('button', { name: /Настройки/ }).click()
 		const dim = page.getByRole('switch').nth(1)
+
 		await dim.click()
 		await expect(dim).toBeChecked()
 		await page.getByRole('button', { name: 'Назад' }).click()
@@ -100,6 +103,7 @@ test.describe('доска: хедер, попапы и переходы', () => 
 		// After the reveal animation (checkmark ~1s) the word shows up dimmed (opacity-30).
 		// .last() is the innermost span with the word (the outer parent contains the same text).
 		const wordEl = cards(page).nth(idx).getByText(word, { exact: true }).last()
+
 		await expect(wordEl).toHaveCSS('opacity', '0.3')
 	})
 
@@ -111,9 +115,11 @@ test.describe('доска: хедер, попапы и переходы', () => 
 		const myCards = indicesOf(key, mine)
 
 		await giveClue(page, 'всё', 9)
+
 		for (const i of myCards) await revealCardAt(page, i)
 
 		const label = mine === 'red' ? 'Красные победили' : 'Синие победили'
+
 		await expect(page.getByText(label)).toBeVisible({ timeout: 5_000 })
 
 		// "New game" in the win overlay (not in the header) is a separate path without confirmation.

@@ -33,16 +33,22 @@
 
 	// React only to the "closed → revealed" transition, not to mounting an already revealed card.
 	let wasRevealed = untrack(() => card.revealed)
+
 	$effect(() => {
 		const was = wasRevealed
+
 		wasRevealed = card.revealed
+
 		if (!card.revealed || was || card.type === null || card.openedBy === undefined) return
+
 		showIcon = true
 		const timers = [setTimeout(() => (showIcon = false), ICON_HOLD_MS)]
+
 		if (card.openedBy !== card.type) {
 			shake = true
 			timers.push(setTimeout(() => (shake = false), SHAKE_MS))
 		}
+
 		return () => timers.forEach(clearTimeout)
 	})
 </script>

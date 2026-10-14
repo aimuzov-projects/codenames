@@ -11,6 +11,7 @@ import { mobileCtx } from './helpers/net'
 async function openPeers(browser: Browser, n: number) {
 	const ctxs = await Promise.all(Array.from({ length: n }, () => browser.newContext(mobileCtx)))
 	const pages = await Promise.all(ctxs.map((c) => c.newPage()))
+
 	return { ctxs, pages }
 }
 
@@ -21,7 +22,9 @@ async function hostRoom(host: Page): Promise<string> {
 	await host.getByRole('button', { name: 'Лобби' }).click()
 	await host.getByRole('button', { name: 'Создать' }).click()
 	const code = host.getByTestId('room-code')
+
 	await expect(code).toBeVisible({ timeout: 20_000 })
+
 	return (await code.textContent()) ?? ''
 }
 
@@ -50,8 +53,10 @@ test.describe('онлайн-режим (релей)', () => {
 	test('вход по коду комнаты и автоматический возврат после обрыва', async ({ browser }) => {
 		const { ctxs, pages } = await openPeers(browser, 2)
 		const [host, guest] = pages
+
 		try {
 			const code = await hostRoom(host!)
+
 			expect(code).toMatch(/^[A-Z2-9]{6}$/)
 
 			await joinRoom(guest!, code)
@@ -76,8 +81,10 @@ test.describe('онлайн-режим (релей)', () => {
 	test('уснувший хост возвращается в свою комнату — гости остаются на местах', async ({ browser }) => {
 		const { ctxs, pages } = await openPeers(browser, 2)
 		const [host, guest] = pages
+
 		try {
 			const code = await hostRoom(host!)
+
 			await joinRoom(guest!, code)
 			await expect(host!.getByRole('listitem')).toHaveCount(2)
 
