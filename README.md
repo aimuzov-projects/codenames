@@ -126,7 +126,7 @@ End-to-end tests (Playwright, a real WebRTC DataChannel and a real relay) cover 
 
 ## Deployment
 
-The projects server from [infra-server](https://github.com/aimuzov-projects/infra-server): a push to `main` runs `deploy.yml`, which runs the checks and calls [`deploy/remote.sh`](deploy/remote.sh) over SSH. On the server `docker compose` builds two containers: `codenames` (nginx with the static site) and `codenames-relay` (the room relay). The domain, TLS and the `/ws` route to the relay are handled by the shared Caddy (`sites/codenames.caddy`).
+The projects server from [infra-server](https://github.com/aimuzov-projects/infra-server): a push to `main` runs `deploy.yml`, which runs the checks and calls the shared [`deploy/site.sh`](https://github.com/aimuzov-projects/infra-server/blob/main/deploy/site.sh) of infra-server over SSH. On the server `docker compose` builds two containers: `codenames` (nginx with the static site) and `codenames-relay` (the room relay). The domain, TLS and the `/ws` route to the relay are handled by the shared Caddy (`sites/codenames.caddy`).
 
 > HTTPS is required by the camera (`getUserMedia`) and the service worker. The server only hands out and installs the PWA: after installation the QR game works offline, and WebRTC signaling goes over the local network.
 
