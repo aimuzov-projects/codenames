@@ -52,8 +52,9 @@ export default defineConfig({
 			__BUILD_TIME__: JSON.stringify(new Date().toISOString()),
 		},
 		// HTTPS in dev and preview: the camera and the service worker only work in a secure context,
-		// including when a phone connects over the local network.
-		plugins: [basicSsl()],
+		// including when a phone connects over the local network. e2e opens the build on localhost,
+		// which is a secure context over plain HTTP too, and the infra-site-kit preset expects http.
+		plugins: process.env.PUBLIC_E2E === '1' ? [] : [basicSsl()],
 		server: { proxy },
 		preview: { proxy },
 	},

@@ -3,8 +3,8 @@ import { devices, expect, type Page } from '@playwright/test'
 import { openApp } from './app'
 import { readSignalOut, submitSignalIn } from './signal'
 
-/** Manual contexts don't inherit the project `use`, so device and ignoreHTTPSErrors are set explicitly. */
-export const mobileCtx = { ...devices['Pixel 7'], ignoreHTTPSErrors: true }
+/** Manual contexts don't inherit the project device, so it is set explicitly. */
+export const mobileCtx = { ...devices['Pixel 7'] }
 
 /**
  * The host creates a game and lands in the "Create game" lobby (red captain by default).

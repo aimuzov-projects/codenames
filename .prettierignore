@@ -8,3 +8,5 @@ CHANGELOG.md
 # Локальные файлы под chezmoi: в git их нет, а prettier про .git/info/exclude не знает.
 .mcp.json
 mise.local.toml
+test-results
+playwright-report
