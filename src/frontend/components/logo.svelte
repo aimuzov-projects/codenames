@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { LOGOS } from '#frontend/components/logo.ts'
 
-	/** A random variant; with `exclude`, guaranteed to be a different one. */
+	/** Случайный вариант; с `exclude` -- заведомо другой. */
 	function pick(exclude?: number): number {
 		const candidates = LOGOS.map((_, i) => i).filter((i) => i !== exclude)
 
@@ -11,7 +11,7 @@
 	let index = $state(pick())
 </script>
 
-<!-- In dark theme the drawing is inverted by a filter: black turns white. -->
+<!-- В тёмной теме рисунок инвертируется фильтром: чёрный становится белым. -->
 <button type="button" class="logo" onclick={() => (index = pick(index))} aria-label="Сменить логотип">
 	<img class="logo__image" src={LOGOS[index]} alt="Codenames" draggable="false" />
 </button>
@@ -40,6 +40,7 @@
 			width: 14rem;
 			height: auto;
 
+			/* Кроме светлого островка `.light` на тёмной странице -- превью темы в настройках. */
 			:global(.dark) &:not(:global(.dark .light *)) {
 				filter: invert(1);
 			}

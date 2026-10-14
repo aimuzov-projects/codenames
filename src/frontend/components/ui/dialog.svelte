@@ -3,19 +3,19 @@
 
 	type Props = {
 		open: boolean
-		/** Closing through the system "cross": Esc, a tap on the backdrop. */
+		/** Закрытие крестиком системы: Esc, тап по затемнению. */
 		onclose: () => void
 		title: string
 		description?: Snippet
-		/** Buttons at the bottom; closing the dialog is up to them. */
+		/** Кнопки внизу; закрывать диалог -- их забота. */
 		actions?: Snippet
-		/** Whether it closes on a tap outside the window. */
+		/** Закрывается ли по тапу мимо окна. */
 		dismissible?: boolean
-		/** Action confirmation: role alertdialog, like the former AlertDialog. */
+		/** Подтверждение действия: роль alertdialog, как у прежнего AlertDialog. */
 		alert?: boolean
-		/** Large centered title -- board event popups (victory, turn handoff). */
+		/** Крупный заголовок по центру -- попапы-события доски (победа, передача хода). */
 		centered?: boolean
-		/** Content above the title (icon, event reason). */
+		/** Содержимое над заголовком (иконка, причина события). */
 		lead?: Snippet
 		children?: Snippet
 	}
@@ -47,7 +47,7 @@
 	}
 </script>
 
-<!-- Native <dialog>: focus, Esc and the backdrop come from the browser. -->
+<!-- Нативный <dialog>: фокус, Esc и затемнение даёт браузер. -->
 <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
 <dialog
 	bind:this={dialog}
@@ -57,6 +57,8 @@
 	aria-labelledby="{uid}-title"
 	onclick={backdrop}
 	oncancel={(event) => {
+		// Сам браузер по Esc диалог не закрывает: открыт он или нет, решает только `open`,
+		// иначе состояние разъедется, а `dismissible` перестанет работать для Esc.
 		event.preventDefault()
 		if (dismissible) onclose()
 	}}

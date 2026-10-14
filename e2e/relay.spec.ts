@@ -4,8 +4,8 @@ import { openApp } from './helpers/app'
 import { mobileCtx } from './helpers/net'
 
 /**
- * Online mode: a room on the WS relay (see src/backend/server.ts). We check what it was made for:
- * the connection heals on its own, no walking around with a camera; we fake network loss with `context.setOffline`.
+ * Онлайн-режим: комната на WS-релее (см. src/backend/server.ts). Проверяем то, ради чего он появился —
+ * связь чинится сама, без хождения с камерой: обрыв сети имитируем `context.setOffline`.
  */
 
 async function openPeers(browser: Browser, n: number) {
@@ -15,7 +15,7 @@ async function openPeers(browser: Browser, n: number) {
 	return { ctxs, pages }
 }
 
-/** The host opens a room and returns its code. */
+/** Хост открывает комнату и возвращает её код. */
 async function hostRoom(host: Page): Promise<string> {
 	await openApp(host)
 	await host.getByRole('button', { name: 'Играть' }).click()
@@ -28,7 +28,7 @@ async function hostRoom(host: Page): Promise<string> {
 	return (await code.textContent()) ?? ''
 }
 
-/** The guest joins a room by code. */
+/** Гость входит в комнату по коду. */
 async function joinRoom(guest: Page, code: string) {
 	await openApp(guest)
 	await guest.getByRole('button', { name: 'Играть' }).click()
@@ -40,12 +40,12 @@ async function joinRoom(guest: Page, code: string) {
 	await expect(guest.getByText('Подключено ✓')).toBeVisible({ timeout: 20_000 })
 }
 
-/** Device sleep simulation: the network goes away, then comes back. */
+/** Имитация сна устройства: сеть пропадает, затем возвращается. */
 async function blink(ctx: BrowserContext, page: Page, offlineWhile: () => Promise<void>) {
 	await ctx.setOffline(true)
 	await offlineWhile()
 	await ctx.setOffline(false)
-	// The transport wakes up on the online event, but we also nudge it with tab visibility to be safe.
+	// Транспорт просыпается по событию online, но подстрахуемся видимостью вкладки.
 	await page.bringToFront()
 }
 
@@ -64,12 +64,12 @@ test.describe('онлайн-режим (релей)', () => {
 			await guest!.getByRole('radio', { name: 'Капитан' }).click()
 			await expect(host!.getByRole('listitem')).toHaveCount(2)
 
-			// The guest's phone went to sleep, the network is gone.
+			// Телефон гостя ушёл в сон — сеть пропала.
 			await blink(ctxs[1]!, guest!, async () => {
 				await expect(guest!.getByText('Соединение потеряно')).toBeVisible({ timeout: 30_000 })
 			})
 
-			// Comes back on its own: no QR, no buttons, and in the same seat.
+			// Возвращается сам: ни QR, ни кнопок — и на своём месте.
 			await expect(guest!.getByText('Подключено ✓')).toBeVisible({ timeout: 30_000 })
 			await expect(host!.getByRole('listitem')).toHaveCount(2)
 			await expect(host!.getByRole('listitem').filter({ hasText: 'капитан' })).toHaveCount(2)
@@ -88,12 +88,12 @@ test.describe('онлайн-режим (релей)', () => {
 			await joinRoom(guest!, code)
 			await expect(host!.getByRole('listitem')).toHaveCount(2)
 
-			// The host fell asleep: the guest sees the connection loss but stays in the app.
+			// Уснул хост: гость видит потерю связи, но остаётся в приложении.
 			await blink(ctxs[0]!, host!, async () => {
 				await expect(guest!.getByText('Соединение потеряно')).toBeVisible({ timeout: 30_000 })
 			})
 
-			// The host takes the same room, the guest introduces itself again, the roster is unchanged.
+			// Хост занимает ту же комнату, гость представляется заново — состав прежний.
 			await expect(host!.getByTestId('room-code')).toHaveText(code, { timeout: 30_000 })
 			await expect(guest!.getByText('Подключено ✓')).toBeVisible({ timeout: 30_000 })
 			await expect(host!.getByRole('listitem')).toHaveCount(2)

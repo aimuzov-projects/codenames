@@ -1,15 +1,15 @@
 import type { SignalDescription } from '#frontend/signaling/types.ts'
 
 /**
- * WebRTC SDP minimization for a DataChannel connection.
+ * Минимизация WebRTC SDP для DataChannel-соединения.
  *
- * The browser's full SDP (~600 chars) is almost all boilerplate. We send only
- * the essential fields (type, ICE ufrag/password, DTLS fingerprint, setup, candidates),
- * and rebuild a valid SDP from a template on the other side. This shrinks the code
- * to ~180 chars: the QR gets noticeably simpler, and typing it by hand more realistic.
+ * Полный SDP от браузера (~600 символов) почти весь шаблонный. Передаём только
+ * существенные поля (тип, ICE-логин/пароль, отпечаток DTLS, setup, кандидаты),
+ * а на другой стороне пересобираем валидный SDP из шаблона. Это сокращает код
+ * до ~180 символов — QR становится заметно проще, а ручной ввод реальнее.
  *
- * Verified: a real browser accepts the rebuilt SDP (setRemoteDescription
- * + createAnswer pass without errors) for both offer and answer.
+ * Проверено: реальный браузер принимает пересобранный SDP (setRemoteDescription
+ * + createAnswer проходят без ошибок) для offer и answer.
  */
 
 const SETUP_CODE: Record<string, string> = { actpass: '0', active: '1', passive: '2' }
@@ -17,21 +17,21 @@ const SETUP_NAME = ['actpass', 'active', 'passive'] as const
 const SEP = '~'
 const CAND_SEP = '|'
 
-/** Drops non-standard candidate tails (generation/network-cost/ufrag), keeping the required part. */
+/** Отбрасывает нестандартные хвосты кандидата (generation/network-cost/ufrag), сохраняя обязательную часть. */
 function trimCandidate(candidate: string): string {
 	const parts = candidate.split(' ')
-	// foundation component transport priority address port "typ" type  (= 8 tokens)
+	// foundation component transport priority address port "typ" type  (= 8 токенов)
 	let end = 8
 
-	if (parts[8] === 'raddr') end = 12 // + raddr <ip> rport <port> for srflx/relay
+	if (parts[8] === 'raddr') end = 12 // + raddr <ip> rport <port> для srflx/relay
 
 	return parts.slice(0, end).join(' ')
 }
 
 /**
- * Keeps only the candidates useful on a local network, so the QR doesn't bloat:
- * UDP, no IPv6 (colon in the address), no loopback or link-local. What remains is IPv4
- * host and mDNS (`*.local`), which is enough to connect over a single Wi-Fi.
+ * Оставляет только полезные на локальной сети кандидаты, чтобы QR не раздувался:
+ * UDP, без IPv6 (двоеточие в адресе), без loopback и link-local. Остаются IPv4-
+ * host и mDNS (`*.local`) — этого достаточно для соединения по одному Wi-Fi.
  */
 function isUsefulCandidate(candidate: string): boolean {
 	const p = candidate.split(' ')
@@ -47,7 +47,7 @@ function isUsefulCandidate(candidate: string): boolean {
 	return true
 }
 
-/** Narrows the candidate list: filter + dedup by address and port (falls back if the filter removed everything). */
+/** Сужает список кандидатов: фильтр + дедуп по адресу и порту (с запасным вариантом, если фильтр всё убрал). */
 function selectCandidates(all: string[]): string[] {
 	const useful = all.filter(isUsefulCandidate)
 	const source = useful.length ? useful : all
@@ -65,6 +65,10 @@ function selectCandidates(all: string[]): string[] {
 	})
 }
 
+/**
+ * Сворачивает SDP в строку `M~тип~ufrag~pwd~отпечаток~setup~кандидаты`.
+ * Отпечаток идёт без двоеточий, кандидаты — уже отфильтрованные и разделённые `|`.
+ */
 export function minifySdp(desc: SignalDescription): string {
 	const sdp = desc.sdp
 	const get = (re: RegExp) => sdp.match(re)?.[1] ?? ''
@@ -82,6 +86,13 @@ export function minifySdp(desc: SignalDescription): string {
 	].join(SEP)
 }
 
+/**
+ * Пересобирает валидный SDP из строки {@link minifySdp}. Всё, чего в коде нет, берётся
+ * из шаблона DataChannel-соединения.
+ *
+ * @throws Если строка не похожа на минифицированный код или в ней нет ICE-логина,
+ * пароля или отпечатка.
+ */
 export function expandSdp(code: string): SignalDescription {
 	const [tag, t, ufrag, pwd, fpHex, setup, candsJoined] = code.split(SEP)
 
@@ -115,5 +126,5 @@ export function expandSdp(code: string): SignalDescription {
 	return { type: t === '0' ? 'offer' : 'answer', sdp: lines.join('\r\n') + '\r\n' }
 }
 
-/** Tells whether the text is a minified code. */
+/** Признак минифицированного кода. */
 export const isMinifiedSignal = (text: string) => text.trimStart().startsWith('M' + SEP)

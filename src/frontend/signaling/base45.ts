@@ -1,14 +1,18 @@
 /**
- * Base45 (RFC 9285): encodes bytes into an alphabet that fits entirely in the
- * QR "alphanumeric" set (0-9 A-Z and a few symbols). Thanks to this the
- * QR encoder uses a denser mode (5.5 bits/char instead of 8), and the code
- * is easier for a camera to scan.
+ * Base45 (RFC 9285) — кодирование байтов в алфавит, целиком входящий в
+ * «alphanumeric»-набор QR-кодов (0-9 A-Z и немного символов). Благодаря этому
+ * QR-энкодер использует более плотный режим (5.5 бит/символ вместо 8), и код
+ * получается проще для сканирования камерой.
  */
 const ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:'
 const REV = new Map<string, number>()
 
 for (let i = 0; i < ALPHABET.length; i++) REV.set(ALPHABET[i]!, i)
 
+/**
+ * Кодирует байты в Base45: каждая пара байтов даёт три символа, последний
+ * непарный байт -- два.
+ */
 export function base45Encode(data: Uint8Array): string {
 	let out = ''
 
@@ -27,6 +31,12 @@ export function base45Encode(data: Uint8Array): string {
 	return out
 }
 
+/**
+ * Раскодирует строку Base45 обратно в байты.
+ *
+ * Бросает ошибку, если встретился символ вне алфавита, длина строки даёт
+ * хвост из одного символа или группа символов не помещается в свои байты.
+ */
 export function base45Decode(text: string): Uint8Array {
 	const vals: number[] = []
 

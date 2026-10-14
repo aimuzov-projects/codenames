@@ -3,13 +3,13 @@ import { devices, expect, type Page } from '@playwright/test'
 import { openApp } from './app'
 import { readSignalOut, submitSignalIn } from './signal'
 
-/** Manual contexts don't inherit the project device, so it is set explicitly. */
+/** Ручные контексты не наследуют device из проекта — задаём его явно. */
 export const mobileCtx = { ...devices['Pixel 7'] }
 
 /**
- * The host creates a game and lands in the "Create game" lobby (red captain by default).
- * The relay is always available, so the lobby starts in online mode: we switch it
- * to the offline QR handshake, which is what these tests check.
+ * Хост создаёт игру и оказывается в лобби «Создание игры» (по умолчанию — красный капитан).
+ * Релей доступен всегда, поэтому лобби стартует в онлайн-режиме -- переключаем его
+ * на офлайновое рукопожатие по QR, которое и проверяют эти тесты.
  */
 export async function startHost(host: Page) {
 	await openApp(host)
@@ -22,8 +22,8 @@ export async function startHost(host: Page) {
 }
 
 /**
- * Full host↔guest handshake via the signaling test hooks (a real WebRTC DataChannel).
- * The host must be in the lobby; afterwards the guest is on the setup screen, the host is back in the lobby.
+ * Полное рукопожатие хост↔гость через тест-хуки сигналинга (реальный WebRTC DataChannel).
+ * Хост должен быть в лобби; по завершении гость на экране setup, хост снова в лобби.
  */
 export async function connectGuest(host: Page, guest: Page) {
 	await openApp(guest)
@@ -48,7 +48,7 @@ export async function connectGuest(host: Page, guest: Page) {
 	})
 }
 
-/** The guest picks a team and role on the setup screen (via the SetupPicker segment controls). */
+/** Гость выбирает команду и роль на экране setup (через сегмент-контролы SetupPicker). */
 export async function guestPick(guest: Page, team: 'Красные' | 'Синие', role: 'Игрок' | 'Капитан') {
 	await guest.getByRole('radio', { name: team }).click()
 	await guest.getByRole('radio', { name: role }).click()

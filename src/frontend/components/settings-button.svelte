@@ -6,7 +6,7 @@
 	import { goTo } from '#frontend/state/ui.ts'
 </script>
 
-<!-- A dot on the button -- the changelog has unread entries. -->
+<!-- Точка на кнопке -- в журнале изменений есть непрочитанное. -->
 <span class="settings-button">
 	<Button
 		variant="outline"

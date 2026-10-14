@@ -1,6 +1,7 @@
+/** Метаданные сайта для `<head>` и заголовков страниц. */
 export const site = {
-	/** Site name: `<title>` of the home page, `og:site_name`, suffix of the other pages' titles. */
+	/** Название сайта: `<title>` главной, `og:site_name`, хвост заголовков остальных страниц. */
 	name: 'Codenames',
-	/** Default `meta description` and `og:description`. */
+	/** `meta description` и `og:description` по умолчанию. */
 	description: 'Настольная Codenames для игры офлайн, каждый со своего телефона',
 }

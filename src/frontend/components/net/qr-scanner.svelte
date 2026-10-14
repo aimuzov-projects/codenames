@@ -5,7 +5,7 @@
 	import Textarea from '#frontend/components/ui/textarea.svelte'
 	import { E2E } from '#frontend/lib/e2e.ts'
 
-	/** QR scanner via the camera. */
+	/** Сканер QR через камеру. */
 	let { onscan }: { onscan: (text: string) => void } = $props()
 
 	let video: HTMLVideoElement
@@ -18,7 +18,7 @@
 		let cancelled = false
 
 		void (async () => {
-			// The camera is only available in a secure context (HTTPS or localhost).
+			// Камера доступна только в защищённом контексте (HTTPS или localhost).
 			if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
 				error = 'Камера работает только по HTTPS. Откройте https-адрес.'
 
@@ -26,7 +26,7 @@
 			}
 
 			try {
-				// Explicit permission request + rear camera + high resolution (dense QR codes).
+				// Явный запрос разрешения + задняя камера + высокое разрешение (плотные QR).
 				stream = await navigator.mediaDevices.getUserMedia({
 					video: {
 						facingMode: { ideal: 'environment' },
@@ -42,7 +42,7 @@
 					return
 				}
 
-				// zxing is loaded lazily -- doesn't weigh down the main bundle.
+				// zxing грузится лениво -- не утяжеляет основной бандл.
 				const [{ BrowserQRCodeReader }, { DecodeHintType }] = await Promise.all([
 					import('@zxing/browser'),
 					import('@zxing/library'),
@@ -50,7 +50,7 @@
 
 				if (cancelled) return
 
-				// TRY_HARDER -- searches harder for a code; we also poll frames more often.
+				// TRY_HARDER -- настойчивее ищет код; чаще опрашиваем кадры.
 				const hints = new Map([[DecodeHintType.TRY_HARDER, true]])
 				const reader = new BrowserQRCodeReader(hints, { delayBetweenScanAttempts: 120 })
 
@@ -62,7 +62,7 @@
 					}
 				})
 
-				// The screen was closed while the scanner was starting.
+				// Экран успели закрыть, пока поднимался сканер.
 				if (cancelled) controls.stop()
 			} catch (e) {
 				if (cancelled) return
@@ -96,7 +96,7 @@
 <div class="qr-scanner">
 	<video bind:this={video} class="qr-scanner__video" muted playsinline autoplay></video>
 	{#if error}<p class="qr-scanner__error">{error}</p>{/if}
-	<!-- e2e hook: paste the code as a string instead of scanning the QR with the camera (headless has none). -->
+	<!-- e2e-хук: вставка кода строкой вместо съёмки QR камерой (в headless камеры нет). -->
 	{#if E2E}
 		<div class="qr-scanner__manual">
 			<Textarea data-testid="signal-in" bind:value={manualCode} rows={2} />

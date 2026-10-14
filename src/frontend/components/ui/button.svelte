@@ -7,13 +7,13 @@
 	type Props = HTMLButtonAttributes & {
 		variant?: 'default' | 'outline' | 'secondary' | 'ghost' | 'destructive' | 'link'
 		size?: 'default' | 'xs' | 'sm' | 'lg' | 'icon' | 'icon-sm' | 'icon-lg'
-		/** Stretch to the parent's full width. */
+		/** Растянуть на всю ширину родителя. */
 		block?: boolean
-		/** Content aligned to the left edge (menu buttons: icon, label, chevron). */
+		/** Содержимое прижато к левому краю (кнопки меню: иконка, подпись, шеврон). */
 		start?: boolean
-		/** Ripple from the touch point and click feedback: for accent actions. */
+		/** Волна от точки касания и клик-отклик: у акцентных действий. */
 		ripple?: boolean
-		/** Sliding shine for the screen's main CTA. At most one per screen. */
+		/** Скользящий блик главного CTA экрана. Не больше одного на экран. */
 		sheen?: boolean
 		children?: Snippet
 	}
@@ -50,6 +50,7 @@
 				}
 
 				inks = [...inks, ink]
+				// 600 мс -- длительность анимации `button-ink`, менять их нужно вместе.
 				setTimeout(() => (inks = inks.filter((i) => i.id !== id)), 600)
 			}
 		}
@@ -249,7 +250,7 @@
 			justify-content: flex-start;
 		}
 
-		/* The shine runs in the text color, so it suits any button background. */
+		/* Блик бежит цветом текста, поэтому подходит к любому фону кнопки. */
 		&--sheen::after {
 			pointer-events: none;
 			content: '';

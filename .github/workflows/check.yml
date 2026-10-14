@@ -1,6 +1,6 @@
 name: Check
 
-# On main the deploy calls the checks before rollout, a separate run there would be a duplicate.
+# На main проверки зовёт деплой перед выкладкой, отдельный прогон там был бы вторым.
 on:
   push:
     branches-ignore: [main]
@@ -17,8 +17,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: aimuzov-projects/infra-site-kit/check@v1
-      # e2e on the infra-site-kit preset: the build in Chromium. The browser is cached by the
-      # Playwright version, its system libraries come from apt on every run.
+      # e2e из infra-site-kit: сборка в Chromium. Браузер кэшируется по версии Playwright,
+      # его системные библиотеки ставятся из apt каждый прогон.
       - id: playwright
         run: echo "version=$(npm ls @playwright/test --json | jq -r '.dependencies["@playwright/test"].version')" >> "$GITHUB_OUTPUT"
       - uses: actions/cache@v4

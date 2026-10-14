@@ -53,18 +53,18 @@
 	)
 	const lock = endTurnLock(() => view)
 
-	// The "end turn without guesses" dialog only makes sense in an active guess phase. If the turn
-	// ended while the dialog is open (e.g. the turn timer ran out) -- close it, otherwise it
-	// stays hanging under the phone handoff gate.
+	// Диалог «завершить ход без догадок» имеет смысл только в активной фазе guess. Если ход
+	// закончился, пока диалог открыт (например, истёк таймер хода) -- закрываем его, иначе он
+	// останется висеть под гейтом передачи телефона.
 	const guessTurnActive = $derived(!!view && view.phase === 'guess' && !!view.clue)
 
 	$effect(() => {
 		if (!guessTurnActive) confirmEmptyPass = false
 	})
 
-	// Board without a game: a network guest just waits for the host's state (after "New game" the lobby
-	// arrives first, the state follows), so we leave it alone. In a local/host game a board without a
-	// game makes no sense, send them to the menu.
+	// Доска без партии: сетевой гость просто ждёт состояние от хоста (после «Новой игры» сперва
+	// приходит lobby, состояние -- следом), его не трогаем. В локальной/хост-игре доска без партии
+	// бессмысленна, уводим в меню.
 	$effect(() => {
 		if (!view && mode !== 'guest') goTo('home')
 	})
@@ -72,14 +72,14 @@
 	const team = $derived(view?.currentTeam ?? 'red')
 	const over = $derived(view?.phase === 'over')
 	const isLocal = $derived(mode === 'local')
-	// A network viewer plays for their own team in their own role; in hot-seat everyone takes turns.
+	// Сетевой зритель ходит за свою команду своей ролью; в hot-seat ходят все по очереди.
 	const myOperativeTurn = $derived(isLocal || (team === $myTeamAtom && $myRoleAtom === 'operative'))
 
 	const interactive = $derived(view?.phase === 'guess' && myOperativeTurn)
 	const canEnd = $derived(!over && !!view?.clue && myOperativeTurn)
-	// By the rules only an operative ends the turn, not the spymaster.
+	// По правилам ход завершает только игрок, не капитан.
 	const viewerIsOperative = $derived(isLocal ? $viewRoleAtom === 'operative' : $myRoleAtom === 'operative')
-	// The spymaster can give a clue (clue phase): the footer shows "Come up with a clue" instead of "End turn".
+	// Капитан может дать подсказку (фаза clue): футер показывает «Придумать подсказку» вместо «Завершить ход».
 	const canCompose = $derived(
 		!over &&
 			view?.phase === 'clue' &&
@@ -102,21 +102,21 @@
 		goTo('home')
 	}
 
-	// The game has "started" if a clue was already given or at least one card is revealed.
+	// Игра «началась», если уже дана подсказка или открыта хоть одна карта.
 	const inProgress = $derived(!over && !!view && (!!view.clue || view.cards.some((c) => c.revealed)))
 	const requestBack = () => (inProgress ? (confirmExit = true) : toMenu())
 	const requestNewGame = () => (inProgress ? (confirmNewGame = true) : newGame())
 
-	// Button lock at the start of a turn (countdown) -- swallows a stray tap while handing the phone over.
+	// Блокировка кнопки в начале хода (отсчёт) -- гасит случайный тап при передаче телефона.
 	const endLocked = $derived(lock.left > 0)
-	// Not a single word revealed this turn: the guess counter is still at max (clue.count + 1).
-	// A wrong reveal ends the turn by itself, so only correct ones get as far as the button.
+	// За ход не открыто ни одного слова: счётчик попыток ещё на максимуме (clue.count + 1).
+	// Неверное открытие само завершает ход, так что до кнопки доходят только верные.
 	const noGuessesThisTurn = $derived(!!view?.clue && view.guessesRemaining === view.clue.count + 1)
 	const requestEndTurn = () => (noGuessesThisTurn ? (confirmEmptyPass = true) : endTurn())
 
 	const assassinHit = $derived(!!view?.cards.some((c) => c.revealed && c.type === 'assassin'))
 	const winner = $derived(view?.winner ?? null)
-	// Victory overlay -- only after the reveal animation of the last card.
+	// Оверлей победы -- только после анимации открытия последней карты.
 	const winOpen = $derived(over && !!winner && !$revealLockedAtom)
 </script>
 
@@ -138,7 +138,7 @@
 			</TopBar>
 		{/snippet}
 
-		<!-- Connection status (network modes). -->
+		<!-- Состояние связи (сетевые режимы). -->
 		<ConnectionBar />
 
 		<div class="board__score">
@@ -160,7 +160,7 @@
 			{/each}
 		</div>
 
-		<!-- Footer: the spymaster gives a clue, an operative ends the turn. -->
+		<!-- Футер: капитан даёт подсказку, игрок завершает ход. -->
 		{#if canCompose}
 			<div class="board__footer board__footer--{team}">
 				<Button size="lg" ripple block onclick={openComposer}>
@@ -186,13 +186,13 @@
 			</div>
 		{/if}
 
-		<!-- Clue input overlay (above the board, the field is premounted). -->
+		<!-- Оверлей ввода подсказки (над доской, поле предмонтировано). -->
 		<ClueComposer />
 
-		<!-- Phone handoff gate to the spymaster (hot-seat). -->
+		<!-- Гейт передачи телефона капитану (hot-seat). -->
 		<PassPhone />
 
-		<!-- Exit confirmation during a game. -->
+		<!-- Подтверждение выхода во время партии. -->
 		<Dialog open={confirmExit} onclose={() => (confirmExit = false)} alert title="Выйти из игры?">
 			{#snippet description()}Партия уже идёт. Если выйти, текущая игра будет потеряна.{/snippet}
 			{#snippet actions()}
@@ -207,7 +207,7 @@
 			{/snippet}
 		</Dialog>
 
-		<!-- New game confirmation during a game. -->
+		<!-- Подтверждение новой игры во время партии. -->
 		<Dialog open={confirmNewGame} onclose={() => (confirmNewGame = false)} alert title="Начать новую игру?">
 			{#snippet description()}Партия уже идёт. Если начать заново, текущая игра будет потеряна.{/snippet}
 			{#snippet actions()}
@@ -227,7 +227,7 @@
 			{/snippet}
 		</Dialog>
 
-		<!-- Confirmation for ending the turn without a single guess (guards against a stray tap). -->
+		<!-- Подтверждение завершения хода без единой догадки (защита от случайного нажатия). -->
 		<Dialog
 			open={confirmEmptyPass}
 			onclose={() => (confirmEmptyPass = false)}
@@ -236,7 +236,7 @@
 		>
 			{#snippet description()}Вы не открыли ни одного слова. Точно завершить ход?{/snippet}
 			{#snippet actions()}
-				<!-- "Cancel" is the main button (CTA): the safe outcome if the dialog was opened by accident. -->
+				<!-- «Отмена» -- главная кнопка (CTA): безопасный исход при случайном открытии диалога. -->
 				<Button onclick={() => (confirmEmptyPass = false)}>
 					<X />
 					Отмена
@@ -254,7 +254,7 @@
 			{/snippet}
 		</Dialog>
 
-		<!-- Victory overlay. -->
+		<!-- Оверлей победы. -->
 		<Dialog
 			open={winOpen}
 			onclose={() => {}}
@@ -294,7 +294,7 @@
 			gap: 7px;
 		}
 
-		/* Button in the team color: repaint it via the primary variables. */
+		/* Кнопка в цвет команды: перекрашиваем её через переменные primary. */
 		&__footer {
 			display: flex;
 

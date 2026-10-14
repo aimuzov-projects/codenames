@@ -13,14 +13,14 @@
 	const team = $derived<Team>(local ? ($viewAtom?.currentTeam ?? 'red') : $myTeamAtom)
 	const role = $derived<Role>(local ? ($viewAtom?.phase === 'clue' ? 'spymaster' : 'operative') : $myRoleAtom)
 	const Icon = $derived(ROLE_ICON[role])
-	// The name exists only in network modes (entered when connecting); hot-seat has none.
+	// Имя есть только в сетевых режимах (вводится при подключении); в hot-seat -- нет.
 	const name = $derived(local ? '' : $myNameAtom.trim())
 </script>
 
 <!--
-	Role badge in the board header: role icon in the team tint chip + role name in the team color.
-	Locally (hot-seat) shows the active player of the turn (spymaster in the clue phase, operative otherwise);
-	online -- your own fixed role and the name given when connecting.
+	Бейдж роли в хедере доски: иконка роли в тинт-чипе команды + название роли в цвете команды.
+	Локально (hot-seat) показывает активного игрока хода (капитан в фазе clue, иначе игрок);
+	в сети -- собственную закреплённую роль и имя, указанное при подключении.
 -->
 {#if $viewAtom}
 	<div class="player-badge player-badge--{team}">
@@ -54,7 +54,7 @@
 			--team-tint-fg: var(--team-blue-tint-foreground);
 		}
 
-		/* Soft chip fill under the icon -- like the "Spymaster's turn" prompt in clue-bar. */
+		/* Мягкая заливка чипа под иконку -- как у приглашения «Ход капитана» в clue-bar. */
 		&__icon {
 			display: flex;
 			flex-shrink: 0;

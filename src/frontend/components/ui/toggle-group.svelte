@@ -8,7 +8,7 @@
 		value: T
 		onchange: (value: T) => void
 		'aria-label'?: string
-		/** Custom rendering of an item label, e.g. with a font size preview. */
+		/** Своя отрисовка подписи пункта, например с превью размера шрифта. */
 		item?: Snippet<[Option]>
 	}
 

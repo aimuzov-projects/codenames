@@ -16,7 +16,7 @@
 <Screen staticBody>
 	{#snippet header()}<TopBar />{/snippet}
 	<MenuLayout>
-		<!-- A network game that wasn't closed explicitly: the app was evicted from memory or closed by mistake. -->
+		<!-- Сетевая партия, не закрытая явно: приложение выгрузили из памяти или закрыли по ошибке. -->
 		{#if $savedSessionAtom}
 			<MenuButton icon={RotateCcw} accent onclick={() => resumeSession()}>Вернуться в игру</MenuButton>
 		{/if}

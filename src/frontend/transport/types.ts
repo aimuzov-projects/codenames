@@ -1,12 +1,12 @@
 import type { ClientMessage, HostMessage } from '#frontend/transport/messages.ts'
 
 /**
- * Common transport contract. There are two implementations: QR/WebRTC (offline, handshake via camera)
- * and the WS relay (online, reconnects by itself). The session layer (net.ts) works only with this
- * interface, so the lobby and game logic is the same in both modes.
+ * Общий контракт транспортов. Реализаций две: QR/WebRTC (офлайн, рукопожатие через камеру)
+ * и WS-релей (онлайн, переподключается сам). Слой сессии (net.ts) работает только с этим
+ * интерфейсом, поэтому логика лобби и партии одинакова в обоих режимах.
  */
 
-/** Host side: holds connections to guests and addresses messages by connection id. */
+/** Сторона хоста: держит соединения с гостями и адресует сообщения по id соединения. */
 export type HostTransport = {
 	onMessage(cb: (connId: string, msg: ClientMessage) => void): void
 	onDisconnect(cb: (connId: string) => void): void
@@ -15,7 +15,7 @@ export type HostTransport = {
 	close(): void
 }
 
-/** Guest side: a single channel to the host. */
+/** Сторона гостя: один канал до хоста. */
 export type GuestTransport = {
 	readonly open: boolean
 	onMessage(cb: (msg: HostMessage) => void): void

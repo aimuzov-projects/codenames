@@ -50,9 +50,9 @@ describe('turnSecondsLeft — отсчёт привязан к старту хо
 		const startedAt = 10_000
 		const timerSec = 180
 
-		// Entered the game: 30 s have passed since the turn started.
+		// Зашли в игру: с начала хода прошло 30 c.
 		assert.equal(turnSecondsLeft(startedAt, timerSec, 40_000), 150)
-		// Went to settings and back (+20 s more): the timer keeps going instead of restarting from 180.
+		// Сходили в настройки и вернулись (ещё +20 c): таймер продолжает идти, а не стартует с 180.
 		assert.equal(turnSecondsLeft(startedAt, timerSec, 60_000), 130)
 	})
 
@@ -70,9 +70,9 @@ describe('endTurnLockLeft — блокировка «Завершить ход»
 		const startedAt = 10_000
 		const lockSec = 5
 
-		// 2 s have passed since the turn started.
+		// Прошло 2 c с начала хода.
 		assert.equal(endTurnLockLeft(startedAt, lockSec, 12_000), 3)
-		// Went to settings and back (+1.5 s more): the countdown keeps going instead of restarting from 5.
+		// Сходили в настройки и вернулись (ещё +1.5 c): отсчёт продолжает идти, а не стартует с 5.
 		assert.equal(endTurnLockLeft(startedAt, lockSec, 13_500), 1.5)
 	})
 

@@ -1,6 +1,6 @@
 import type { CardType } from '#frontend/game/index.ts'
 
-/** Lightweight synthesized sounds via Web Audio (no files). */
+/** Лёгкие синтезированные звуки через Web Audio (без файлов). */
 let ctx: AudioContext | null = null
 
 function audio(): AudioContext | null {
@@ -17,7 +17,7 @@ function audio(): AudioContext | null {
 	return ctx
 }
 
-/** Resumes the AudioContext (call from a user gesture). */
+/** Возобновляет AudioContext (вызывать из пользовательского жеста). */
 export function resumeAudio() {
 	void audio()?.resume?.()
 }
@@ -37,12 +37,13 @@ function tone(freq: number, dur: number, type: OscillatorType = 'sine', delay = 
 	const t = c.currentTime + delay
 
 	g.gain.setValueAtTime(gain, t)
+	// Экспоненциальный спад не умеет в ноль (на 0 бросает RangeError), поэтому 0.0001.
 	g.gain.exponentialRampToValueAtTime(0.0001, t + dur)
 	osc.start(t)
 	osc.stop(t + dur)
 }
 
-/** Quiet short click on a button press (UI feedback). */
+/** Тихий короткий клик на нажатие кнопки (UI-отклик). */
 export function sfxTap() {
 	const c = audio()
 
@@ -63,7 +64,7 @@ export function sfxTap() {
 	osc.stop(t + 0.06)
 }
 
-/** Card reveal sound, by card type. */
+/** Звук открытия карты по её типу. */
 export function sfxReveal(type: CardType) {
 	switch (type) {
 		case 'red':
@@ -80,14 +81,14 @@ export function sfxReveal(type: CardType) {
 	}
 }
 
-/** Victory fanfare. */
+/** Фанфара победы. */
 export function sfxWin() {
 	tone(523, 0.15, 'triangle', 0)
 	tone(659, 0.15, 'triangle', 0.15)
 	tone(784, 0.32, 'triangle', 0.3)
 }
 
-/** Short confirmation when sound is turned on in settings (call from a gesture). */
+/** Короткое подтверждение при включении звука в настройках (вызывать из жеста). */
 export function previewSound() {
 	resumeAudio()
 	tone(523, 0.12, 'triangle', 0)

@@ -1,27 +1,28 @@
 import { expect, type Locator, type Page } from '@playwright/test'
 
+/** Тип карты в ключе, берётся из атрибута `data-card-type` на плитке. */
 export type CardType = 'red' | 'blue' | 'neutral' | 'assassin'
 
-/** Locator for all 25 board tiles. */
+/** Локатор всех 25 плиток поля. */
 export const cards = (page: Page): Locator => page.getByTestId('card')
 
-/** Starts a hot-seat game from the main menu (the default packs give ≥25 words). */
+/** Из главного меню запускает hot-seat партию (паки по умолчанию дают ≥25 слов). */
 export async function startHotSeat(page: Page) {
 	await page.getByRole('button', { name: 'Играть' }).click()
 	await page.getByRole('button', { name: 'Одно устройство' }).click()
-	// The board opens with the "Captain's turn" gate right away.
+	// На доске сразу гейт «Ход капитана».
 	await expect(page.getByRole('button', { name: 'Показать поле' })).toBeVisible()
 }
 
-/** Passes the phone handoff gate → the captain view opens (with the key). */
+/** Проходит гейт передачи телефона → открывается вид капитана (с ключом). */
 export async function revealSpymasterView(page: Page) {
 	await page.getByRole('button', { name: 'Показать поле' }).click()
 	await expect(page.getByRole('button', { name: 'Придумать подсказку' })).toBeVisible()
 }
 
 /**
- * Reads the key: the type of each of the 25 cards by index. Only available in the captain view:
- * in the player view hidden cards have no data-card-type (anti-cheat).
+ * Читает ключ: тип каждой из 25 карт по индексу. Доступно только в виде капитана —
+ * в виде игрока у закрытых карт нет data-card-type (анти-чит).
  */
 export async function readKey(page: Page): Promise<CardType[]> {
 	await expect(cards(page)).toHaveCount(25)
@@ -34,23 +35,23 @@ export async function readKey(page: Page): Promise<CardType[]> {
 	return types as CardType[]
 }
 
-/** Indices of cards of the given type. */
+/** Индексы карт указанного типа. */
 export function indicesOf(key: CardType[], type: CardType): number[] {
 	return key.flatMap((t, i) => (t === type ? [i] : []))
 }
 
-/** The starting team is the one with 9 cards in the layout. */
+/** Стартовая команда — у кого в раскладе 9 карт. */
 export function startingTeam(key: CardType[]): 'red' | 'blue' {
 	return indicesOf(key, 'red').length === 9 ? 'red' : 'blue'
 }
 
-/** The captain gives a clue: opens the composer, types the word and steps the number to count. */
+/** Капитан даёт подсказку: открывает композер, вводит слово и доводит число до count. */
 export async function giveClue(page: Page, word: string, count: number) {
 	await page.getByRole('button', { name: 'Придумать подсказку' }).click()
 	const input = page.getByRole('textbox')
 
 	await input.fill(word)
-	// The number defaults to 2, step it to the target with ±.
+	// Число по умолчанию 2 — доводим до нужного через ±.
 	const more = page.getByRole('button', { name: 'Больше' })
 	const less = page.getByRole('button', { name: 'Меньше' })
 
@@ -59,16 +60,16 @@ export async function giveClue(page: Page, word: string, count: number) {
 	for (let n = 2; n > count; n--) await less.click()
 
 	await page.getByRole('button', { name: 'Дать' }).click()
-	// After submitting: guessing phase, the key is hidden, the clue button disappears.
+	// После подачи — фаза догадок, ключ скрыт, кнопка подсказки исчезает.
 	await expect(page.getByRole('button', { name: 'Придумать подсказку' })).toBeHidden()
 }
 
-/** Reveals a card by index (player view). */
+/** Открывает карту по индексу (вид игрока). */
 export async function revealCardAt(page: Page, index: number) {
 	await cards(page).nth(index).click()
 }
 
-/** How many cards of the given type are already revealed. */
+/** Сколько карт указанного типа уже открыто. */
 export async function revealedCount(page: Page, type: CardType): Promise<number> {
 	return await cards(page).evaluateAll(
 		(els, t) =>

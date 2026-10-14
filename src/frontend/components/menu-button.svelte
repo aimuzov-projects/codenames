@@ -5,12 +5,12 @@
 	import Button from '#frontend/components/ui/button.svelte'
 
 	type Props = {
-		/** Leading lucide icon. */
+		/** Ведущая иконка lucide. */
 		icon: Component
 		onclick: () => void
 		variant?: 'default' | 'outline'
 		disabled?: boolean
-		/** The screen's main CTA: a sliding shine. At most one per screen. */
+		/** Главный CTA экрана: скользящий блик. Не больше одного на экран. */
 		accent?: boolean
 		children: Snippet
 	}
@@ -18,7 +18,7 @@
 	let { icon: Icon, onclick, variant = 'default', disabled = false, accent = false, children }: Props = $props()
 </script>
 
-<!-- Large menu button: icon, label, and a chevron hinting at navigation. -->
+<!-- Крупная кнопка меню: иконка, подпись и шеврон -- намёк на переход. -->
 <Button size="lg" {variant} {disabled} block start ripple sheen={accent} {onclick}>
 	<Icon />
 	<span>{@render children()}</span>

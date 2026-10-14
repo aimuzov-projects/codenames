@@ -11,7 +11,7 @@
 	const formatDate = (iso: string): string =>
 		new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
 
-	// Opened the changelog -- clear the "new" indicator.
+	// Открыли журнал -- гасим индикатор «новое».
 	onMount(markChangelogSeen)
 </script>
 

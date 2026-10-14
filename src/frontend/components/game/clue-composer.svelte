@@ -1,17 +1,17 @@
 <script lang="ts" module>
 	import { composerOpenAtom } from '#frontend/state/ui.ts'
 
-	// Holder of the mounted input: `openComposer` focuses it synchronously within the tap --
-	// otherwise iOS doesn't raise the keyboard. The input stays premounted the whole time the spymaster
-	// can give a clue: Svelte updates the DOM in a microtask, and opening the overlay via the atom
-	// happens after the gesture handler is already done.
+	// Держатель смонтированного поля ввода: `openComposer` фокусирует его синхронно в рамках тапа --
+	// иначе на iOS не поднимается клавиатура. Поле держим предмонтированным всё время, пока капитан
+	// может давать подсказку: Svelte обновляет DOM микротаском, и открытие оверлея по атому
+	// происходит уже после обработчика жеста.
 	let clueInputEl: HTMLInputElement | null = null
 
-	/** Open the clue input overlay and focus the field synchronously (see the comment on `clueInputEl`). */
+	/** Открыть оверлей ввода подсказки и синхронно сфокусировать поле (см. коммент к `clueInputEl`). */
 	export function openComposer() {
 		composerOpenAtom.set(true)
-		// preventScroll: otherwise the browser also "scrolls" the page to the field on focus. The bar already
-		// sits above the keyboard (the #root shell is pinned to visualViewport), so that scroll isn't needed.
+		// preventScroll: иначе браузер дополнительно «подматывает» страницу к полю при фокусе. Бар и так
+		// сидит над клавиатурой (оболочка #root прижата к visualViewport), поэтому подмотка не нужна.
 		clueInputEl?.focus({ preventScroll: true })
 	}
 </script>
@@ -37,8 +37,8 @@
 	)
 	const open = $derived($composerOpenAtom)
 
-	// The composer bar fades in 250ms after opening -- via separate state, not CSS transition-delay:
-	// that way opacity changes on an already visible overlay and the transition isn't "swallowed".
+	// Плашка композера проявляется через 250мс после открытия -- отдельным стейтом, а не CSS
+	// transition-delay: тогда opacity меняется уже на видимом оверлее и переход не «проглатывается».
 	$effect(() => {
 		if (!open) {
 			barShown = false
@@ -51,7 +51,7 @@
 		return () => clearTimeout(id)
 	})
 
-	// Reset on leaving clue mode (clue given / role changed / game over).
+	// Сброс при выходе из режима подсказки (выдали подсказку / сменили роль / конец игры).
 	$effect(() => {
 		if (canCompose) return
 
@@ -60,7 +60,7 @@
 		num = 2
 	})
 
-	// Close on Esc (desktop).
+	// Закрытие по Esc (десктоп).
 	$effect(() => {
 		if (!open) return
 
@@ -86,20 +86,20 @@
 		composerOpenAtom.set(false)
 	}
 
-	// A clue is one word: keep only the first non-whitespace token (a space doesn't get through).
-	// The field value is rewritten by hand: if the token didn't change, Svelte won't touch the DOM itself.
+	// Подсказка -- одно слово: оставляем только первый непробельный токен (пробел не проходит).
+	// Значение поля переписываем руками: если токен не изменился, Svelte сам DOM не тронет.
 	function oninput(event: Event & { currentTarget: HTMLInputElement }) {
 		word = event.currentTarget.value.match(/\S+/)?.[0] ?? ''
 		event.currentTarget.value = word
 	}
 
-	// The counter chip darkens smoothly as the number grows (1 -- light, 9 -- dark) on an absolute scale.
+	// Плашка счётчика плавно темнеет с ростом числа (1 -- светлая, 9 -- тёмная) на абсолютной шкале.
 	const bgL = $derived(0.94 - ((num - 1) / 8) * (0.94 - 0.3))
 
 	/**
-	 * Moves the overlay into `#root` -- the shell pinned to `visualViewport` (see app.svelte). The overlay
-	 * is then positioned against the visible area, the composer row at the bottom edge sits right above
-	 * the keyboard, and the field leaves the screen's scroll container: iOS has nothing to scroll.
+	 * Выносит оверлей в `#root` -- оболочку, прижатую к `visualViewport` (см. app.svelte). Так оверлей
+	 * отсчитывается от видимой области, строка композера у нижней кромки оказывается ровно над
+	 * клавиатурой, а поле уходит из прокручиваемого контейнера экрана: iOS нечего проматывать.
 	 */
 	function portal(node: HTMLElement) {
 		;(document.getElementById('root') ?? document.body).append(node)
@@ -118,15 +118,15 @@
 
 {#if canCompose}
 	<div class="clue-composer clue-composer--{team}" class:clue-composer--open={open} {@attach portal}>
-		<!-- The backdrop stretches far beyond #root (up and down) so no light strip is left under the
-		     keyboard; body clips the edges anyway. A tap closes it. -->
+		<!-- Затемнение растянуто далеко за пределы #root (вверх и вниз), чтобы под клавиатурой не
+		     оставалось светлой полосы; края всё равно обрежет body. Тап закрывает. -->
 		<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
 		<div class="clue-composer__backdrop" onclick={close}></div>
 
-		<!-- Composer row at the bottom edge of the shell -- which is also right above the keyboard. -->
+		<!-- Строка композера у нижней кромки оболочки -- она же над клавиатурой. -->
 		<div class="clue-composer__dock">
-			<!-- The bar fades in as a whole after 250ms (see barShown): the pause hides the jitter while
-			     the keyboard slides in. -->
+			<!-- Плашку проявляем целиком через 250мс (см. barShown): пауза скрывает мельтешение, пока
+			     доезжает клавиатура. -->
 			<div class="clue-composer__bar" class:clue-composer__bar--shown={barShown}>
 				<input
 					class="clue-composer__input"
@@ -137,8 +137,8 @@
 					enterkeyhint="send"
 					{@attach inputRef}
 				/>
-				<!-- preventDefault on mousedown so a tap on the ± buttons doesn't take focus from the clue field
-				     and hide the keyboard (click still fires as usual). -->
+				<!-- preventDefault на mousedown -- чтобы тап по ±-кнопкам не уводил фокус с поля подсказки
+				     и не прятал клавиатуру (click при этом срабатывает как обычно). -->
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div
 					class="clue-composer__stepper"
@@ -260,7 +260,7 @@
 			text-align: center;
 		}
 
-		/* The "Give" button in the team color: repaint it via the primary variables. */
+		/* Кнопка «Дать» в цвет команды: перекрашиваем её через переменные primary. */
 		&__send {
 			--primary: var(--team);
 			--primary-foreground: var(--team-fg);

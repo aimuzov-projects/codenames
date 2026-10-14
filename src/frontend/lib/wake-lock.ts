@@ -1,8 +1,8 @@
 /**
- * Keeps the screen on while a game is running. The reason isn't convenience: a sleeping device
- * freezes the webview, and the connection to the host dies on ICE timeout, so the only way back
- * into the game is a new handshake. The system releases the lock when going to background, so
- * we take it again on every return to the tab. Returns a function that releases the lock.
+ * Не даёт экрану гаснуть, пока идёт игра. Причина не в удобстве: уснувшее устройство
+ * замораживает вебвью, и соединение с хостом умирает по ICE-таймауту — вернуться в партию
+ * можно только новым рукопожатием. Блокировку система снимает при уходе в фон, поэтому
+ * берём её заново при каждом возврате на вкладку. Возвращает функцию, снимающую блокировку.
  */
 export function keepScreenAwake(): () => void {
 	if (!('wakeLock' in navigator)) return () => {}
@@ -16,6 +16,9 @@ export function keepScreenAwake(): () => void {
 		try {
 			const sentinel = await navigator.wakeLock.request('screen')
 
+			// Пока ждали ответ системы, блокировку уже успели снять (сменился экран
+			// или выключили настройку), поэтому полученную сразу отпускаем, иначе
+			// экран так и не будет гаснуть.
 			if (stopped) {
 				void sentinel.release()
 
@@ -28,7 +31,7 @@ export function keepScreenAwake(): () => void {
 				if (lock === sentinel) lock = null
 			})
 		} catch {
-			// no support or the system refused: play without the lock
+			// нет поддержки или отказ системы — играем без блокировки
 		}
 	}
 

@@ -5,11 +5,11 @@ import { site } from '#frontend/data/site.ts'
 import { pageTitle } from '#frontend/lib/title.ts'
 
 type Props = {
-	/** Page title; the site name gets appended. Not set on the home page. */
+	/** Название страницы, к нему добавится название сайта. У главной не задаётся. */
 	title?: string
-	/** `meta description` and `og:description`, defaults to `site.description`. */
+	/** `meta description` и `og:description`, по умолчанию `site.description`. */
 	description?: string
-	/** `false` for service pages like 404: no canonical, and indexing is disallowed. */
+	/** `false` у служебных страниц вроде 404: без canonical и с запретом индексации. */
 	index?: boolean
 }
 
@@ -43,7 +43,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site)
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 		<link rel="manifest" href="/manifest.webmanifest" />
-		<!-- Blocking on purpose: the theme has to be set before the first paint. -->
+		<!-- Блокирующий намеренно: тема должна выставиться до первой отрисовки. -->
 		<script is:inline src="/theme.js"></script>
 		<slot name="head" />
 	</head>

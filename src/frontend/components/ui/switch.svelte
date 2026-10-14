@@ -2,7 +2,7 @@
 	type Props = {
 		id?: string
 		checked: boolean
-		/** Called with the new value; the switch itself doesn't hold state. */
+		/** Вызывается с новым значением; сам переключатель состояние не хранит. */
 		onchange: (checked: boolean) => void
 		'aria-label'?: string
 	}

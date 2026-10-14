@@ -2,14 +2,14 @@ import { shuffle, type Rng, type Role, type Team } from '#frontend/game/index.ts
 import type { PlayerInfo } from '#frontend/transport/messages.ts'
 
 /**
- * Pure lobby logic: assigning new players to teams/roles,
- * the "one spymaster per team" rule and the roster readiness check.
- * No atoms, so the host, the guest and the UI can all reuse it.
+ * Чистая логика лобби: распределение новых игроков по командам/ролям,
+ * ограничение «один капитан на команду» и проверка готовности состава.
+ * Без атомов — переиспользуется хостом, гостем и UI.
  */
 
 const TEAMS: readonly Team[] = ['red', 'blue']
 
-/** Whether the team has a spymaster (other than the given player). */
+/** Есть ли в команде капитан (кроме указанного игрока). */
 export function teamHasSpymaster(roster: PlayerInfo[], team: Team, exceptId?: string): boolean {
 	return roster.some((p) => p.team === team && p.role === 'spymaster' && p.id !== exceptId)
 }
@@ -19,9 +19,9 @@ function teamSize(roster: PlayerInfo[], team: Team): number {
 }
 
 /**
- * Picks a seat for a new participant: the team with fewer players
- * (on a tie, the one without a spymaster yet, otherwise red); the role is spymaster
- * if the chosen team has none, otherwise operative.
+ * Подбирает место для нового участника: команда с меньшим числом игроков
+ * (при равенстве — та, где ещё нет капитана, иначе red), роль — капитан, если
+ * в выбранной команде капитана нет, иначе игрок.
  */
 export function pickSlot(roster: PlayerInfo[]): { team: Team; role: Role } {
 	const [a, b] = TEAMS as [Team, Team]
@@ -41,8 +41,8 @@ export function pickSlot(roster: PlayerInfo[]): { team: Team; role: Role } {
 }
 
 /**
- * Brings the requested team/role to a valid one: if spymaster is requested but the
- * team already has another spymaster, the role is downgraded to operative.
+ * Приводит запрошенные команду/роль к допустимым: если просят капитана, но в
+ * команде уже есть другой капитан, понижает роль до игрока.
  */
 export function resolveSetup(roster: PlayerInfo[], selfId: string, team: Team, role: Role): { team: Team; role: Role } {
 	if (role === 'spymaster' && teamHasSpymaster(roster, team, selfId)) {
@@ -53,8 +53,8 @@ export function resolveSetup(roster: PlayerInfo[], selfId: string, team: Team, r
 }
 
 /**
- * Whether the roster is ready to start: among connected players every team has
- * at least one spymaster and at least one operative.
+ * Готов ли состав к старту: в каждой команде среди подключённых игроков есть
+ * хотя бы один капитан и хотя бы один игрок.
  */
 export function isRosterReady(roster: PlayerInfo[]): boolean {
 	const online = roster.filter((p) => p.connected)
@@ -67,11 +67,11 @@ export function isRosterReady(roster: PlayerInfo[]): boolean {
 }
 
 /**
- * Fully reshuffles the roster: randomly splits all connected players (host included)
- * evenly between teams and makes exactly one spymaster per team with the rest as
- * operatives, so the result always passes {@link isRosterReady}.
- * Offline participants stay in their teams but are downgraded to operatives, so they
- * don't hold a "phantom" spymaster seat. With fewer than 4 connected the roster is unchanged.
+ * Полностью перетасовывает состав: случайно раскидывает всех подключённых игроков
+ * (включая хоста) по командам поровну и назначает в каждой команде ровно одного
+ * капитана и остальных игроков — результат всегда проходит {@link isRosterReady}.
+ * Офлайн-участники остаются в своих командах, но понижаются до игроков, чтобы не
+ * удерживать «фантомное» капитанство. При менее чем 4 подключённых ростер не меняется.
  */
 export function reshuffleRoster(roster: PlayerInfo[], rng: Rng = Math.random): PlayerInfo[] {
 	const connected = roster.filter((p) => p.connected)
@@ -98,7 +98,7 @@ export function reshuffleRoster(roster: PlayerInfo[], rng: Rng = Math.random): P
 	})
 }
 
-/** Random valid setup different from the current one (spymaster only if the seat is free). */
+/** Случайная допустимая расстановка, отличная от текущей (капитан — только если слот свободен). */
 export function randomSetup(
 	roster: PlayerInfo[],
 	selfId: string,

@@ -2,24 +2,24 @@ import type { GameState, RedactedState, Role, Team } from '#frontend/game/index.
 import type { PlayerInfo } from '#frontend/transport/messages.ts'
 
 /**
- * Network game snapshot in localStorage. Needed because iOS unloads the PWA from memory:
- * without it, an app woken up an hour later would open on the main screen, and the game
- * (the canonical state on the host, the last view on a guest) would vanish without a trace.
+ * Снимок сетевой партии в localStorage. Нужен, потому что iOS выгружает PWA из памяти:
+ * без него разбуженное через час приложение открывалось бы на главном экране, а партия
+ * (у хоста — канон, у гостя — последний вид) пропадала бесследно.
  *
- * The storage has no logic of its own: net.ts builds and restores the snapshot, here it's only format and I/O.
+ * Хранилище — чистое: собирает и восстанавливает снимок net.ts, здесь только формат и I/O.
  */
 const KEY = 'codenames.session'
 const VERSION = 1
-/** We don't revive a game older than a day: that's no longer "back to the game", it's garbage. */
+/** Дольше суток партию не воскрешаем — это уже не «вернуться в игру», а мусор. */
 const TTL_MS = 24 * 60 * 60 * 1000
 
 export type SessionSnapshot = {
 	v: number
 	ts: number
 	mode: 'host' | 'guest'
-	/** What we played over: 'qr' (WebRTC on one network) or 'relay' (a room on the server). */
+	/** Чем играли: 'qr' (WebRTC на одной сети) или 'relay' (комната на сервере). */
 	transport: 'qr' | 'relay'
-	/** Relay room code: the host takes the room back with it, and the guest gets in without extra questions. */
+	/** Код комнаты релея — по нему хост занимает её обратно, а гость входит без лишних вопросов. */
 	code: string
 	id: string
 	name: string
@@ -27,12 +27,16 @@ export type SessionSnapshot = {
 	role: Role
 	roster: PlayerInfo[]
 	started: boolean
-	/** Canonical game state, host only. */
+	/** Канон партии — только у хоста. */
 	game: GameState | null
-	/** Last view sent by the host, guest only. */
+	/** Последний присланный хостом вид — только у гостя. */
 	view: RedactedState | null
 }
 
+/**
+ * Читает снимок партии. Снимок другой версии формата или старше суток стирается,
+ * в этом случае, как и при битом JSON, возвращается `null`.
+ */
 export function loadSnapshot(): SessionSnapshot | null {
 	try {
 		const raw = localStorage.getItem(KEY)
@@ -53,14 +57,14 @@ export function loadSnapshot(): SessionSnapshot | null {
 	}
 }
 
-/** Saves the snapshot and returns it in full (with version and timestamp). */
+/** Сохраняет снимок и возвращает его в полном виде (с версией и меткой времени). */
 export function saveSnapshot(snap: Omit<SessionSnapshot, 'v' | 'ts'>): SessionSnapshot {
 	const full: SessionSnapshot = { ...snap, v: VERSION, ts: Date.now() }
 
 	try {
 		localStorage.setItem(KEY, JSON.stringify(full))
 	} catch {
-		// private mode / quota exceeded: we'll live through a restart without restore
+		// приватный режим / переполнение — переживём перезапуск без восстановления
 	}
 
 	return full
@@ -70,6 +74,6 @@ export function clearSnapshot() {
 	try {
 		localStorage.removeItem(KEY)
 	} catch {
-		// see above
+		// см. выше
 	}
 }

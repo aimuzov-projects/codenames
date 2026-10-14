@@ -3,7 +3,7 @@ import { atom, computed } from '#frontend/lib/atom.ts'
 
 const KEY = 'codenames.changelog.seen'
 
-/** Last version whose changelog the player has opened. */
+/** Последняя версия, чей журнал изменений игрок открывал. */
 function loadSeen(): string {
 	try {
 		return localStorage.getItem(KEY) ?? ''
@@ -15,13 +15,13 @@ function loadSeen(): string {
 const seenVersionAtom = atom(loadSeen())
 
 /**
- * Whether there are unseen changes: the latest release version differs from the one
- * whose changelog the player already opened. On first launch (empty) we also count it as unseen,
- * to invite a look at "what the app can do".
+ * Есть ли непрочитанные изменения: версия последнего релиза не совпадает с той,
+ * чей журнал игрок уже открывал. На первом запуске (пусто) — тоже считаем непрочитанным,
+ * чтобы пригласить заглянуть «что умеет приложение».
  */
 export const hasUnseenChangelogAtom = computed([seenVersionAtom], () => seenVersionAtom() !== LATEST.version)
 
-/** Marks the changelog as seen, which turns off the "new" badge. Called when the screen opens. */
+/** Помечает журнал прочитанным — гасит индикатор «новое». Вызывается при открытии экрана. */
 export function markChangelogSeen() {
 	if (seenVersionAtom() === LATEST.version) return
 
@@ -30,6 +30,6 @@ export function markChangelogSeen() {
 	try {
 		localStorage.setItem(KEY, LATEST.version)
 	} catch {
-		// private mode / no access: the badge will just show up again
+		// приватный режим / нет доступа — индикатор просто покажется снова
 	}
 }

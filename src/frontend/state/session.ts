@@ -12,47 +12,47 @@ import {
 import { atom, computed } from '#frontend/lib/atom.ts'
 
 /**
- * Session layer. Three modes:
- *  - 'local'  — single device (hot-seat): canonical state in gameAtom, the key behind a button.
- *  - 'host'   — network host: canonical state in gameAtom, state broadcast to guests (see net.ts).
- *  - 'guest'  — network client: renders remoteViewAtom, intents go to the host.
+ * Слой сессии. Три режима:
+ *  - 'local'  — одно устройство (hot-seat): канон в gameAtom, ключ по кнопке.
+ *  - 'host'   — сетевой хост: канон в gameAtom, рассылка состояния гостям (см. net.ts).
+ *  - 'guest'  — сетевой клиент: рендер remoteViewAtom, интенты уходят хосту.
  */
 export type Mode = 'local' | 'host' | 'guest'
 
 export const modeAtom = atom<Mode>('local')
 
-/** Canonical game state (local/host modes). */
+/** Каноническое состояние партии (режимы local/host). */
 export const gameAtom = atom<GameState | null>(null)
 
-/** State received from the host (guest mode). */
+/** Состояние, полученное от хоста (режим guest). */
 export const remoteViewAtom = atom<RedactedState | null>(null)
 
-/** Player's assigned role (network modes). */
+/** Назначенная роль игрока (сетевые режимы). */
 export const myRoleAtom = atom<Role>('operative')
 export const myTeamAtom = atom<Team>('red')
 
-/** Role the board is edited/shown as. */
+/** Роль, под которой редактируется/отображается поле. */
 export const viewRoleAtom = atom<Role>('operative')
 
 /**
- * Why the turn passes to the spymaster (hot-seat): which wrong word was revealed last turn.
- * Shown in the pass-the-phone popup. null means game start or the turn was ended voluntarily.
+ * Причина передачи хода капитану (hot-seat): какое неверное слово открыли в прошлом ходу.
+ * Показывается в попапе передачи телефона. null — старт/добровольное завершение хода.
  */
 export const handoffReasonAtom = atom<{ word: string; type: 'neutral' | Team } | null>(null)
 
 /**
- * Holds popups back while the card reveal animation plays. While true, the pass-the-phone
- * gate (PassPhone) and the win overlay (Board) are hidden, so the reveal reaction plays
- * out first (fill + check/cross, see CardTile).
+ * Блокировка попапов на время анимации открытия карты. Пока true — гейт передачи
+ * телефона (PassPhone) и оверлей победы (Board) скрыты, чтобы сперва отыграла
+ * реакция на открытие (заливка + галочка/крестик, см. CardTile).
  */
 export const revealLockedAtom = atom(false)
 
-/** Popup delay after a card click, matched to the reveal animation length. */
+/** Задержка показа попапа после клика по карте — под длительность анимации открытия. */
 const REVEAL_POPUP_DELAY_MS = 1500
 
 export const isHostAtom = computed([modeAtom], () => modeAtom() !== 'guest')
 
-/** What the UI shows. */
+/** Что отображает UI. */
 export const viewAtom = computed<RedactedState | null>([modeAtom, remoteViewAtom, gameAtom, viewRoleAtom], () => {
 	if (modeAtom() === 'guest') return remoteViewAtom()
 
@@ -61,7 +61,7 @@ export const viewAtom = computed<RedactedState | null>([modeAtom, remoteViewAtom
 	return game ? redactStateForRole(game, viewRoleAtom()) : null
 })
 
-/** Score from public info only (revealed cards + the known 9/8 split). */
+/** Счёт — из публичной информации (открытые карты + известный расклад 9/8). */
 export const scoreAtom = computed<Record<Team, number>>([viewAtom], () => {
 	const view = viewAtom()
 
@@ -76,7 +76,7 @@ export const scoreAtom = computed<Record<Team, number>>([viewAtom], () => {
 
 export const isOverAtom = computed([viewAtom], () => viewAtom()?.phase === 'over')
 
-// --- Network hooks (registered by net.ts to avoid a circular dependency) ---
+// --- Сетевые хуки (регистрируются net.ts, чтобы избежать циклической зависимости) ---
 let intentSender: ((event: GameEvent) => void) | null = null
 let hostSubmit: ((senderId: string, event: GameEvent) => void) | null = null
 
@@ -87,7 +87,7 @@ export function setHostSubmit(fn: ((senderId: string, event: GameEvent) => void)
 	hostSubmit = fn
 }
 
-/** Applies the event to the canonical state (local/host only). Returns true if there is a state. */
+/** Применяет событие к канону (только local/host). Возвращает true, если состояние есть. */
 export function applyEvent(event: GameEvent) {
 	const game = gameAtom()
 
@@ -98,19 +98,20 @@ export function applyEvent(event: GameEvent) {
 	return true
 }
 
-/** Player action from the UI. Routed by mode. */
+/** Действие игрока из UI. Маршрутизируется по режиму. */
 const playerAction = (event: GameEvent) => {
 	const mode = modeAtom()
 
 	if (mode === 'guest') {
 		intentSender?.(event)
 	} else if (mode === 'host') {
-		hostSubmit?.('host', event) // the host is a player too, with id 'host'
+		hostSubmit?.('host', event) // хост — тоже игрок с id 'host'
 	} else {
 		applyEvent(event)
 	}
 }
 
+/** Начинает новую партию на этом устройстве: поле открыто под игроком, причина передачи хода сброшена. */
 export function startGame(config: GameConfig) {
 	gameAtom.set(createGame(config))
 	viewRoleAtom.set('operative')
@@ -120,7 +121,7 @@ export function startGame(config: GameConfig) {
 export function giveClue(word: string, count: number) {
 	playerAction({ type: 'GIVE_CLUE', word, count })
 
-	if (modeAtom() === 'local') viewRoleAtom.set('operative') // hot-seat: hide the key
+	if (modeAtom() === 'local') viewRoleAtom.set('operative') // hot-seat: прячем ключ
 }
 
 export function revealCard(index: number) {
@@ -133,14 +134,14 @@ export function revealCard(index: number) {
 		const card = after?.cards[index]
 		const turnPassed = !!after && after.phase === 'clue' && after.currentTeam !== before.currentTeam
 
-		// The turn passed because of a wrong card (opponent's or neutral, not the assassin), show it in the popup.
+		// Ход перешёл из-за неверной карты (чужая или нейтральная, не ассасин) — покажем её в попапе.
 		handoffReasonAtom.set(
 			turnPassed && card && card.type !== before.currentTeam && card.type !== 'assassin'
 				? { word: card.word, type: card.type as 'neutral' | Team }
 				: null,
 		)
 
-		// Hold the popup (turn handoff / win) until the card reveal animation is over.
+		// Попап (передача хода / победа) откладываем до конца анимации открытия карты.
 		if (turnPassed || after?.phase === 'over') {
 			revealLockedAtom.set(true)
 			setTimeout(() => revealLockedAtom.set(false), REVEAL_POPUP_DELAY_MS)

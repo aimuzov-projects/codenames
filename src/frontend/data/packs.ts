@@ -13,16 +13,18 @@ import ruSpace from '#frontend/data/packs/ru-space.json' with { type: 'json' }
 import ruSport from '#frontend/data/packs/ru-sport.json' with { type: 'json' }
 import { BOARD_SIZE } from '#frontend/game/index.ts'
 
+/** Набор слов для поля: встроенный или пользовательский. */
 export type WordPack = {
 	id: string
 	title: string
+	/** Язык слов (`ru`), у пользовательских паков — `custom`. */
 	lang: string
-	/** true: built-in pack, false: custom (IndexedDB). */
+	/** true — встроенный пак, false — пользовательский (IndexedDB). */
 	builtin: boolean
 	words: string[]
 }
 
-/** Built-in packs are grouped by theme: those are what get mixed, 3-5 at a time. */
+/** Встроенные паки сгруппированы по темам — их и миксуют по 3-5 за раз. */
 export const BUILTIN_PACKS: WordPack[] = [
 	{ id: 'ru-animals', title: 'Животные', lang: 'ru', builtin: true, words: ruAnimals },
 	{ id: 'ru-nature', title: 'Природа и стихии', lang: 'ru', builtin: true, words: ruNature },
@@ -39,10 +41,10 @@ export const BUILTIN_PACKS: WordPack[] = [
 	{ id: 'ru-hiking', title: 'Походы', lang: 'ru', builtin: true, words: ruHiking },
 ]
 
-/** Packs selected by default: a starter mix of three themes. */
+/** Паки, выбранные по умолчанию, — стартовый микс из трёх тем. */
 export const DEFAULT_PACK_IDS = ['ru-animals', 'ru-nature', 'ru-food']
 
-/** Parses user text into a list of words: separators are newline, comma, `;`. */
+/** Разбирает пользовательский текст в список слов: разделители — перенос строки, запятая, `;`. */
 export function parseWordList(text: string): string[] {
 	const words = text
 		.split(/[\n,;]+/)
@@ -52,12 +54,12 @@ export function parseWordList(text: string): string[] {
 	return [...new Set(words)]
 }
 
-/** Merges words from several packs, removing duplicates. */
+/** Объединяет слова нескольких паков, убирая дубли. */
 export function mergeWords(packs: WordPack[]): string[] {
 	return [...new Set(packs.flatMap((p) => p.words))]
 }
 
-/** A pack can be used on its own if it has enough unique words for the board. */
+/** Пак можно использовать в одиночку, если в нём хватает уникальных слов на поле. */
 export function isPlayable(words: string[]): boolean {
 	return new Set(words).size >= BOARD_SIZE
 }

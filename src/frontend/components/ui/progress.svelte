@@ -1,6 +1,6 @@
 <script lang="ts">
 	type Props = {
-		/** Fill from 0 to 100. */
+		/** Заполненность от 0 до 100. */
 		value: number
 		'aria-label'?: string
 	}

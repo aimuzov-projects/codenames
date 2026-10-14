@@ -30,7 +30,7 @@ describe('codec сигналинга', () => {
 		const encoded = encodeSignal(fullOffer)
 
 		assert.ok(encoded.length < fullOffer.sdp.length / 2)
-		// Base45 fits entirely in QR alphanumeric mode: characters only from that set.
+		// Base45 целиком входит в alphanumeric-режим QR — символы только из этого набора.
 		assert.match(encoded, /^[0-9A-Z $%*+\-./:]+$/)
 	})
 
