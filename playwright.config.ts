@@ -1,40 +1,33 @@
+import preset from '@aimuzov-projects/infra-site-kit/playwright'
 import { defineConfig, devices } from '@playwright/test'
 
 /**
- * E2E config. We run against `astro dev` (not preview): dev has no service worker, so there's no
- * stale PWA cache problem between runs. The dev server is on self-signed HTTPS
- * (basic-ssl), hence `ignoreHTTPSErrors`. PUBLIC_E2E=1 enables the signaling test hooks
- * (see src/frontend/lib/e2e.ts).
- *
- * A single Chromium project with mobile emulation: the app is a phone PWA, plus WebRTC loopback
- * between two contexts is the most predictable in Chromium.
+ * The e2e preset of infra-site-kit: Chromium against `astro build && astro preview` on plain HTTP.
+ * PUBLIC_E2E=1 reaches the preset's build through the environment: it enables the signaling test hooks
+ * (see src/frontend/lib/e2e.ts) and turns off basic-ssl (see astro.config.mjs).
  */
-const PORT = 4321
-const baseURL = `https://localhost:${PORT}`
-// The relay is on the same port as in prod behind Caddy; the dev server proxies /ws to it.
+process.env.PUBLIC_E2E = '1'
+
+// The relay is on the same port as in prod behind Caddy; the preview server proxies /ws to it.
 const RELAY_PORT = 8787
 
-export default defineConfig({
-	testDir: './e2e',
+export default defineConfig(preset, {
+	// The network tests open several contexts with a real WebRTC handshake each, in parallel they
+	// starve each other of CPU and time out.
 	fullyParallel: false,
-	forbidOnly: !!process.env.CI,
-	retries: 0,
 	workers: 1,
-	reporter: process.env.CI ? 'list' : [['list'], ['html', { open: 'never' }]],
 	timeout: 30_000,
 	expect: { timeout: 10_000 },
 
 	use: {
-		baseURL,
-		ignoreHTTPSErrors: true,
-		trace: 'retain-on-failure',
 		// Network tests wait for a real WebRTC handshake, actions shouldn't rush.
 		actionTimeout: 10_000,
 	},
 
+	// The preset's project, emulating a phone: the app is a phone PWA.
 	projects: [
 		{
-			name: 'mobile-chromium',
+			name: 'chromium',
 			use: {
 				...devices['Pixel 7'],
 				// WebRTC between two contexts on one machine. By default Chromium hides local IPs behind
@@ -53,25 +46,11 @@ export default defineConfig({
 		},
 	],
 
-	webServer: [
-		{
-			// Without --ignore-lock Astro notices the AI agent, moves the dev server to the background and exits,
-			// and Playwright treats that as a crash.
-			command: 'npm run dev -- --ignore-lock',
-			url: baseURL,
-			// Online mode tests run against a local relay (see the neighboring webServer).
-			env: { PUBLIC_E2E: '1' },
-			ignoreHTTPSErrors: true,
-			reuseExistingServer: !process.env.CI,
-			timeout: 120_000,
-		},
-		{
-			command: 'node src/backend/server.ts',
-			url: `http://localhost:${RELAY_PORT}`,
-			// The relay answers a plain GET by refusing the upgrade, for Playwright that's a sign of life.
-			ignoreHTTPSErrors: true,
-			reuseExistingServer: !process.env.CI,
-			timeout: 30_000,
-		},
-	],
+	// Online mode tests run against a local relay next to the preview.
+	webServer: {
+		command: 'node src/backend/server.ts',
+		// The relay answers a plain GET by refusing the upgrade, for Playwright that's a sign of life.
+		url: `http://localhost:${RELAY_PORT}`,
+		reuseExistingServer: false,
+	},
 })

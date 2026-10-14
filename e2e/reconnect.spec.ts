@@ -101,9 +101,13 @@ test.describe('переподключение после обрыва', () => {
 			await giveClue(captain, 'память', 2)
 			await revealCardAt(operative, indicesOf(key, start)[0]!)
 
-			await expect(host!.locator('[data-testid="card"][data-revealed="true"]')).toHaveCount(1, {
-				timeout: 20_000,
-			})
+			// Both must have the move before the reload: the guest saves the snapshot it got from the host,
+			// and on the fast production build the reload could otherwise outrun the broadcast.
+			for (const page of [host!, g1!]) {
+				await expect(page.locator('[data-testid="card"][data-revealed="true"]')).toHaveCount(1, {
+					timeout: 20_000,
+				})
+			}
 
 			// The guest app got unloaded from memory (iOS does this regularly).
 			await g1!.reload()
