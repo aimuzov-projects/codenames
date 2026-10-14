@@ -8,8 +8,9 @@ set -euo pipefail
 {
 	cd /srv/codenames
 
-	# Two pushes in a row must not build compose at the same time: the second waits for the first.
-	exec 9>/tmp/codenames-deploy.lock
+	# One deploy at a time for all the sites: parallel builds choke the small server,
+	# so a deploy of any site waits here for the previous one.
+	exec 9>/tmp/sites-deploy.lock
 	flock 9
 
 	git pull --ff-only --quiet
