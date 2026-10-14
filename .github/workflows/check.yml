@@ -14,6 +14,16 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: aimuzov-projects/infra-site-kit/check@v1
+      # e2e on the infra-site-kit preset: the build in Chromium. The browser is cached by the
+      # Playwright version, its system libraries come from apt on every run.
+      - id: playwright
+        run: echo "version=$(npm ls @playwright/test --json | jq -r '.dependencies["@playwright/test"].version')" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e

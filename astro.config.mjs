@@ -52,8 +52,9 @@ export default defineConfig({
 			__BUILD_TIME__: JSON.stringify(new Date().toISOString()),
 		},
 		// HTTPS в dev и preview: камера и сервис-воркер работают только в защищённом контексте,
-		// в том числе когда с телефона заходят по локальной сети.
-		plugins: [basicSsl()],
+		// в том числе когда с телефона заходят по локальной сети. e2e открывает сборку на localhost,
+		// он защищённый и по обычному HTTP, а пресет infra-site-kit ждёт именно http.
+		plugins: process.env.PUBLIC_E2E === '1' ? [] : [basicSsl()],
 		server: { proxy },
 		preview: { proxy },
 	},

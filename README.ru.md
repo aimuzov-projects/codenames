@@ -81,7 +81,7 @@ npm run relay     # WS-релей комнат на :8787, dev-сервер пр
 npm run format:check && npm run lint:js && npm run lint:css && npm run check && npm test && npm run build
 ```
 
-Сквозные тесты сами поднимают dev-сервер и релей: `npm run test:e2e`.
+E2E-тесты в [`e2e`](e2e) работают на пресете [infra-site-kit](https://github.com/aimuzov-projects/infra-site-kit): собирают сайт с тестовыми хуками, отдают его через `astro preview`, поднимают рядом релей и играют в Chromium с эмуляцией телефона. Поверх игровых сценариев кит проверяет, что страница отвечает без ошибок в консоли и проходит axe. Браузер ставится один раз через `npx playwright install chromium`, дальше `npm run test:e2e`.
 
 ## Архитектура
 

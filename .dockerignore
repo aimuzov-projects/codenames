@@ -10,3 +10,4 @@ dist
 e2e
 playwright-report
 test-results
+playwright.config.ts

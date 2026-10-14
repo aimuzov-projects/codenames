@@ -3,8 +3,8 @@ import { devices, expect, type Page } from '@playwright/test'
 import { openApp } from './app'
 import { readSignalOut, submitSignalIn } from './signal'
 
-/** Ручные контексты не наследуют project-use — device и ignoreHTTPSErrors задаём явно. */
-export const mobileCtx = { ...devices['Pixel 7'], ignoreHTTPSErrors: true }
+/** Ручные контексты не наследуют device из проекта — задаём его явно. */
+export const mobileCtx = { ...devices['Pixel 7'] }
 
 /**
  * Хост создаёт игру и оказывается в лобби «Создание игры» (по умолчанию — красный капитан).

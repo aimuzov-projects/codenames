@@ -83,7 +83,7 @@ Before committing, the same checks as in CI:
 npm run format:check && npm run lint:js && npm run lint:css && npm run check && npm test && npm run build
 ```
 
-End-to-end tests start the dev server and the relay on their own: `npm run test:e2e`.
+The e2e tests in [`e2e`](e2e) run on the preset of [infra-site-kit](https://github.com/aimuzov-projects/infra-site-kit): they build the site with the test hooks on, serve it with `astro preview`, start the relay next to it and play the game in Chromium emulating a phone. On top of the game scenarios, the kit checks that the page answers without console errors and passes axe. The browser is installed once with `npx playwright install chromium`, then `npm run test:e2e`.
 
 ## Architecture
 
