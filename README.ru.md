@@ -124,7 +124,7 @@ src/
 
 ## Деплой
 
-Сервер projects из [infra-server](https://github.com/aimuzov-projects/infra-server): пуш в `main` запускает `deploy.yml`, тот прогоняет проверки и по SSH дёргает общий [`deploy/site.sh`](https://github.com/aimuzov-projects/infra-server/blob/main/deploy/site.sh) из infra-server. На сервере `docker compose` собирает два контейнера: `codenames` (nginx со статикой) и `codenames-relay` (релей комнат). Домен, TLS и маршрут `/ws` к релею держит общий Caddy (`sites/codenames.caddy`).
+Сервер projects из [infra-server](https://github.com/aimuzov-projects/infra-server): мерж релизного PR, который ведёт release-please, запускает `deploy.yml`, тот прогоняет проверки и по SSH дёргает общий [`deploy/site.sh`](https://github.com/aimuzov-projects/infra-server/blob/main/deploy/site.sh) из infra-server. На сервере `docker compose` собирает два контейнера: `codenames` (nginx со статикой) и `codenames-relay` (релей комнат). Домен, TLS и маршрут `/ws` к релею держит общий Caddy (`sites/codenames.caddy`).
 
 > HTTPS нужен камере (`getUserMedia`) и сервис-воркеру. Сервер -- лишь точка раздачи и установки PWA: игра по QR после установки работает офлайн, WebRTC-сигналинг идёт по локальной сети.
 

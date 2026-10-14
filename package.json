@@ -23,7 +23,6 @@
 		"lint:css": "stylelint \"src/**/*.{css,astro,svelte}\"",
 		"lint:js": "oxlint --deny-warnings",
 		"lint:fix": "oxlint --fix",
-		"release": "release-it",
 		"prepare": "husky",
 		"commit": "cz"
 	},
@@ -41,7 +40,6 @@
 		"@fontsource-variable/manrope": "5.3.0",
 		"@lucide/svelte": "1.55.0",
 		"@playwright/test": "1.64.0",
-		"@release-it/conventional-changelog": "11.0.1",
 		"@types/node": "26.6.5",
 		"@types/pako": "2.0.4",
 		"@types/qrcode": "1.5.6",
@@ -61,7 +59,6 @@
 		"postcss-nested": "8.0.1",
 		"prettier": "3.9.9",
 		"qrcode": "1.5.4",
-		"release-it": "20.2.0",
 		"stylelint": "17.16.0",
 		"svelte": "5.57.2",
 		"svelte-check": "4.7.6",
