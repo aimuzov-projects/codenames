@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.3.0](https://github.com/aimuzov-projects/codenames/compare/v1.2.0...v1.3.0) (2026-10-14)
+
+
+### Features
+
+* center the author credit ([8be77b3](https://github.com/aimuzov-projects/codenames/commit/8be77b3efa7fa1dd234736423dbfb5a6f2393bdd))
+* peek at each theme from its button in settings ([38bd2ab](https://github.com/aimuzov-projects/codenames/commit/38bd2abf765bfc2b5b579a87d7503f69abab607d))
+* take the author credit from infra-site-kit ([e1b0653](https://github.com/aimuzov-projects/codenames/commit/e1b065334fca98e1398acd5f5fb2f327df15503a))
+
+
+### Bug Fixes
+
+* load the early theme script from a file covered by the CSP ([f29ed70](https://github.com/aimuzov-projects/codenames/commit/f29ed70edce32d8039d7140390897a820919cefa))
+
 ## [1.2.0](https://github.com/aimuzov-projects/codenames/compare/v1.1.0...v1.2.0) (2026-10-13)
 
 ### Features
