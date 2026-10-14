@@ -68,7 +68,7 @@ Everyone plays on their own phone, yet neither Wi-Fi nor mobile data is needed: 
 
 ## Running
 
-Stack and layout follow [infra-template-site](https://github.com/aimuzov-projects/infra-template-site): Astro + Svelte 5, Prettier, oxlint, stylelint (BEM), `node --test`. Node comes from `mise.toml`, the same version is pinned in `package.json`.
+Stack and layout follow [infra-site-template](https://github.com/aimuzov-projects/infra-site-template): Astro + Svelte 5, Prettier, oxlint, stylelint (BEM), `node --test`. Node comes from `mise.toml`, the same version is pinned in `package.json`.
 
 ```sh
 cp .env.example .env
