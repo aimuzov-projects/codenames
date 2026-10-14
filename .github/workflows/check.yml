@@ -15,16 +15,4 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version-file: package.json
-          cache: npm
-      - run: npm ci
-      - run: npm run format:check
-      - run: npm run lint:js
-      - run: npm run lint:css
-      - run: npm run check
-      - run: npm test
-      # The site is built on the server, but the build had better fail here.
-      - run: npm run build
+      - uses: aimuzov-projects/infra-site-kit/check@v1
