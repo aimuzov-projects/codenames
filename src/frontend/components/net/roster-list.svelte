@@ -4,7 +4,7 @@
 	const ROLE_LABEL = { spymaster: 'капитан', operative: 'игрок' } as const
 </script>
 
-<!-- Lobby player list with team, role and status. -->
+<!-- Список игроков в лобби с командой, ролью и статусом. -->
 {#if $rosterAtom.length === 0}
 	<p class="roster-list__empty">Пока никто не подключился.</p>
 {:else}

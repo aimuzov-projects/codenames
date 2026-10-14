@@ -3,7 +3,7 @@
 
 	import { E2E } from '#frontend/lib/e2e.ts'
 
-	/** Shows a string as a QR code -- the other player's camera scans it. */
+	/** Показывает строку как QR-код -- его сканирует камера другого игрока. */
 	let { value }: { value: string } = $props()
 
 	let svg = $state('')
@@ -22,13 +22,13 @@
 </script>
 
 <!--
-	The QR is always black on white in both themes: the built-in scanner (zxing) only reads dark modules
-	on a light background.
+	QR всегда чёрный на белом в обеих темах: встроенный сканер (zxing) читает только тёмные модули
+	на светлом фоне.
 -->
 <div class="qr-code">
-	<!-- The qrcode library builds the SVG locally from the code string -- no external markup here. -->
+	<!-- SVG собирает библиотека qrcode локально из строки кода -- внешней разметки тут нет. -->
 	<div class="qr-code__image" role="img" aria-label="QR-код">{@html svg}</div>
-	<!-- e2e hook: the same code as a string, so the test hands it to another context instead of scanning the QR. -->
+	<!-- e2e-хук: тот же код строкой, чтобы тест передал его другому контексту вместо съёмки QR. -->
 	{#if E2E}
 		<span data-testid="signal-out" hidden>{value}</span>
 	{/if}

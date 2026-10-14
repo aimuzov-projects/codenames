@@ -7,7 +7,7 @@ test.describe('словари и паки', () => {
 		await openApp(page)
 		await page.getByRole('button', { name: 'Словари' }).click()
 
-		// Uncheck all selected packs.
+		// Снимаем все отмеченные паки.
 		const checks = page.getByRole('checkbox')
 		const n = await checks.count()
 
@@ -20,7 +20,7 @@ test.describe('словари и паки', () => {
 		await expect(page.getByText(/Слов выбрано: 0/)).toBeVisible()
 		await expect(page.getByText(/нужно минимум 25/)).toBeVisible()
 
-		// On the "Play" screen "One device" is disabled: not enough words.
+		// На экране «Играть» «Одно устройство» заблокировано — слов не хватает.
 		await page.getByRole('button', { name: 'Назад' }).click()
 		await page.getByRole('button', { name: 'Играть' }).click()
 		await expect(page.getByRole('button', { name: 'Одно устройство' })).toBeDisabled()

@@ -30,14 +30,15 @@
 	import { modeAtom, myRoleAtom, myTeamAtom } from '#frontend/state/session.ts'
 	import { goBack, goTo, selectedWordsAtom } from '#frontend/state/ui.ts'
 
-	// Start hosting on enter, but not on return from the "Add player" screen: the screen
-	// remounts on every transition, and startHosting is destructive (it would reset the roster).
-	// Defaults to a relay room: it survives the phone going to sleep on its own.
+	// Запускаем хостинг при входе, но не при возврате с экрана «Добавить игрока»: экран
+	// перемонтируется на каждом переходе, а startHosting деструктивен (сбросил бы ростер).
+	// По умолчанию -- комната на релее: она сама переживает сон телефона.
 	$effect(() => {
 		if (modeAtom() !== 'host') startHosting('Хост', 'red', 'spymaster', 'relay')
 	})
 
 	const spymasterDisabled = $derived(teamHasSpymaster($rosterAtom, $myTeamAtom, HOST_ID))
+	// Тот же порог, что в `reshuffleRoster`: при меньшем числе подключённых он ростер не меняет.
 	const canReshuffle = $derived($rosterAtom.filter((p) => p.connected).length >= 4)
 
 	let showRosterAlert = $state(false)

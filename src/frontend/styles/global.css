@@ -1,6 +1,9 @@
 /*
- * Theme tokens. Dark is toggled by .dark on <html> (see state/theme.ts and public/theme.js).
- * .light brings the light ones back inside a dark page: the theme peek copy in settings.
+ * Токены темы. Тёмная включается классом .dark на <html>
+ * (см. state/theme.ts и public/theme.js).
+ *
+ * .light возвращает светлые токены внутри тёмной страницы,
+ * это нужно копии темы для подглядывания в настройках.
  */
 :root,
 .light {
@@ -16,7 +19,7 @@
 	--safe-top: env(safe-area-inset-top);
 	--safe-bottom: env(safe-area-inset-bottom);
 
-	/* Card word size is changed in settings (state/settings.ts). */
+	/* Размер слова на карте меняется в настройках (state/settings.ts). */
 	--card-word-size: 13px;
 
 	--background: oklch(1 0 0);
@@ -41,12 +44,12 @@
 	--warn-border: oklch(0.63 0.17 52);
 	--warn-text: oklch(1 0 0);
 
-	/* Game colors: teams and card types */
+	/* Игровые цвета: команды и типы карт */
 	--team-red: oklch(0.585 0.222 27.3);
 	--team-red-foreground: oklch(0.985 0 0);
 	--team-red-tint: oklch(0.93 0.05 27.3);
 	--team-red-tint-foreground: oklch(0.45 0.16 27.3);
-	/* Bright variant -- the dot of the revealing team, stands out on any background in both themes. */
+	/* Яркий вариант -- точка открывшей команды, заметнее любого фона в обеих темах. */
 	--team-red-bright: oklch(0.78 0.23 27.3);
 	--team-blue: oklch(0.55 0.17 256);
 	--team-blue-foreground: oklch(0.985 0 0);
@@ -111,8 +114,8 @@
 	outline-color: color-mix(in oklch, var(--ring) 50%, transparent);
 }
 
-/* The document doesn't scroll: scrolling happens only inside a screen. fixed kills rubber-band on old iOS,
-   overscroll-behavior -- pull-to-refresh, touch-action -- double-tap-zoom and the tap delay. */
+/* Документ не скроллится: прокрутка только внутри экрана. fixed гасит rubber-band старых iOS,
+   overscroll-behavior -- pull-to-refresh, touch-action -- double-tap-zoom и задержку тапа. */
 html,
 body {
 	touch-action: manipulation;
@@ -126,7 +129,8 @@ body {
 	-webkit-touch-callout: none;
 }
 
-/* .theme-peek is the page copy under the theme peek circle (infra-site-kit): it stands for body. */
+/* .theme-peek -- копия страницы под кругом подглядывания темы (infra-site-kit),
+   поэтому стили body нужны и ей. */
 body,
 .theme-peek {
 	margin: 0;
@@ -166,15 +170,15 @@ svg {
 	display: block;
 }
 
-/* The app shell is pinned to visualViewport (see app.svelte): with the keyboard open the visible area
-   doesn't drift away. fixed makes it the containing block for overlays; overflow isn't clipped -- the
-   composer's backdrop needs to spill past the bottom edge. */
+/* Оболочка приложения прижимается к visualViewport (см. app.svelte): при клавиатуре видимая область
+   не уезжает. fixed делает её containing block для оверлеев, overflow не режем -- затемнению
+   композера нужно вытечь за нижнюю кромку. */
 #root {
 	position: fixed;
 	inset: 0;
 }
 
-/* Screen readers only. */
+/* Только для скринридеров. */
 .visually-hidden {
 	position: absolute;
 	overflow: hidden;
@@ -187,7 +191,7 @@ svg {
 	clip-path: inset(50%);
 }
 
-/* Screen slides in from the left when going back (screen.svelte, menu-layout.svelte). */
+/* Въезд экрана слева при возврате назад (screen.svelte, menu-layout.svelte). */
 @keyframes screen-in-left {
 	from {
 		transform: translateX(-10%);

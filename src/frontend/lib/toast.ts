@@ -10,19 +10,21 @@ export type Toast = {
 }
 
 type Options = {
-	/** Update an already shown toast: "checking" is replaced by the result in the same spot. */
+	/** Обновить уже показанный тост: «проверяю» сменяется результатом на том же месте. */
 	id?: number
 	description?: string
 }
 
-/** How long a toast stays; loading stays until it's replaced by a result. */
+/** Сколько тост висит; загрузка висит, пока её не сменят результатом. */
 const DURATION_MS = 4000
 
+/** Показанные сейчас тосты, их рендерит `components/ui/toaster.svelte`. */
 export const toastsAtom = atom<Toast[]>([])
 
 let nextId = 1
 const timers = new Map<number, ReturnType<typeof setTimeout>>()
 
+/** Убирает тост сразу, не дожидаясь таймера. */
 export function dismissToast(id: number) {
 	clearTimeout(timers.get(id))
 	timers.delete(id)
@@ -35,6 +37,7 @@ function show(type: ToastType, title: string, options: Options = {}): number {
 	const list = toastsAtom()
 
 	toastsAtom.set(list.some((t) => t.id === id) ? list.map((t) => (t.id === id ? next : t)) : [...list, next])
+	// Тост обновили -- таймер прежнего показа сбрасываем, иначе он закроет новый текст раньше срока.
 	clearTimeout(timers.get(id))
 
 	if (type !== 'loading')
@@ -46,6 +49,10 @@ function show(type: ToastType, title: string, options: Options = {}): number {
 	return id
 }
 
+/**
+ * Показ тостов. Каждый метод возвращает `id`: по нему тост можно обновить
+ * (передать в `options.id`) или закрыть через {@link dismissToast}.
+ */
 export const toast = {
 	success: (title: string, options?: Options) => show('success', title, options),
 	error: (title: string, options?: Options) => show('error', title, options),

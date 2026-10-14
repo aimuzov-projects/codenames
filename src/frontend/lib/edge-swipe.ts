@@ -1,13 +1,13 @@
 /**
- * Edge swipe from the left edge of the screen to the right → "back".
- * Listens to touch on `window` without `preventDefault`, so vertical scrolling isn't disturbed.
- * A gesture started on an interactive element (button, field) is ignored.
- * Returns an unsubscribe: the screen's $effect calls it on unmount.
+ * Edge-swipe от левого края экрана вправо → «назад».
+ * Слушает touch на `window` без `preventDefault`, чтобы не мешать вертикальному скроллу.
+ * Жест, начатый на интерактивном элементе (кнопка, поле), игнорируется.
+ * Возвращает отписку: её зовёт $effect экрана при размонтировании.
  */
 export function edgeSwipeBack(onBack: () => void): () => void {
-	const EDGE_ZONE = 30 // px from the left edge where the gesture may start
-	const THRESHOLD = 70 // px of horizontal travel to the right to trigger
-	const MAX_DURATION = 600 // ms: a "swipe" slower than this isn't counted as a gesture
+	const EDGE_ZONE = 30 // px от левого края, где жест может начаться
+	const THRESHOLD = 70 // px горизонтального хода вправо для срабатывания
+	const MAX_DURATION = 600 // ms — слишком медленный «свайп» жестом не считаем
 
 	let active = false
 	let startX = 0
@@ -21,7 +21,7 @@ export function edgeSwipeBack(onBack: () => void): () => void {
 
 		if (e.touches.length !== 1 || !t || t.clientX > EDGE_ZONE) return
 
-		// Don't hijack a gesture started on an interactive element (the "back" button etc.).
+		// Не перехватываем жест, начатый на интерактивном элементе (кнопка «назад» и т.п.).
 		const target = e.target as Element | null
 
 		if (target?.closest?.('button, a, input, textarea, select, [role="button"], [role="slider"]')) {

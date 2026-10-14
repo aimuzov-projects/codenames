@@ -4,10 +4,10 @@ import { describe, it } from 'node:test'
 import { createGame } from '#frontend/game/create-game.ts'
 import type { CardType, Rng } from '#frontend/game/types.ts'
 
-/** Pool of 30 unique words for tests. */
+/** Пул из 30 уникальных слов для тестов. */
 const WORDS = Array.from({ length: 30 }, (_, i) => `слово${i + 1}`)
 
-/** Deterministic RNG (always 0): takes the first elements, doesn't shuffle. */
+/** Детерминированный RNG (всегда 0) — берёт первые элементы, не тасует. */
 const rngZero: Rng = () => 0
 
 function countTypes(types: CardType[]): Record<CardType, number> {
@@ -82,7 +82,7 @@ describe('createGame', () => {
 	})
 
 	it('выбирает стартовую команду через RNG, если не задана', () => {
-		// rng < 0.5 -> red, otherwise blue (checking both branches deterministically)
+		// rng < 0.5 -> red, иначе blue (детерминированно проверяем обе ветки)
 		const red = createGame({ words: WORDS }, () => 0)
 		const blue = createGame({ words: WORDS }, () => 0.99)
 

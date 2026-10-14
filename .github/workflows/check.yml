@@ -1,6 +1,6 @@
 name: Check
 
-# On main the deploy calls the checks before rollout, a separate run there would be a duplicate.
+# На main проверки зовёт деплой перед выкладкой, отдельный прогон там был бы вторым.
 on:
   push:
     branches-ignore: [main]

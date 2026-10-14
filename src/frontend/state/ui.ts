@@ -20,27 +20,28 @@ export type Screen =
 
 export const screenAtom = atom<Screen>('home')
 
-/** Stack of visited screens for the "back" button. */
+/** Стек посещённых экранов для кнопки «назад». */
 const historyAtom = atom<Screen[]>([])
 
-/** Direction of the last transition, for the animation (`forward` / `back`). */
+/** Направление последнего перехода — для анимации (`forward` вперёд / `back` назад). */
 export const navDirectionAtom = atom<'forward' | 'back'>('forward')
 
-/** Whether the clue input overlay (spymaster composer) is open. */
+/** Открыт ли оверлей ввода подсказки (композер капитана). */
 export const composerOpenAtom = atom<boolean>(false)
 
 /**
- * Why the join screen is open: 'new' is joining a new game, 'reconnect' is getting back into your game
- * after a drop (name and seat are already there, the screen shows QR right away and keeps the session on exit).
+ * Зачем открыт экран подключения: 'new' — вход в новую игру, 'reconnect' — возврат в свою партию
+ * после обрыва (имя и место уже есть, экран сразу показывает QR и не рвёт сессию при выходе).
  */
 export const joinModeAtom = atom<'new' | 'reconnect'>('new')
 
-/** Opens the join screen in the given mode. */
+/** Открыть экран подключения в нужном режиме. */
 export function goToJoin(mode: 'new' | 'reconnect' = 'new') {
 	joinModeAtom.set(mode)
 	goTo('join')
 }
 
+/** Переход вперёд: текущий экран уходит в историю, переход на него же игнорируется. */
 export function goTo(screen: Screen) {
 	if (screen === screenAtom()) return
 
@@ -49,17 +50,17 @@ export function goTo(screen: Screen) {
 	screenAtom.set(screen)
 }
 
-/** Team the stats screen is filtered by (null means both teams). */
+/** Команда, по которой отфильтрован экран статистики (null — обе команды). */
 export const statsTeamAtom = atom<Team | null>(null)
 
-/** Opens stats: filtered by team (tap on a score chip)
- *  or unfiltered (header icon / button on the final screen). */
+/** Открыть статистику: с фильтром по команде (тап по чипу счёта)
+ *  или без фильтра (иконка в шапке / кнопка в финале). */
 export function goToStats(team: Team | null = null) {
 	statsTeamAtom.set(team)
 	goTo('stats')
 }
 
-/** Back to the previous screen (or home if there's no history). */
+/** Возврат на предыдущий экран (или на главную, если истории нет). */
 export function goBack() {
 	const h = historyAtom()
 	const prev = h[h.length - 1] ?? 'home'
@@ -69,13 +70,13 @@ export function goBack() {
 	screenAtom.set(prev)
 }
 
-/** Custom packs loaded from IndexedDB. */
+/** Пользовательские паки, подгруженные из IndexedDB. */
 export const customPacksAtom = atom<WordPack[]>([])
 
-/** All available packs: built-in + custom. */
+/** Все доступные паки: встроенные + пользовательские. */
 export const allPacksAtom = computed<WordPack[]>([customPacksAtom], () => [...BUILTIN_PACKS, ...customPacksAtom()])
 
-/** Packs selected for the game (by default, a starter mix of three topics). */
+/** Выбранные для игры паки (по умолчанию — стартовый микс из трёх тем). */
 export const selectedPackIdsAtom = atom<string[]>([...DEFAULT_PACK_IDS])
 
 export function togglePack(id: string) {
@@ -84,21 +85,21 @@ export function togglePack(id: string) {
 	selectedPackIdsAtom.set(ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id])
 }
 
-/** Words from the selected packs (merged, no duplicates). */
+/** Слова из выбранных паков (объединённые, без дублей). */
 export const selectedWordsAtom = computed<string[]>([allPacksAtom, selectedPackIdsAtom], () => {
 	const selected = allPacksAtom().filter((p) => selectedPackIdsAtom().includes(p.id))
 
 	return mergeWords(selected)
 })
 
-/** Loads custom packs from IndexedDB (called on startup). */
+/** Подгружает пользовательские паки из IndexedDB (вызывается на старте). */
 export async function hydrateCustomPacks() {
 	const packs = await loadCustomPacks()
 
 	customPacksAtom.set(packs)
 }
 
-/** Creates a custom pack from free-form text and selects it. */
+/** Создаёт пользовательский пак из произвольного текста и выбирает его. */
 export async function addCustomPack(title: string, text: string) {
 	const words = parseWordList(text)
 	const pack = await upsertCustomPack({ title, words })
@@ -112,7 +113,7 @@ export async function addCustomPack(title: string, text: string) {
 	return pack
 }
 
-/** Deletes a custom pack. */
+/** Удаляет пользовательский пак. */
 export async function removeCustomPack(id: string) {
 	await deleteCustomPack(id)
 	customPacksAtom.set(customPacksAtom().filter((p) => p.id !== id))

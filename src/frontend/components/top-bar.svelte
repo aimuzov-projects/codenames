@@ -6,14 +6,14 @@
 	import Button from '#frontend/components/ui/button.svelte'
 
 	type Props = {
-		/** Screen title in `<h1>`. For a custom title, use the `heading` snippet. */
+		/** Заголовок экрана в `<h1>`. Для нестандартного заголовка -- сниппет `heading`. */
 		title?: string
 		heading?: Snippet
-		/** When set, a "back" button appears on the left. */
+		/** Задан -- слева появляется кнопка «назад». */
 		onback?: () => void
-		/** Extra actions on the right, before the settings button. */
+		/** Дополнительные действия справа, перед кнопкой настроек. */
 		right?: Snippet
-		/** Settings button on the right, shown on every screen. */
+		/** Сквозная кнопка настроек справа. */
 		showSettings?: boolean
 	}
 

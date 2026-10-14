@@ -1,6 +1,7 @@
 import { shuffle } from '#frontend/game/random.ts'
 import type { Card, CardType, GameConfig, GameState, Rng, Team } from '#frontend/game/types.ts'
 
+/** Сколько карт на поле, столько же минимум уникальных слов нужно в пуле. */
 export const BOARD_SIZE = 25
 const STARTING_TEAM_CARDS = 9
 const SECOND_TEAM_CARDS = 8
@@ -10,8 +11,8 @@ const ASSASSIN_CARDS = 1
 const other = (team: Team): Team => (team === 'red' ? 'blue' : 'red')
 
 /**
- * Creates a new game: takes 25 words from the pool, deals the 9/8/7/1 key in favor of
- * the starting team, sets the clue phase. RNG is injected for tests.
+ * Создаёт новую партию: берёт 25 слов из пула, раздаёт ключ 9/8/7/1 в пользу
+ * стартовой команды, выставляет фазу подсказки. RNG инъектируется для тестов.
  */
 export function createGame(config: GameConfig, rng: Rng = Math.random): GameState {
 	const uniqueWords = [...new Set(config.words)]
@@ -44,7 +45,7 @@ export function createGame(config: GameConfig, rng: Rng = Math.random): GameStat
 	}
 }
 
-/** List of 25 card types per the Codenames layout. */
+/** Список из 25 типов карт согласно раскладу Codenames. */
 function buildKey(startingTeam: Team): CardType[] {
 	return [
 		...Array<CardType>(STARTING_TEAM_CARDS).fill(startingTeam),

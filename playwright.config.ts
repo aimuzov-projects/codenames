@@ -1,17 +1,17 @@
 import { defineConfig, devices } from '@playwright/test'
 
 /**
- * E2E config. We run against `astro dev` (not preview): dev has no service worker, so there's no
- * stale PWA cache problem between runs. The dev server is on self-signed HTTPS
- * (basic-ssl), hence `ignoreHTTPSErrors`. PUBLIC_E2E=1 enables the signaling test hooks
- * (see src/frontend/lib/e2e.ts).
+ * E2E-конфиг. Гоняем против `astro dev` (а не preview): в dev сервис-воркера нет, поэтому нет
+ * проблемы с устаревшим PWA-кэшем между прогонами. Dev-сервер на самоподписанном HTTPS
+ * (basic-ssl) -- отсюда `ignoreHTTPSErrors`. PUBLIC_E2E=1 включает тест-хуки сигналинга
+ * (см. src/frontend/lib/e2e.ts).
  *
- * A single Chromium project with mobile emulation: the app is a phone PWA, plus WebRTC loopback
- * between two contexts is the most predictable in Chromium.
+ * Один проект Chromium с мобильной эмуляцией: приложение — PWA под телефон, плюс WebRTC-loopback
+ * между двумя контекстами в Chromium самый предсказуемый.
  */
 const PORT = 4321
 const baseURL = `https://localhost:${PORT}`
-// The relay is on the same port as in prod behind Caddy; the dev server proxies /ws to it.
+// Релей на том же порту, что и на проде за Caddy; dev-сервер проксирует к нему /ws.
 const RELAY_PORT = 8787
 
 export default defineConfig({
@@ -28,7 +28,7 @@ export default defineConfig({
 		baseURL,
 		ignoreHTTPSErrors: true,
 		trace: 'retain-on-failure',
-		// Network tests wait for a real WebRTC handshake, actions shouldn't rush.
+		// Сетевые тесты ждут реального WebRTC-рукопожатия — действия не должны спешить.
 		actionTimeout: 10_000,
 	},
 
@@ -37,11 +37,11 @@ export default defineConfig({
 			name: 'mobile-chromium',
 			use: {
 				...devices['Pixel 7'],
-				// WebRTC between two contexts on one machine. By default Chromium hides local IPs behind
-				// mDNS (*.local, they don't resolve in headless) and offers no loopback candidate, and on a
-				// machine behind a VPN the only host candidate turns out to be the VPN interface, over which
-				// the two sockets can't connect. The flags expose real IPs and allow loopback (127.0.0.1),
-				// so both peers find a direct path.
+				// WebRTC между двумя контекстами на одной машине. По умолчанию Chromium прячет локальные
+				// IP за mDNS (*.local, в headless не резолвятся) и не предлагает loopback-кандидат, а на
+				// машине за VPN единственным host-кандидатом оказывается VPN-интерфейс, по которому два
+				// сокета не связываются. Флаги раскрывают реальные IP и разрешают loopback (127.0.0.1) —
+				// тогда оба пира находят прямой путь.
 				launchOptions: {
 					args: [
 						'--disable-features=WebRtcHideLocalIpsWithMdns',
@@ -55,11 +55,10 @@ export default defineConfig({
 
 	webServer: [
 		{
-			// Without --ignore-lock Astro notices the AI agent, moves the dev server to the background and exits,
-			// and Playwright treats that as a crash.
+			// Без --ignore-lock Astro, заметив AI-агента, уводит dev-сервер в фон и сразу выходит,
+			// а Playwright считает это падением.
 			command: 'npm run dev -- --ignore-lock',
 			url: baseURL,
-			// Online mode tests run against a local relay (see the neighboring webServer).
 			env: { PUBLIC_E2E: '1' },
 			ignoreHTTPSErrors: true,
 			reuseExistingServer: !process.env.CI,
@@ -68,7 +67,7 @@ export default defineConfig({
 		{
 			command: 'node src/backend/server.ts',
 			url: `http://localhost:${RELAY_PORT}`,
-			// The relay answers a plain GET by refusing the upgrade, for Playwright that's a sign of life.
+			// На обычный GET релей отвечает `ok <число комнат>`, для Playwright это признак жизни.
 			ignoreHTTPSErrors: true,
 			reuseExistingServer: !process.env.CI,
 			timeout: 30_000,

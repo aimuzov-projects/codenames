@@ -16,8 +16,8 @@
 			if ($connStatusAtom === 'connected') return null
 
 			const connecting = $connStatusAtom === 'connecting'
-			// In a relay room the channel comes back by itself -- the button only hurries the next attempt.
-			// Over QR the only way back is a new handshake, so we send them to the join screen.
+			// В комнате на релее канал поднимается сам -- кнопка лишь торопит очередную попытку.
+			// По QR вернуться можно только новым рукопожатием, поэтому уводим на экран подключения.
 			const retry = $transportAtom === 'relay' ? () => guestReconnect() : () => goToJoin('reconnect')
 
 			return {
@@ -40,10 +40,10 @@
 </script>
 
 <!--
-	Connection status strip above the board. Shown only when there's something to say: to a guest -- that
-	the channel to the host dropped (device sleep, network loss) and how to get back; to the host -- which
-	players dropped off and how to take them back. The game isn't torn down on a drop: the board keeps
-	showing the last known state.
+	Полоска состояния связи над доской. Показывается только когда есть о чём сказать: гостю -- что
+	канал с хостом оборвался (сон устройства, потеря сети) и как вернуться, хосту -- кто из игроков
+	отвалился и как принять его обратно. Партию при обрыве не рвём: доска продолжает показывать
+	последнее известное состояние.
 -->
 {#if bar}
 	<div class="connection-bar">

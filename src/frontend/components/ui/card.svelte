@@ -2,7 +2,7 @@
 	import type { Snippet } from 'svelte'
 
 	type Props = {
-		/** Content layout: stacked (default) or a row "label -- control". */
+		/** Раскладка содержимого: стопкой (по умолчанию) или строкой «подпись -- контрол». */
 		layout?: 'stack' | 'row'
 		children: Snippet
 	}

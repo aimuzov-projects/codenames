@@ -4,7 +4,7 @@ import { cards, giveClue, indicesOf, readKey, revealCardAt, startingTeam } from 
 import { connectGuest, guestPick, mobileCtx, startHost } from './helpers/net'
 import { readSignalOut, submitSignalIn } from './helpers/signal'
 
-/** Spins up N isolated mobile contexts and their pages. */
+/** Поднимает N изолированных мобильных контекстов и их страницы. */
 async function openPeers(browser: Browser, n: number) {
 	const ctxs = await Promise.all(Array.from({ length: n }, () => browser.newContext(mobileCtx)))
 	const pages = await Promise.all(ctxs.map((c) => c.newPage()))
@@ -12,14 +12,14 @@ async function openPeers(browser: Browser, n: number) {
 	return { ctxs, pages }
 }
 
-/** Simulates the aftermath of device sleep: the guest's channel closes (see the hook in net.ts). */
+/** Имитирует последствия сна устройства: канал гостя закрывается (см. хук в net.ts). */
 async function dropLink(page: Page) {
 	await page.evaluate(() => (window as unknown as { __e2eDropLink: () => void }).__e2eDropLink())
 }
 
-/** Assembles a full roster: g1 is a red player, g2 the blue captain, g3 a blue player. */
+/** Собирает полный состав: g1 — красный игрок, g2 — синий капитан, g3 — синий игрок. */
 async function seatFour(host: Page, g1: Page, g2: Page, g3: Page) {
-	await startHost(host) // the host is the red captain
+	await startHost(host) // хост — красный капитан
 	await connectGuest(host, g1)
 	await guestPick(g1, 'Красные', 'Игрок')
 	await connectGuest(host, g2)
@@ -38,7 +38,7 @@ test.describe('переподключение после обрыва', () => {
 			await host!.getByRole('button', { name: 'Начать игру' }).click()
 			await expect(cards(g1!)).toHaveCount(25, { timeout: 20_000 })
 
-			// Make the game "in progress": a clue from the starting team and one reveal.
+			// Делаем партию «идущей»: подсказка стартовой команды и одно открытие.
 			const key = await readKey(host!)
 			const start = startingTeam(key)
 			const captain = start === 'red' ? host! : g2!
@@ -51,15 +51,15 @@ test.describe('переподключение после обрыва', () => {
 				timeout: 20_000,
 			})
 
-			// Device g1 "fell asleep": the channel dropped.
+			// Устройство g1 «уснуло»: канал оборвался.
 			await dropLink(g1!)
 			await expect(g1!.getByText('Связь с хостом потеряна')).toBeVisible({ timeout: 20_000 })
-			// The board is still there, the game keeps being shown.
+			// Доска при этом никуда не делась — партия продолжает отображаться.
 			await expect(cards(g1!)).toHaveCount(25)
-			// The host sees who dropped off right on the board.
+			// Хост видит, кто отвалился, прямо на доске.
 			await expect(host!.getByText(/Не на связи/)).toBeVisible({ timeout: 20_000 })
 
-			// Coming back: the guest shows a new offer, the host accepts it from the board.
+			// Возвращаемся: гость показывает новый offer, хост принимает его из доски.
 			await g1!.getByRole('button', { name: 'Переподключиться' }).click()
 			await expect(g1!.getByRole('heading', { name: 'Переподключение' })).toBeVisible()
 			const offer = await readSignalOut(g1!)
@@ -72,12 +72,12 @@ test.describe('переподключение после обрыва', () => {
 
 			await submitSignalIn(g1!, answer)
 
-			// The guest is back on the board, in the same seat (red player) and with the current game state.
+			// Гость снова на доске, с прежним местом (красный игрок) и текущим состоянием партии.
 			await expect(cards(g1!)).toHaveCount(25, { timeout: 20_000 })
 			await expect(g1!.getByText('Связь с хостом потеряна')).toBeHidden()
 			await expect(g1!.locator('[data-testid="card"][data-revealed="true"]')).toHaveCount(1)
 			await expect(g1!.getByText(/игрок/i).first()).toBeVisible()
-			// No duplicate in the roster: the host still sees four, all online.
+			// Дубля в ростере не завелось: хост по-прежнему видит четверых и все на связи.
 			await expect(host!.getByText(/Не на связи/)).toBeHidden({ timeout: 20_000 })
 		} finally {
 			await Promise.all(ctxs.map((c) => c.close()))
@@ -105,24 +105,24 @@ test.describe('переподключение после обрыва', () => {
 				timeout: 20_000,
 			})
 
-			// The guest app got unloaded from memory (iOS does this regularly).
+			// Приложение гостя выгрузили из памяти (iOS так делает регулярно).
 			await g1!.reload()
 			await g1!.getByRole('button', { name: 'Вернуться в игру' }).click()
-			// The board is in place, with the revealed card and the clue from the game, but without a connection.
+			// Доска на месте — с открытой картой и подсказкой из партии, но без связи.
 			await expect(cards(g1!)).toHaveCount(25)
 			await expect(g1!.locator('[data-testid="card"][data-revealed="true"]')).toHaveCount(1)
 			await expect(g1!.getByText('память')).toBeVisible()
 			await expect(g1!.getByText('Связь с хостом потеряна')).toBeVisible()
 
-			// Now the same with the host: it keeps the canonical game state.
+			// Теперь то же самое с хостом — он хранит канон партии.
 			await host!.reload()
 			await host!.getByRole('button', { name: 'Вернуться в игру' }).click()
 			await expect(cards(host!)).toHaveCount(25)
 			await expect(host!.locator('[data-testid="card"][data-revealed="true"]')).toHaveCount(1)
-			// The captain's key is restored too.
+			// Ключ капитана тоже восстановлен.
 			await expect(host!.locator('[data-testid="card"][data-card-type]')).toHaveCount(25)
 
-			// And the guest returns to the same game via a new handshake.
+			// И гость возвращается в эту же партию через новое рукопожатие.
 			await g1!.getByRole('button', { name: 'Переподключиться' }).click()
 			const offer = await readSignalOut(g1!)
 
@@ -151,7 +151,7 @@ test.describe('переподключение после обрыва', () => {
 			await expect(host!.getByRole('listitem')).toHaveCount(2)
 
 			await dropLink(guest!)
-			// In the lobby the host removes an offline player after 5 seconds, we make it back before that.
+			// В лобби офлайн-игрока хост убирает через 5 секунд — успеваем вернуться раньше.
 			await guest!.getByRole('button', { name: 'Переподключиться' }).click()
 			const offer = await readSignalOut(guest!)
 
@@ -164,7 +164,7 @@ test.describe('переподключение после обрыва', () => {
 			await submitSignalIn(guest!, answer)
 
 			await expect(guest!.getByText('Подключено ✓')).toBeVisible({ timeout: 20_000 })
-			// The roster is unchanged: two players, the guest is the blue captain.
+			// Ростер прежний: двое, гость — синий капитан.
 			await expect(host!.getByRole('listitem')).toHaveCount(2)
 			await expect(host!.getByRole('listitem').filter({ hasText: 'капитан' })).toHaveCount(2)
 		} finally {

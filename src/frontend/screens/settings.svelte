@@ -43,7 +43,7 @@
 		{ mode: 'dark', label: 'Тёмная', icon: Moon },
 	]
 
-	/** The scheme a theme button switches to: for "system" it is whatever the system has now. */
+	/** Схема, на которую переключит кнопка темы: для `system` -- та, что сейчас стоит в системе. */
 	function schemeOf(mode: ThemeMode): 'light' | 'dark' {
 		if (mode !== 'system') return mode
 
@@ -61,7 +61,7 @@
 
 	const updateBusy = $derived($updateStatusAtom !== 'idle')
 
-	// Confirmation when sound is turned on.
+	// Подтверждение при включении звука.
 	function onSound(v: boolean) {
 		setSound(v)
 
@@ -117,7 +117,7 @@
 		<h3 class="settings__section">Размер слов</h3>
 		<div class="settings__sizes">
 			{#each CARD_WORD_SIZES as s (s)}
-				<!-- The preview is a real closed board card; taps are caught by a transparent button on top. -->
+				<!-- Превью -- настоящая закрытая карта доски; нажатие ловит прозрачная кнопка поверх. -->
 				<div
 					class="settings__size"
 					class:settings__size--on={s === $cardWordSizeAtom}
@@ -333,7 +333,7 @@
 				transform: scale(0.97);
 			}
 
-			/* Selected size -- the card in the primary color, like the active toggle item. */
+			/* Выбранный размер -- карта в цвете primary, как активный пункт переключателя. */
 			&--on :global(.card-tile) {
 				color: var(--primary-foreground);
 				background: var(--primary);

@@ -37,7 +37,7 @@
 		changelog: Changelog,
 	}
 
-	/** Screens where falling asleep hurts most: the game and network lobbies, which wait for connections. */
+	/** Экраны, где засыпание особенно болезненно: партия и сетевые лобби, там ждут подключений. */
 	const awakeScreens = new Set<Screen>(['board', 'host', 'host-add', 'join'])
 
 	applyTheme()
@@ -45,21 +45,23 @@
 	registerServiceWorker()
 	void hydrateCustomPacks()
 
-	// The startup loader from pages/index.astro is removed after the real UI renders for the first time.
+	// Стартовый лоадер из pages/index.astro убираем после первого рендера настоящего интерфейса.
 	$effect(() => {
 		const loader = document.getElementById('initial-loader')
 
 		if (!loader) return
 
 		loader.classList.add('loader--hiding')
+		// 200 мс -- длительность transition лоадера в pages/index.astro,
+		// даём ему погаснуть и только потом убираем.
 		const timer = setTimeout(() => loader.remove(), 200)
 
 		return () => clearTimeout(timer)
 	})
 
-	// Pin #root to visualViewport. With the keyboard open the visible area shrinks and on iOS shifts
-	// up, and the shell follows it: content stays put, the document has nothing to scroll, and the
-	// composer row at the bottom edge sits right above the keyboard.
+	// Прижимаем #root к visualViewport. С клавиатурой видимая область ужимается и на iOS съезжает
+	// вверх -- оболочка едет следом: контент стоит на месте, документу нечего скроллить, а строка
+	// композера у нижней кромки оказывается ровно над клавиатурой.
 	$effect(() => {
 		const vv = window.visualViewport
 		const root = document.getElementById('root')
@@ -68,8 +70,8 @@
 
 		const apply = () => {
 			root.style.height = `${vv.height}px`
-			// translate3d stays even at zero: a stable compositing layer keeps the overlay from flickering
-			// when the transform appears abruptly as the keyboard opens.
+			// translate3d держим и при нуле: стабильный слой композитинга не даёт оверлею моргать,
+			// когда трансформа появляется скачком при открытии клавиатуры.
 			root.style.transform = `translate3d(${vv.offsetLeft}px, ${vv.offsetTop}px, 0)`
 		}
 
@@ -90,8 +92,8 @@
 	const Current = $derived(screens[$screenAtom])
 </script>
 
-<!-- key remounts the screen on every transition, so the enter animation replays. Toasts are outside
-     the block so a screen change doesn't reset them. -->
+<!-- key перемонтирует экран на каждом переходе: анимация въезда играет заново. Тосты вне блока,
+     чтобы не сбрасывались при смене экрана. -->
 {#key $screenAtom}
 	<Current />
 {/key}

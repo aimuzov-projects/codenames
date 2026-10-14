@@ -4,14 +4,14 @@ import type { WordPack } from '#frontend/data/packs.ts'
 
 const STORAGE_KEY = 'codenames.customPacks'
 
-/** Loads custom packs from IndexedDB. */
+/** Загружает пользовательские паки из IndexedDB. */
 export async function loadCustomPacks(): Promise<WordPack[]> {
 	const packs = await get<WordPack[]>(STORAGE_KEY)
 
 	return packs ?? []
 }
 
-/** Creates or updates a custom pack and returns it. */
+/** Создаёт или обновляет пользовательский пак и возвращает его. */
 export async function upsertCustomPack(input: { id?: string; title: string; words: string[] }): Promise<WordPack> {
 	const packs = await loadCustomPacks()
 	const id = input.id ?? crypto.randomUUID()
@@ -29,7 +29,7 @@ export async function upsertCustomPack(input: { id?: string; title: string; word
 	return pack
 }
 
-/** Deletes a custom pack by id. */
+/** Удаляет пользовательский пак по id. */
 export async function deleteCustomPack(id: string): Promise<void> {
 	const packs = await loadCustomPacks()
 

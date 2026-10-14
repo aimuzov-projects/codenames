@@ -3,9 +3,9 @@ import { decodeSignal, encodeSignal } from '#frontend/signaling/codec.ts'
 import type { SignalDescription } from '#frontend/signaling/types.ts'
 
 /**
- * WebRTC over the local network (hotspot) with offline signaling via QR/string.
- * Non-trickle ICE: wait for candidate gathering, then serialize the full SDP.
- * No STUN/TURN: host candidates are enough on a single LAN.
+ * WebRTC поверх локальной сети (хотспота) с офлайн-сигналингом через QR/строку.
+ * Non-trickle ICE: дожидаемся сбора кандидатов, затем сериализуем полный SDP.
+ * Без STUN/TURN — на одной LAN достаточно host-кандидатов.
  */
 const RTC_CONFIG: RTCConfiguration = { iceServers: [] }
 const CHANNEL = 'codenames'
@@ -13,7 +13,7 @@ const ICE_TIMEOUT_MS = 4000
 
 type Unsub = () => void
 
-/** Waits for ICE candidate gathering to finish (with a fallback timeout). */
+/** Ждёт окончания сбора ICE-кандидатов (с запасным таймаутом). */
 function waitIceComplete(pc: RTCPeerConnection): Promise<void> {
 	if (pc.iceGatheringState === 'complete') return Promise.resolve()
 
@@ -41,12 +41,12 @@ function localCode(pc: RTCPeerConnection): string {
 }
 
 /**
- * e2e hook: on the receiving side, duplicates each host candidate with a copy on 127.0.0.1, same
- * port (the socket listens on 0.0.0.0). Both Playwright contexts are on one machine, but behind a VPN
- * the only host candidate becomes the VPN interface, over which the two sockets don't connect,
- * and Chromium doesn't offer loopback. Applied to the remote SDP before setRemoteDescription (not to
- * the outgoing code: the codec would filter loopback out, see isUsefulCandidate in sdp.ts). Only under
- * VITE_E2E; in prod the signal is left untouched.
+ * e2e-хук: на принимающей стороне дублирует каждый host-кандидат копией на 127.0.0.1 с тем же
+ * портом (сокет слушает на 0.0.0.0). Оба контекста Playwright — на одной машине, но за VPN
+ * единственным host-кандидатом становится VPN-интерфейс, по которому два сокета не связываются,
+ * а loopback Chromium не предлагает. Применяется к remote-SDP перед setRemoteDescription (не к
+ * исходящему коду — кодек отфильтровал бы loopback, см. isUsefulCandidate в sdp.ts). Только под
+ * VITE_E2E; в проде сигнал не трогаем.
  */
 function patchSignalForE2E(desc: SignalDescription): SignalDescription {
 	if (!E2E) return desc
@@ -65,7 +65,7 @@ function patchSignalForE2E(desc: SignalDescription): SignalDescription {
 	return { type: desc.type, sdp: out.join('\r\n') }
 }
 
-/** Thin wrapper over DataChannel: typed subscriptions and sending JSON. */
+/** Тонкая обёртка над DataChannel: типизированные подписки и отправка JSON. */
 class Channel<TIn, TOut> {
 	private messageCbs = new Set<(msg: TIn) => void>()
 	private openCbs = new Set<() => void>()
@@ -83,6 +83,7 @@ class Channel<TIn, TOut> {
 			this.messageCbs.forEach((cb) => cb(msg))
 		}
 
+		// Канал мог открыться раньше, чем мы повесили onopen, тогда события уже не будет.
 		if (channel.readyState === 'open') this.openCbs.forEach((cb) => cb())
 	}
 
@@ -111,7 +112,7 @@ class Channel<TIn, TOut> {
 	}
 }
 
-/** Guest-side connection (initiator: creates the offer and the DataChannel). */
+/** Соединение со стороны гостя (инициатор: создаёт offer и DataChannel). */
 export class GuestConnection<TIn = unknown, TOut = unknown> {
 	private pc = new RTCPeerConnection(RTC_CONFIG)
 	private chan = new Channel<TIn, TOut>()
@@ -120,7 +121,7 @@ export class GuestConnection<TIn = unknown, TOut = unknown> {
 		this.chan.attach(this.pc.createDataChannel(CHANNEL))
 	}
 
-	/** Creates the offer code to show the host (QR/string). */
+	/** Создаёт offer-код для показа хосту (QR/строка). */
 	async createOfferCode(): Promise<string> {
 		await this.pc.setLocalDescription(await this.pc.createOffer())
 		await waitIceComplete(this.pc)
@@ -128,7 +129,7 @@ export class GuestConnection<TIn = unknown, TOut = unknown> {
 		return localCode(this.pc)
 	}
 
-	/** Accepts the answer code from the host; after that the channel opens. */
+	/** Принимает answer-код от хоста; после этого канал откроется. */
 	async acceptAnswerCode(code: string): Promise<void> {
 		await this.pc.setRemoteDescription(patchSignalForE2E(decodeSignal(code)))
 	}
@@ -153,7 +154,7 @@ export class GuestConnection<TIn = unknown, TOut = unknown> {
 	}
 }
 
-/** Host-side connection to a specific guest (the answerer). */
+/** Соединение со стороны хоста с конкретным гостем (отвечающий). */
 export class HostConnection<TIn = unknown, TOut = unknown> {
 	private pc = new RTCPeerConnection(RTC_CONFIG)
 	private chan = new Channel<TIn, TOut>()
@@ -164,7 +165,7 @@ export class HostConnection<TIn = unknown, TOut = unknown> {
 		this.pc.ondatachannel = (e) => this.chan.attach(e.channel)
 	}
 
-	/** Accepts the guest's offer code and returns the answer code to show them. */
+	/** Принимает offer-код гостя и возвращает answer-код для показа ему. */
 	async acceptOfferCode(code: string): Promise<string> {
 		await this.pc.setRemoteDescription(patchSignalForE2E(decodeSignal(code)))
 		await this.pc.setLocalDescription(await this.pc.createAnswer())

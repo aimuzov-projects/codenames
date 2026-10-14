@@ -21,30 +21,33 @@ function load(): Partial<Persisted> {
 const saved = load()
 
 export const soundEnabledAtom = atom(saved.sound ?? true)
-/** Turn length in seconds; 0 means no timer. */
+/** Длительность хода в секундах; 0 — без таймера. */
 export const timerSecondsAtom = atom(saved.timer ?? 0)
 
+/** Варианты длительности хода на экране настроек, в секундах. */
 export const TIMER_OPTIONS = [0, 60, 120, 180] as const
 
-/** Word size on a card (font-size). */
+/** Размер слова на карте (font-size). */
 export const CARD_WORD_SIZES = ['11px', '13px', '15px', '17px'] as const
 export type CardWordSize = (typeof CARD_WORD_SIZES)[number]
 
 const DEFAULT_CARD_WORD_SIZE: CardWordSize = '13px'
 
+// В localStorage может лежать что угодно (например, размер, которого уже нет в списке),
+// поэтому всё незнакомое сводим к размеру по умолчанию.
 function normalizeSize(v: unknown): CardWordSize {
 	return (CARD_WORD_SIZES as readonly string[]).includes(v as string) ? (v as CardWordSize) : DEFAULT_CARD_WORD_SIZE
 }
 
 export const cardWordSizeAtom = atom<CardWordSize>(normalizeSize(saved.cardWordSize))
 
-/** Hide words on revealed cards, replacing them with an icon for the card type. */
+/** Прятать слова на открытых картах, заменяя их иконкой по типу. */
 export const hideRevealedWordsAtom = atom(saved.hideRevealedWords ?? false)
 
-/** Keep the screen on during a game: device sleep drops the link to the host (see useWakeLock). */
+/** Держать экран включённым в игре: сон устройства рвёт связь с хостом (см. useWakeLock). */
 export const keepAwakeAtom = atom(saved.keepAwake ?? true)
 
-/** Applies the word size to <html> via a CSS variable. */
+/** Применяет размер слова к <html> через CSS-переменную. */
 export function applyCardWordSize(size: CardWordSize = cardWordSizeAtom()): void {
 	document.documentElement.style.setProperty('--card-word-size', size)
 }
@@ -62,7 +65,7 @@ function persist() {
 			}),
 		)
 	} catch {
-		// private mode / no access: settings just won't be saved
+		// приватный режим / нет доступа — настройки просто не сохранятся
 	}
 }
 

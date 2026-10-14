@@ -1,5 +1,6 @@
 import { atom } from '#frontend/lib/atom.ts'
 
+/** `system` — следуем `prefers-color-scheme`, остальные режимы фиксируют тему. */
 export type ThemeMode = 'system' | 'light' | 'dark'
 
 const KEY = 'codenames.theme'
@@ -29,24 +30,25 @@ function resolveDark(mode: ThemeMode): boolean {
 	return media?.matches ?? false
 }
 
-/** Applies the theme to <html>: `.dark` class for dark (taking the system mode into account). */
+/** Применяет тему к <html>: класс `.dark` для тёмной (учитывая системный режим). */
 export function applyTheme(mode: ThemeMode = themeAtom()): void {
 	document.documentElement.classList.toggle('dark', resolveDark(mode))
 }
 
+/** Выбирает тему: сохраняет её в localStorage и сразу применяет к странице. */
 export function setTheme(mode: ThemeMode) {
 	themeAtom.set(mode)
 
 	try {
 		localStorage.setItem(KEY, mode)
 	} catch {
-		// private mode / no access: the theme just won't be saved
+		// приватный режим / нет доступа — тема просто не сохранится
 	}
 
 	applyTheme(mode)
 }
 
-// Follow system theme changes while the "System" mode is selected.
+// Реагируем на смену системной темы, пока выбран режим «Системная».
 media?.addEventListener('change', () => {
 	if (themeAtom() === 'system') applyTheme('system')
 })

@@ -4,6 +4,7 @@
 	type Props = {
 		id?: string
 		checked: boolean
+		/** Вызывается с новым значением; сам чекбокс состояние не хранит. */
 		onchange: (checked: boolean) => void
 		'aria-label'?: string
 	}

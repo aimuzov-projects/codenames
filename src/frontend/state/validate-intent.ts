@@ -2,9 +2,9 @@ import type { GameEvent, GameState, Role } from '#frontend/game/index.ts'
 import type { PlayerInfo } from '#frontend/transport/messages.ts'
 
 /**
- * Checks on the host whether the sender may perform the action:
- * the clue is given by the current team's spymaster in the clue phase, cards are revealed
- * and the turn is ended by a current team operative in the guess phase.
+ * Проверяет на хосте, вправе ли отправитель совершить действие:
+ * подсказку даёт капитан текущей команды в фазе clue, карты открывает и ход
+ * завершает игрок текущей команды в фазе guess.
  */
 export function validateIntent(roster: PlayerInfo[], game: GameState, senderId: string, event: GameEvent): boolean {
 	if (game.phase === 'over') return false
