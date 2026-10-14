@@ -43,16 +43,8 @@ const canonical = new URL(Astro.url.pathname, Astro.site)
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 		<link rel="manifest" href="/manifest.webmanifest" />
-		<!-- Theme before the bundle loads: the startup loader and first frame don't flash white in dark theme.
-		     applyTheme() in state/theme.ts repeats the same logic. -->
-		<script is:inline>
-			try {
-				const t = localStorage.getItem('codenames.theme')
-				const dark =
-					t === 'dark' || ((t === 'system' || !t) && matchMedia('(prefers-color-scheme: dark)').matches)
-				if (dark) document.documentElement.classList.add('dark')
-			} catch {}
-		</script>
+		<!-- Blocking on purpose: the theme has to be set before the first paint. -->
+		<script is:inline src="/theme.js"></script>
 		<slot name="head" />
 	</head>
 	<body>
