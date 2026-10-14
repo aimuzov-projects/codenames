@@ -143,7 +143,7 @@
 				background: var(--muted);
 			}
 
-			:global(.dark) & {
+			:global(.dark) &:not(:global(.dark .light *)) {
 				border-color: var(--input);
 				background: color-mix(in oklch, var(--input) 30%, transparent);
 

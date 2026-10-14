@@ -1,5 +1,9 @@
-/* Theme tokens. Dark is toggled by .dark on <html> (see state/theme.ts and public/theme.js). */
-:root {
+/*
+ * Theme tokens. Dark is toggled by .dark on <html> (see state/theme.ts and public/theme.js).
+ * .light brings the light ones back inside a dark page: the theme peek copy in settings.
+ */
+:root,
+.light {
 	--font-sans: 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
 
 	--radius: 0.625rem;
@@ -122,7 +126,9 @@ body {
 	-webkit-touch-callout: none;
 }
 
-body {
+/* .theme-peek is the page copy under the theme peek circle (infra-site-kit): it stands for body. */
+body,
+.theme-peek {
 	margin: 0;
 	font-family: var(--font-sans);
 	line-height: 1.5;

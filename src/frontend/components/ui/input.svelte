@@ -34,7 +34,7 @@
 			box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent);
 		}
 
-		:global(.dark) & {
+		:global(.dark) &:not(:global(.dark .light *)) {
 			background: color-mix(in oklch, var(--input) 30%, transparent);
 		}
 
