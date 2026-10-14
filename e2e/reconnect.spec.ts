@@ -8,6 +8,7 @@ import { readSignalOut, submitSignalIn } from './helpers/signal'
 async function openPeers(browser: Browser, n: number) {
 	const ctxs = await Promise.all(Array.from({ length: n }, () => browser.newContext(mobileCtx)))
 	const pages = await Promise.all(ctxs.map((c) => c.newPage()))
+
 	return { ctxs, pages }
 }
 
@@ -31,6 +32,7 @@ test.describe('переподключение после обрыва', () => {
 	test('гость возвращается в идущую партию на своё место', async ({ browser }) => {
 		const { ctxs, pages } = await openPeers(browser, 4)
 		const [host, g1, g2, g3] = pages
+
 		try {
 			await seatFour(host!, g1!, g2!, g3!)
 			await host!.getByRole('button', { name: 'Начать игру' }).click()
@@ -41,8 +43,10 @@ test.describe('переподключение после обрыва', () => {
 			const start = startingTeam(key)
 			const captain = start === 'red' ? host! : g2!
 			const operative = start === 'red' ? g1! : g3!
+
 			await giveClue(captain, 'связь', 2)
 			await revealCardAt(operative, indicesOf(key, start)[0]!)
+
 			await expect(g1!.locator('[data-testid="card"][data-revealed="true"]')).toHaveCount(1, {
 				timeout: 20_000,
 			})
@@ -59,11 +63,13 @@ test.describe('переподключение после обрыва', () => {
 			await g1!.getByRole('button', { name: 'Переподключиться' }).click()
 			await expect(g1!.getByRole('heading', { name: 'Переподключение' })).toBeVisible()
 			const offer = await readSignalOut(g1!)
+
 			await g1!.getByRole('button', { name: 'Далее' }).click()
 
 			await host!.getByRole('button', { name: 'Подключить' }).click()
 			await submitSignalIn(host!, offer)
 			const answer = await readSignalOut(host!)
+
 			await submitSignalIn(g1!, answer)
 
 			// The guest is back on the board, in the same seat (red player) and with the current game state.
@@ -81,6 +87,7 @@ test.describe('переподключение после обрыва', () => {
 	test('перезапуск приложения не теряет партию', async ({ browser }) => {
 		const { ctxs, pages } = await openPeers(browser, 4)
 		const [host, g1, g2, g3] = pages
+
 		try {
 			await seatFour(host!, g1!, g2!, g3!)
 			await host!.getByRole('button', { name: 'Начать игру' }).click()
@@ -90,8 +97,10 @@ test.describe('переподключение после обрыва', () => {
 			const start = startingTeam(key)
 			const captain = start === 'red' ? host! : g2!
 			const operative = start === 'red' ? g1! : g3!
+
 			await giveClue(captain, 'память', 2)
 			await revealCardAt(operative, indicesOf(key, start)[0]!)
+
 			await expect(host!.locator('[data-testid="card"][data-revealed="true"]')).toHaveCount(1, {
 				timeout: 20_000,
 			})
@@ -116,10 +125,12 @@ test.describe('переподключение после обрыва', () => {
 			// And the guest returns to the same game via a new handshake.
 			await g1!.getByRole('button', { name: 'Переподключиться' }).click()
 			const offer = await readSignalOut(g1!)
+
 			await g1!.getByRole('button', { name: 'Далее' }).click()
 			await host!.getByRole('button', { name: 'Подключить' }).click()
 			await submitSignalIn(host!, offer)
 			const answer = await readSignalOut(host!)
+
 			await submitSignalIn(g1!, answer)
 
 			await expect(g1!.getByText('Связь с хостом потеряна')).toBeHidden({ timeout: 20_000 })
@@ -132,6 +143,7 @@ test.describe('переподключение после обрыва', () => {
 	test('в лобби вернувшийся гость сохраняет выбранную команду и роль', async ({ browser }) => {
 		const { ctxs, pages } = await openPeers(browser, 2)
 		const [host, guest] = pages
+
 		try {
 			await startHost(host!)
 			await connectGuest(host!, guest!)
@@ -142,11 +154,13 @@ test.describe('переподключение после обрыва', () => {
 			// In the lobby the host removes an offline player after 5 seconds, we make it back before that.
 			await guest!.getByRole('button', { name: 'Переподключиться' }).click()
 			const offer = await readSignalOut(guest!)
+
 			await guest!.getByRole('button', { name: 'Далее' }).click()
 
 			await host!.getByRole('button', { name: 'Добавить игрока' }).click()
 			await submitSignalIn(host!, offer)
 			const answer = await readSignalOut(host!)
+
 			await submitSignalIn(guest!, answer)
 
 			await expect(guest!.getByText('Подключено ✓')).toBeVisible({ timeout: 20_000 })

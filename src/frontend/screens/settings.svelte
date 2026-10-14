@@ -55,6 +55,7 @@
 	// Confirmation when sound is turned on.
 	function onSound(v: boolean) {
 		setSound(v)
+
 		if (v) previewSound()
 	}
 </script>

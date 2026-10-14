@@ -10,9 +10,11 @@
 
 	$effect(() => {
 		let cancelled = false
+
 		void QRCode.toString(value, { type: 'svg', margin: 0, errorCorrectionLevel: 'L' }).then((markup) => {
 			if (!cancelled) svg = markup
 		})
+
 		return () => {
 			cancelled = true
 		}

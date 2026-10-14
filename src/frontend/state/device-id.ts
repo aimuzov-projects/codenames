@@ -9,21 +9,28 @@ let cached: string | null = null
  */
 export function deviceId(): string {
 	if (cached) return cached
+
 	try {
 		const saved = localStorage.getItem(KEY)
+
 		if (saved) {
 			cached = saved
+
 			return saved
 		}
 	} catch {
 		// private mode / no access: the id lives until reload
 	}
+
 	const id = crypto.randomUUID().slice(0, 8)
+
 	cached = id
+
 	try {
 		localStorage.setItem(KEY, id)
 	} catch {
 		// see above
 	}
+
 	return id
 }

@@ -16,6 +16,7 @@ type Unsub = () => void
 /** Waits for ICE candidate gathering to finish (with a fallback timeout). */
 function waitIceComplete(pc: RTCPeerConnection): Promise<void> {
 	if (pc.iceGatheringState === 'complete') return Promise.resolve()
+
 	return new Promise((resolve) => {
 		const finish = () => {
 			pc.removeEventListener('icegatheringstatechange', check)
@@ -26,13 +27,16 @@ function waitIceComplete(pc: RTCPeerConnection): Promise<void> {
 			if (pc.iceGatheringState === 'complete') finish()
 		}
 		const timer = setTimeout(finish, ICE_TIMEOUT_MS)
+
 		pc.addEventListener('icegatheringstatechange', check)
 	})
 }
 
 function localCode(pc: RTCPeerConnection): string {
 	const desc = pc.localDescription
+
 	if (!desc) throw new Error('Нет локального описания')
+
 	return encodeSignal({ type: desc.type as 'offer' | 'answer', sdp: desc.sdp })
 }
 
@@ -46,14 +50,18 @@ function localCode(pc: RTCPeerConnection): string {
  */
 function patchSignalForE2E(desc: SignalDescription): SignalDescription {
 	if (!E2E) return desc
+
 	const out: string[] = []
+
 	for (const line of desc.sdp.split('\r\n')) {
 		out.push(line)
 		const m = line.match(/^a=candidate:(\S+) (\d+) (udp|UDP) (\d+) (\S+) (\d+) typ host(.*)$/)
+
 		if (m && m[5] !== '127.0.0.1') {
 			out.push(`a=candidate:${m[1]}lo ${m[2]} ${m[3]} ${m[4]} 127.0.0.1 ${m[6]} typ host${m[7]}`)
 		}
 	}
+
 	return { type: desc.type, sdp: out.join('\r\n') }
 }
 
@@ -68,10 +76,13 @@ class Channel<TIn, TOut> {
 		this.channel = channel
 		channel.onopen = () => this.openCbs.forEach((cb) => cb())
 		channel.onclose = () => this.closeCbs.forEach((cb) => cb())
+
 		channel.onmessage = (e) => {
 			const msg = JSON.parse(e.data as string) as TIn
+
 			this.messageCbs.forEach((cb) => cb(msg))
 		}
+
 		if (channel.readyState === 'open') this.openCbs.forEach((cb) => cb())
 	}
 
@@ -85,14 +96,17 @@ class Channel<TIn, TOut> {
 
 	onMessage(cb: (msg: TIn) => void): Unsub {
 		this.messageCbs.add(cb)
+
 		return () => this.messageCbs.delete(cb)
 	}
 	onOpen(cb: () => void): Unsub {
 		this.openCbs.add(cb)
+
 		return () => this.openCbs.delete(cb)
 	}
 	onClose(cb: () => void): Unsub {
 		this.closeCbs.add(cb)
+
 		return () => this.closeCbs.delete(cb)
 	}
 }
@@ -110,6 +124,7 @@ export class GuestConnection<TIn = unknown, TOut = unknown> {
 	async createOfferCode(): Promise<string> {
 		await this.pc.setLocalDescription(await this.pc.createOffer())
 		await waitIceComplete(this.pc)
+
 		return localCode(this.pc)
 	}
 
@@ -154,6 +169,7 @@ export class HostConnection<TIn = unknown, TOut = unknown> {
 		await this.pc.setRemoteDescription(patchSignalForE2E(decodeSignal(code)))
 		await this.pc.setLocalDescription(await this.pc.createAnswer())
 		await waitIceComplete(this.pc)
+
 		return localCode(this.pc)
 	}
 

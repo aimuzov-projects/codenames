@@ -18,6 +18,7 @@ export function atom<T>(initial: T): Atom<T> {
 	let value = initial
 	const store = writable(initial)
 	const read = () => value
+
 	return Object.assign(read, {
 		subscribe: store.subscribe,
 		set(next: T) {
@@ -33,17 +34,21 @@ export function atom<T>(initial: T): Atom<T> {
  */
 export function computed<T>(sources: Readable<unknown>[], fn: () => T): Computed<T> {
 	const store = derived(sources, () => fn())
+
 	return Object.assign(() => fn(), { subscribe: store.subscribe })
 }
 
 /** Calls `cb` on every store change, but not on subscribe (the current value). */
 export function onChange(store: Readable<unknown>, cb: () => void): () => void {
 	let initial = true
+
 	return store.subscribe(() => {
 		if (initial) {
 			initial = false
+
 			return
 		}
+
 		cb()
 	})
 }

@@ -20,34 +20,44 @@ export function gameFeedback(view: () => RedactedState | null) {
 
 	$effect(() => {
 		const current = view()
+
 		if (!current) {
 			prevRevealed = new Set()
 			prevOver = false
+
 			return
 		}
 
 		const now = new Set<number>()
 		const newly: number[] = []
+
 		current.cards.forEach((c, i) => {
 			if (c.revealed) {
 				now.add(i)
+
 				if (!prevRevealed.has(i)) newly.push(i)
 			}
 		})
 
 		// Fewer revealed than before → a new game: no sounds.
 		const isReset = now.size < prevRevealed.size
+
 		if (!isReset) {
 			for (const i of newly) {
 				const type = current.cards[i]!.type
+
 				if (!type) continue
+
 				if (soundEnabledAtom()) sfxReveal(type)
 			}
 		}
+
 		prevRevealed = now
 
 		const over = current.phase === 'over'
+
 		if (over && !prevOver && !isReset && soundEnabledAtom()) sfxWin()
+
 		prevOver = over
 	})
 }
@@ -68,29 +78,39 @@ export function turnTimer(view: () => RedactedState | null, mode: () => Mode) {
 		const sec = timerSec.current
 		const start = startedAt
 		const currentMode = mode()
+
 		if (!sec || start == null) {
 			left = null
+
 			return
 		}
+
 		const remaining = () => turnSecondsLeft(start, sec, Date.now())
+
 		left = remaining()
 		// Warn once per turn. If time is already running out at mount (a short turn
 		// or came back from settings near the end), don't alarm again.
 		let warned = remaining() <= TURN_WARN_SECONDS
 		const id = setInterval(() => {
 			const rem = remaining()
+
 			left = rem
+
 			if (!warned && rem <= TURN_WARN_SECONDS) {
 				warned = true
+
 				toast.warning('Время на ход заканчивается', {
 					description: `Осталось ${TURN_WARN_SECONDS} секунд`,
 				})
 			}
+
 			if (rem <= 0) {
 				clearInterval(id)
+
 				if (currentMode !== 'guest') endTurn()
 			}
 		}, 250)
+
 		return () => clearInterval(id)
 	})
 
@@ -114,19 +134,28 @@ export function endTurnLock(view: () => RedactedState | null) {
 
 	$effect(() => {
 		const start = startedAt
+
 		if (start == null) {
 			left = 0
+
 			return
 		}
+
 		const remaining = () => Math.ceil(endTurnLockLeft(start, END_TURN_LOCK_SECONDS, Date.now()))
 		const initial = remaining()
+
 		left = initial
+
 		if (initial <= 0) return // the lock has already expired: no interval needed
+
 		const id = setInterval(() => {
 			const rem = remaining()
+
 			left = rem
+
 			if (rem <= 0) clearInterval(id)
 		}, 250)
+
 		return () => clearInterval(id)
 	})
 

@@ -26,6 +26,7 @@ const state: GameState = {
 describe('redactStateForRole', () => {
 	it('капитан видит истинный тип всех карт', () => {
 		const r = redactStateForRole(state, 'spymaster')
+
 		assert.deepEqual(
 			r.cards.map((c) => c.type),
 			['red', 'blue', 'assassin', 'neutral'],
@@ -34,6 +35,7 @@ describe('redactStateForRole', () => {
 
 	it('игрок видит тип только у открытых карт, у закрытых — null', () => {
 		const r = redactStateForRole(state, 'operative')
+
 		assert.deepEqual(
 			r.cards.map((c) => c.type),
 			['red', null, null, 'neutral'],
@@ -42,10 +44,12 @@ describe('redactStateForRole', () => {
 
 	it('сохраняет слова и флаги revealed', () => {
 		const r = redactStateForRole(state, 'operative')
+
 		assert.deepEqual(
 			r.cards.map((c) => c.word),
 			['a', 'b', 'c', 'd'],
 		)
+
 		assert.deepEqual(
 			r.cards.map((c) => c.revealed),
 			[true, false, false, true],
@@ -54,6 +58,7 @@ describe('redactStateForRole', () => {
 
 	it('сохраняет остальные поля состояния', () => {
 		const r = redactStateForRole(state, 'operative')
+
 		assert.equal(r.currentTeam, 'blue')
 		assert.equal(r.startingTeam, 'red')
 		assert.equal(r.phase, 'guess')
@@ -65,6 +70,7 @@ describe('redactStateForRole', () => {
 
 	it('не мутирует исходное состояние', () => {
 		const snapshot = JSON.stringify(state)
+
 		redactStateForRole(state, 'operative')
 		assert.equal(JSON.stringify(state), snapshot)
 	})

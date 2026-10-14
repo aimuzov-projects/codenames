@@ -18,6 +18,7 @@ import type { PlayerInfo } from '#frontend/transport/messages.ts'
 
 // Restore brings the transport up again; Node has no WebRTC, empty stubs are enough.
 qrTransports.host = () => new HostHub()
+
 qrTransports.guest = () => ({
 	open: false,
 	onMessage() {},
@@ -44,6 +45,7 @@ describe('восстановление сессии после перезапу�
 
 	it('хост возвращается к своей партии, гости ждут переподключения', () => {
 		const game = createGame({ words, startingTeam: 'red' })
+
 		savedSessionAtom.set({
 			v: 1,
 			ts: Date.now(),
@@ -71,6 +73,7 @@ describe('восстановление сессии после перезапу�
 
 	it('гость возвращается на свою доску со статусом «связь потеряна»', () => {
 		const view = redactStateForRole(createGame({ words, startingTeam: 'blue' }), 'operative')
+
 		savedSessionAtom.set({
 			v: 1,
 			ts: Date.now(),

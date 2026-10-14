@@ -10,7 +10,9 @@ export function remainingFor(cards: readonly Card[], team: Team): number {
 /** The team with all its cards revealed (the winner), or null. */
 export function detectWinner(cards: readonly Card[]): Team | null {
 	if (remainingFor(cards, 'red') === 0) return 'red'
+
 	if (remainingFor(cards, 'blue') === 0) return 'blue'
+
 	return null
 }
 

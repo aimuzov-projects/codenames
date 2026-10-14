@@ -36,12 +36,17 @@ export type SessionSnapshot = {
 export function loadSnapshot(): SessionSnapshot | null {
 	try {
 		const raw = localStorage.getItem(KEY)
+
 		if (!raw) return null
+
 		const snap = JSON.parse(raw) as SessionSnapshot
+
 		if (snap.v !== VERSION || Date.now() - snap.ts > TTL_MS) {
 			clearSnapshot()
+
 			return null
 		}
+
 		return snap
 	} catch {
 		return null
@@ -51,11 +56,13 @@ export function loadSnapshot(): SessionSnapshot | null {
 /** Saves the snapshot and returns it in full (with version and timestamp). */
 export function saveSnapshot(snap: Omit<SessionSnapshot, 'v' | 'ts'>): SessionSnapshot {
 	const full: SessionSnapshot = { ...snap, v: VERSION, ts: Date.now() }
+
 	try {
 		localStorage.setItem(KEY, JSON.stringify(full))
 	} catch {
 		// private mode / quota exceeded: we'll live through a restart without restore
 	}
+
 	return full
 }
 

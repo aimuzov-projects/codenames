@@ -26,6 +26,7 @@ function teamSize(roster: PlayerInfo[], team: Team): number {
 export function pickSlot(roster: PlayerInfo[]): { team: Team; role: Role } {
 	const [a, b] = TEAMS as [Team, Team]
 	let team: Team
+
 	if (teamSize(roster, a) !== teamSize(roster, b)) {
 		team = teamSize(roster, a) < teamSize(roster, b) ? a : b
 	} else if (!teamHasSpymaster(roster, a)) {
@@ -35,6 +36,7 @@ export function pickSlot(roster: PlayerInfo[]): { team: Team; role: Role } {
 	} else {
 		team = a
 	}
+
 	return { team, role: teamHasSpymaster(roster, team) ? 'operative' : 'spymaster' }
 }
 
@@ -46,6 +48,7 @@ export function resolveSetup(roster: PlayerInfo[], selfId: string, team: Team, r
 	if (role === 'spymaster' && teamHasSpymaster(roster, team, selfId)) {
 		return { team, role: 'operative' }
 	}
+
 	return { team, role }
 }
 
@@ -55,6 +58,7 @@ export function resolveSetup(roster: PlayerInfo[], selfId: string, team: Team, r
  */
 export function isRosterReady(roster: PlayerInfo[]): boolean {
 	const online = roster.filter((p) => p.connected)
+
 	return TEAMS.every(
 		(team) =>
 			online.some((p) => p.team === team && p.role === 'spymaster') &&
@@ -71,20 +75,25 @@ export function isRosterReady(roster: PlayerInfo[]): boolean {
  */
 export function reshuffleRoster(roster: PlayerInfo[], rng: Rng = Math.random): PlayerInfo[] {
 	const connected = roster.filter((p) => p.connected)
+
 	if (connected.length < 4) return roster
 
 	const shuffled = shuffle(connected, rng)
 	const redCount = Math.ceil(shuffled.length / 2)
 	const slots = new Map<string, { team: Team; role: Role }>()
+
 	shuffled.forEach((p, i) => {
 		const team: Team = i < redCount ? 'red' : 'blue'
 		const isFirstOfTeam = i === 0 || i === redCount
+
 		slots.set(p.id, { team, role: isFirstOfTeam ? 'spymaster' : 'operative' })
 	})
 
 	return roster.map((p) => {
 		const slot = slots.get(p.id)
+
 		if (slot) return { ...p, ...slot }
+
 		return p.role === 'spymaster' ? { ...p, role: 'operative' } : p
 	})
 }
@@ -97,11 +106,15 @@ export function randomSetup(
 	rng: Rng = Math.random,
 ): { team: Team; role: Role } {
 	const candidates: { team: Team; role: Role }[] = []
+
 	for (const team of TEAMS) {
 		candidates.push({ team, role: 'operative' })
+
 		if (!teamHasSpymaster(roster, team, selfId)) candidates.push({ team, role: 'spymaster' })
 	}
+
 	const others = candidates.filter((c) => c.team !== current.team || c.role !== current.role)
 	const pool = others.length > 0 ? others : candidates
+
 	return pool[Math.floor(rng() * pool.length)]!
 }

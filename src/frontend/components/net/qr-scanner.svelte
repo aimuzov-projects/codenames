@@ -21,8 +21,10 @@
 			// The camera is only available in a secure context (HTTPS or localhost).
 			if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
 				error = 'Камера работает только по HTTPS. Откройте https-адрес.'
+
 				return
 			}
+
 			try {
 				// Explicit permission request + rear camera + high resolution (dense QR codes).
 				stream = await navigator.mediaDevices.getUserMedia({
@@ -33,19 +35,25 @@
 					},
 					audio: false,
 				})
+
 				if (cancelled) {
 					stream.getTracks().forEach((t) => t.stop())
+
 					return
 				}
+
 				// zxing is loaded lazily -- doesn't weigh down the main bundle.
 				const [{ BrowserQRCodeReader }, { DecodeHintType }] = await Promise.all([
 					import('@zxing/browser'),
 					import('@zxing/library'),
 				])
+
 				if (cancelled) return
+
 				// TRY_HARDER -- searches harder for a code; we also poll frames more often.
 				const hints = new Map([[DecodeHintType.TRY_HARDER, true]])
 				const reader = new BrowserQRCodeReader(hints, { delayBetweenScanAttempts: 120 })
+
 				controls = await reader.decodeFromStream(stream, video, (result, _err, ctrl) => {
 					if (result && !cancelled) {
 						cancelled = true
@@ -53,11 +61,14 @@
 						onscan(result.getText())
 					}
 				})
+
 				// The screen was closed while the scanner was starting.
 				if (cancelled) controls.stop()
 			} catch (e) {
 				if (cancelled) return
+
 				const name = (e as DOMException)?.name
+
 				if (name === 'NotAllowedError' || name === 'SecurityError') {
 					error = 'Доступ к камере запрещён. Разрешите камеру в настройках браузера и обновите страницу.'
 				} else if (name === 'NotFoundError' || name === 'OverconstrainedError') {
@@ -77,6 +88,7 @@
 
 	function submitManual() {
 		const code = manualCode.trim()
+
 		if (code) onscan(code)
 	}
 </script>

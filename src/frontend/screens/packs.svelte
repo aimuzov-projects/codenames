@@ -18,6 +18,7 @@
 
 	function add() {
 		if (preview.length === 0) return
+
 		void addCustomPack(title, text)
 		title = ''
 		text = ''

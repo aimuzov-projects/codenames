@@ -40,6 +40,7 @@ const LAYOUT: CardType[] = ['red', 'red', 'blue', 'blue', 'neutral', 'assassin']
 describe('reducer / GIVE_CLUE', () => {
 	it('в фазе подсказки задаёт подсказку и переводит в угадывание с count+1 попытками', () => {
 		const next = reducer(clueState(LAYOUT), { type: 'GIVE_CLUE', word: 'река', count: 2 })
+
 		assert.equal(next.phase, 'guess')
 		assert.deepEqual(next.clue, { word: 'река', count: 2, team: 'red' })
 		assert.equal(next.guessesRemaining, 3)
@@ -47,11 +48,13 @@ describe('reducer / GIVE_CLUE', () => {
 
 	it('игнорируется вне фазы подсказки', () => {
 		const s = guessState(LAYOUT, 1)
+
 		assert.equal(reducer(s, { type: 'GIVE_CLUE', word: 'x', count: 1 }), s)
 	})
 
 	it('игнорирует некорректный count (< 1) и пустое слово', () => {
 		const s = clueState(LAYOUT)
+
 		assert.equal(reducer(s, { type: 'GIVE_CLUE', word: 'x', count: 0 }), s)
 		assert.equal(reducer(s, { type: 'GIVE_CLUE', word: '  ', count: 2 }), s)
 	})
@@ -60,6 +63,7 @@ describe('reducer / GIVE_CLUE', () => {
 describe('reducer / REVEAL_CARD', () => {
 	it('верная карта своей команды открывается и тратит попытку, ход продолжается', () => {
 		const next = reducer(guessState(LAYOUT, 2), { type: 'REVEAL_CARD', index: 0 })
+
 		assert.equal(next.cards[0]!.revealed, true)
 		assert.equal(next.phase, 'guess')
 		assert.equal(next.currentTeam, 'red')
@@ -71,6 +75,7 @@ describe('reducer / REVEAL_CARD', () => {
 		const s = guessState(['red', 'red', 'red', 'blue', 'neutral', 'assassin'], 1)
 		const afterFirst = reducer(s, { type: 'REVEAL_CARD', index: 0 }) // 1 guess left
 		const afterSecond = reducer(afterFirst, { type: 'REVEAL_CARD', index: 1 }) // 0 -> pass
+
 		assert.equal(afterSecond.phase, 'clue')
 		assert.equal(afterSecond.currentTeam, 'blue')
 		assert.equal(afterSecond.clue, null)
@@ -79,6 +84,7 @@ describe('reducer / REVEAL_CARD', () => {
 
 	it('нейтральная карта завершает ход', () => {
 		const next = reducer(guessState(LAYOUT, 3), { type: 'REVEAL_CARD', index: 4 })
+
 		assert.equal(next.cards[4]!.revealed, true)
 		assert.equal(next.phase, 'clue')
 		assert.equal(next.currentTeam, 'blue')
@@ -87,6 +93,7 @@ describe('reducer / REVEAL_CARD', () => {
 
 	it('карта соперника открывается и завершает ход', () => {
 		const next = reducer(guessState(LAYOUT, 3), { type: 'REVEAL_CARD', index: 2 })
+
 		assert.equal(next.cards[2]!.revealed, true)
 		assert.equal(next.currentTeam, 'blue')
 		assert.equal(next.phase, 'clue')
@@ -94,6 +101,7 @@ describe('reducer / REVEAL_CARD', () => {
 
 	it('ассасин — мгновенный проигрыш, побеждает соперник', () => {
 		const next = reducer(guessState(LAYOUT, 3), { type: 'REVEAL_CARD', index: 5 })
+
 		assert.equal(next.phase, 'over')
 		assert.equal(next.winner, 'blue')
 		assert.equal(next.cards[5]!.revealed, true)
@@ -107,6 +115,7 @@ describe('reducer / REVEAL_CARD', () => {
 			cards: s.cards.map((c, i) => (i === 0 ? { ...c, revealed: true } : c)),
 		}
 		const next = reducer(opened, { type: 'REVEAL_CARD', index: 1 })
+
 		assert.equal(next.phase, 'over')
 		assert.equal(next.winner, 'red')
 	})
@@ -118,6 +127,7 @@ describe('reducer / REVEAL_CARD', () => {
 			cards: s.cards.map((c, i) => (i === 2 ? { ...c, revealed: true } : c)),
 		}
 		const next = reducer(opened, { type: 'REVEAL_CARD', index: 3 })
+
 		assert.equal(next.phase, 'over')
 		assert.equal(next.winner, 'blue')
 	})
@@ -128,9 +138,11 @@ describe('reducer / REVEAL_CARD', () => {
 			...s,
 			cards: s.cards.map((c, i) => (i === 0 ? { ...c, revealed: true } : c)),
 		}
+
 		assert.equal(reducer(opened, { type: 'REVEAL_CARD', index: 0 }), opened)
 		assert.equal(reducer(s, { type: 'REVEAL_CARD', index: 99 }), s)
 		const cs = clueState(LAYOUT)
+
 		assert.equal(reducer(cs, { type: 'REVEAL_CARD', index: 0 }), cs)
 	})
 })
@@ -138,6 +150,7 @@ describe('reducer / REVEAL_CARD', () => {
 describe('reducer / END_TURN', () => {
 	it('в угадывании передаёт ход и очищает подсказку', () => {
 		const next = reducer(guessState(LAYOUT, 2), { type: 'END_TURN' })
+
 		assert.equal(next.phase, 'clue')
 		assert.equal(next.currentTeam, 'blue')
 		assert.equal(next.clue, null)
@@ -146,15 +159,18 @@ describe('reducer / END_TURN', () => {
 
 	it('игнорируется вне фазы угадывания', () => {
 		const s = clueState(LAYOUT)
+
 		assert.equal(reducer(s, { type: 'END_TURN' }), s)
 	})
 
 	it('запоминает поданную подсказку как прошлую для этой команды (для бонуса)', () => {
 		const afterClue = reducer(clueState(LAYOUT), { type: 'GIVE_CLUE', word: 'река', count: 2 })
+
 		// On the first turn there's no previous clue yet.
 		assert.equal(afterClue.prevClueWord.red, null)
 		// After the turn passes, the clue word is remembered as red's previous clue.
 		const afterTurn = reducer(afterClue, { type: 'END_TURN' })
+
 		assert.equal(afterTurn.prevClueWord.red, 'река')
 		assert.equal(afterTurn.prevClueWord.blue, null)
 	})
@@ -163,6 +179,7 @@ describe('reducer / END_TURN', () => {
 describe('reducer / общее', () => {
 	it('игнорирует любые события в завершённой игре', () => {
 		const over: GameState = { ...clueState(LAYOUT), phase: 'over', winner: 'red' }
+
 		assert.equal(reducer(over, { type: 'GIVE_CLUE', word: 'x', count: 1 }), over)
 		assert.equal(reducer(over, { type: 'REVEAL_CARD', index: 0 }), over)
 		assert.equal(reducer(over, { type: 'END_TURN' }), over)
@@ -171,6 +188,7 @@ describe('reducer / общее', () => {
 	it('не мутирует входное состояние', () => {
 		const s = guessState(LAYOUT, 2)
 		const snapshot = JSON.stringify(s)
+
 		reducer(s, { type: 'REVEAL_CARD', index: 0 })
 		assert.equal(JSON.stringify(s), snapshot)
 	})
@@ -179,17 +197,20 @@ describe('reducer / общее', () => {
 describe('reducer / log (таймлайн)', () => {
 	it('GIVE_CLUE добавляет запись подсказки с командой, словом и числом', () => {
 		const next = reducer(clueState(LAYOUT), { type: 'GIVE_CLUE', word: 'река', count: 2 }, 1000)
+
 		assert.deepEqual(next.log, [{ kind: 'clue', team: 'red', word: 'река', count: 2, at: 1000 }])
 	})
 
 	it('невалидная подсказка не добавляет запись в лог', () => {
 		const s = clueState(LAYOUT)
+
 		assert.deepEqual(reducer(s, { type: 'GIVE_CLUE', word: '  ', count: 2 }).log, [])
 		assert.deepEqual(reducer(s, { type: 'GIVE_CLUE', word: 'x', count: 0 }).log, [])
 	})
 
 	it('REVEAL_CARD добавляет запись открытия с истинным типом и открывшей командой', () => {
 		const next = reducer(guessState(LAYOUT, 2), { type: 'REVEAL_CARD', index: 0 }, 2000)
+
 		assert.deepEqual(next.log, [{ kind: 'reveal', team: 'red', word: 'w0', type: 'red', at: 2000 }])
 	})
 
@@ -199,17 +220,20 @@ describe('reducer / log (таймлайн)', () => {
 			...s,
 			cards: s.cards.map((c, i) => (i === 0 ? { ...c, revealed: true } : c)),
 		}
+
 		assert.equal(reducer(opened, { type: 'REVEAL_CARD', index: 0 }), opened)
 	})
 
 	it('явный END_TURN в угадывании добавляет запись «пас»', () => {
 		const next = reducer(guessState(LAYOUT, 2), { type: 'END_TURN' }, 3000)
+
 		assert.deepEqual(next.log, [{ kind: 'pass', team: 'red', at: 3000 }])
 	})
 
 	it('авто-передача хода после неверной карты не создаёт лишний «пас» (только открытие)', () => {
 		// index 4 is neutral, the turn passes automatically.
 		const next = reducer(guessState(LAYOUT, 3), { type: 'REVEAL_CARD', index: 4 })
+
 		assert.deepEqual(next.log, [{ kind: 'reveal', team: 'red', word: 'w4', type: 'neutral', at: 0 }])
 	})
 
@@ -218,6 +242,7 @@ describe('reducer / log (таймлайн)', () => {
 		const s1 = reducer(s0, { type: 'GIVE_CLUE', word: 'река', count: 2 }, 100)
 		const s2 = reducer(s1, { type: 'REVEAL_CARD', index: 0 }, 200) // correct red, the turn continues
 		const s3 = reducer(s2, { type: 'REVEAL_CARD', index: 4 }, 300) // neutral, pass
+
 		assert.deepEqual(s3.log, [
 			{ kind: 'clue', team: 'red', word: 'река', count: 2, at: 100 },
 			{ kind: 'reveal', team: 'red', word: 'w0', type: 'red', at: 200 },

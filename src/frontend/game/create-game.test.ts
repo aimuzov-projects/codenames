@@ -22,23 +22,27 @@ function countTypes(types: CardType[]): Record<CardType, number> {
 describe('createGame', () => {
 	it('раздаёт ровно 25 карт', () => {
 		const state = createGame({ words: WORDS, startingTeam: 'red' }, rngZero)
+
 		assert.equal(state.cards.length, 25)
 	})
 
 	it('распределяет типы 9/8/7/1 в пользу стартовой команды (red)', () => {
 		const state = createGame({ words: WORDS, startingTeam: 'red' }, rngZero)
 		const counts = countTypes(state.cards.map((c) => c.type))
+
 		assert.deepEqual(counts, { red: 9, blue: 8, neutral: 7, assassin: 1 })
 	})
 
 	it('распределяет 9 карт стартовой команде blue', () => {
 		const state = createGame({ words: WORDS, startingTeam: 'blue' }, rngZero)
 		const counts = countTypes(state.cards.map((c) => c.type))
+
 		assert.deepEqual(counts, { red: 8, blue: 9, neutral: 7, assassin: 1 })
 	})
 
 	it('начинает в фазе подсказки, ход у стартовой команды, без победителя', () => {
 		const state = createGame({ words: WORDS, startingTeam: 'red' }, rngZero)
+
 		assert.equal(state.phase, 'clue')
 		assert.equal(state.currentTeam, 'red')
 		assert.equal(state.startingTeam, 'red')
@@ -48,6 +52,7 @@ describe('createGame', () => {
 
 	it('все карты изначально закрыты', () => {
 		const state = createGame({ words: WORDS, startingTeam: 'red' }, rngZero)
+
 		assert.equal(
 			state.cards.every((c) => !c.revealed),
 			true,
@@ -56,13 +61,16 @@ describe('createGame', () => {
 
 	it('начинает с пустым логом таймлайна', () => {
 		const state = createGame({ words: WORDS, startingTeam: 'red' }, rngZero)
+
 		assert.deepEqual(state.log, [])
 	})
 
 	it('использует только слова из пула, без повторов', () => {
 		const state = createGame({ words: WORDS, startingTeam: 'red' }, rngZero)
 		const used = state.cards.map((c) => c.word)
+
 		assert.equal(new Set(used).size, 25)
+
 		assert.equal(
 			used.every((w) => WORDS.includes(w)),
 			true,
@@ -77,6 +85,7 @@ describe('createGame', () => {
 		// rng < 0.5 -> red, otherwise blue (checking both branches deterministically)
 		const red = createGame({ words: WORDS }, () => 0)
 		const blue = createGame({ words: WORDS }, () => 0.99)
+
 		assert.equal(red.startingTeam, 'red')
 		assert.equal(blue.startingTeam, 'blue')
 	})

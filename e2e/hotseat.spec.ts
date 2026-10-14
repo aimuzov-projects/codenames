@@ -36,6 +36,7 @@ test.describe('hot-seat (одно устройство)', () => {
 
 		// Neutral card: the turn passes, the phone handoff gate shows up again.
 		await revealCardAt(page, neutral[0]!)
+
 		await expect(page.getByRole('button', { name: 'Показать поле' })).toBeVisible({
 			timeout: 5_000,
 		})
@@ -49,9 +50,11 @@ test.describe('hot-seat (одно устройство)', () => {
 		const myCards = indicesOf(key, mine)
 
 		await giveClue(page, 'всё', 9)
+
 		for (const i of myCards) await revealCardAt(page, i)
 
 		const label = mine === 'red' ? 'Красные победили' : 'Синие победили'
+
 		await expect(page.getByText(label)).toBeVisible({ timeout: 5_000 })
 	})
 
@@ -67,6 +70,7 @@ test.describe('hot-seat (одно устройство)', () => {
 
 		// The revealing team loses → the opponent wins.
 		const winner = mine === 'red' ? 'Синие победили' : 'Красные победили'
+
 		await expect(page.getByText(winner)).toBeVisible({ timeout: 5_000 })
 	})
 
@@ -82,6 +86,7 @@ test.describe('hot-seat (одно устройство)', () => {
 
 		// The card is revealed in the opponent's color, the turn passes: captain gate.
 		expect(await revealedCount(page, opp)).toBe(1)
+
 		await expect(page.getByRole('button', { name: 'Показать поле' })).toBeVisible({
 			timeout: 5_000,
 		})
@@ -97,6 +102,7 @@ test.describe('hot-seat (одно устройство)', () => {
 		await revealCardAt(page, indicesOf(key, mine)[0]!)
 		// The button is locked for ~5s from the start of the turn, Playwright waits for enabled by itself.
 		await page.getByRole('button', { name: 'Завершить ход' }).click()
+
 		await expect(page.getByRole('button', { name: 'Показать поле' })).toBeVisible({
 			timeout: 5_000,
 		})
@@ -106,6 +112,7 @@ test.describe('hot-seat (одно устройство)', () => {
 		await startHotSeat(page)
 		await revealSpymasterView(page)
 		const key = await readKey(page)
+
 		void key
 
 		await giveClue(page, 'тест', 2)
@@ -113,6 +120,7 @@ test.describe('hot-seat (одно устройство)', () => {
 		await page.getByRole('button', { name: 'Завершить ход' }).click()
 		await expect(page.getByText('Завершить ход без догадок?')).toBeVisible()
 		await page.getByRole('alertdialog').getByRole('button', { name: 'Завершить ход' }).click()
+
 		await expect(page.getByRole('button', { name: 'Показать поле' })).toBeVisible({
 			timeout: 5_000,
 		})

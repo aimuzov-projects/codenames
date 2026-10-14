@@ -19,7 +19,9 @@ export function encodeSignal(desc: SignalDescription): string {
 /** Decodes the string back into a WebRTC signal. */
 export function decodeSignal(text: string): SignalDescription {
 	const trimmed = text.trim()
+
 	// Compatibility: a bare minified code (M~…) without compression.
 	if (isMinifiedSignal(trimmed)) return expandSdp(trimmed)
+
 	return expandSdp(inflateRaw(base45Decode(trimmed), { to: 'string' }))
 }

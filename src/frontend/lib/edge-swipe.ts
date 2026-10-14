@@ -16,13 +16,18 @@ export function edgeSwipeBack(onBack: () => void): () => void {
 
 	const onStart = (e: TouchEvent) => {
 		const t = e.touches[0]
+
 		active = false
+
 		if (e.touches.length !== 1 || !t || t.clientX > EDGE_ZONE) return
+
 		// Don't hijack a gesture started on an interactive element (the "back" button etc.).
 		const target = e.target as Element | null
+
 		if (target?.closest?.('button, a, input, textarea, select, [role="button"], [role="slider"]')) {
 			return
 		}
+
 		active = true
 		startX = t.clientX
 		startY = t.clientY
@@ -31,11 +36,15 @@ export function edgeSwipeBack(onBack: () => void): () => void {
 
 	const onEnd = (e: TouchEvent) => {
 		if (!active) return
+
 		active = false
 		const t = e.changedTouches[0]
+
 		if (!t) return
+
 		const dx = t.clientX - startX
 		const dy = t.clientY - startY
+
 		if (dx >= THRESHOLD && dx > Math.abs(dy) && e.timeStamp - startT <= MAX_DURATION) {
 			onBack()
 		}
@@ -48,6 +57,7 @@ export function edgeSwipeBack(onBack: () => void): () => void {
 	window.addEventListener('touchstart', onStart, { passive: true })
 	window.addEventListener('touchend', onEnd, { passive: true })
 	window.addEventListener('touchcancel', reset, { passive: true })
+
 	return () => {
 		window.removeEventListener('touchstart', onStart)
 		window.removeEventListener('touchend', onEnd)

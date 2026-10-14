@@ -46,7 +46,9 @@ const conns: FakeConn[] = []
 qrTransports.host = () =>
 	new HostHub(() => {
 		const conn = new FakeConn()
+
 		conns.push(conn)
+
 		return conn
 	})
 
@@ -85,6 +87,7 @@ describe('хост: возвращение игрока после обрыва'
 		assert.partialDeepStrictEqual(player('dev1'), { team: 'blue', role: 'spymaster', connected: true })
 		// The spymaster gets their view of the state, so the returning player's board fills right away.
 		const state = conns[1]!.sent.find((m) => m.t === 'state')
+
 		assert.notEqual(state, undefined)
 		assert.equal(state?.t === 'state' && state.state.cards.every((c) => c.type !== undefined), true)
 	})

@@ -26,9 +26,11 @@ export async function revealSpymasterView(page: Page) {
 export async function readKey(page: Page): Promise<CardType[]> {
 	await expect(cards(page)).toHaveCount(25)
 	const types = await cards(page).evaluateAll((els) => els.map((el) => el.getAttribute('data-card-type')))
+
 	if (types.some((t) => t === null)) {
 		throw new Error('readKey должен вызываться в виде капитана — ключ виден не полностью')
 	}
+
 	return types as CardType[]
 }
 
@@ -46,12 +48,16 @@ export function startingTeam(key: CardType[]): 'red' | 'blue' {
 export async function giveClue(page: Page, word: string, count: number) {
 	await page.getByRole('button', { name: 'Придумать подсказку' }).click()
 	const input = page.getByRole('textbox')
+
 	await input.fill(word)
 	// The number defaults to 2, step it to the target with ±.
 	const more = page.getByRole('button', { name: 'Больше' })
 	const less = page.getByRole('button', { name: 'Меньше' })
+
 	for (let n = 2; n < count; n++) await more.click()
+
 	for (let n = 2; n > count; n--) await less.click()
+
 	await page.getByRole('button', { name: 'Дать' }).click()
 	// After submitting: guessing phase, the key is hidden, the clue button disappears.
 	await expect(page.getByRole('button', { name: 'Придумать подсказку' })).toBeHidden()

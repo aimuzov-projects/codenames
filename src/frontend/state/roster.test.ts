@@ -13,6 +13,7 @@ import {
 import type { PlayerInfo } from '#frontend/transport/messages.ts'
 
 let seq = 0
+
 function player(team: Team, role: Role, connected = true): PlayerInfo {
 	return { id: `p${seq++}`, name: 'Игрок', team, role, connected }
 }
@@ -20,10 +21,13 @@ function player(team: Team, role: Role, connected = true): PlayerInfo {
 /** Deterministic rng (mulberry32) for reproducible shuffles in tests. */
 function makeRng(seed: number): () => number {
 	let a = seed >>> 0
+
 	return () => {
 		a = (a + 0x6d2b79f5) | 0
 		let t = Math.imul(a ^ (a >>> 15), 1 | a)
+
 		t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+
 		return ((t ^ (t >>> 14)) >>> 0) / 4294967296
 	}
 }
@@ -54,15 +58,18 @@ describe('pickSlot', () => {
 
 	it('второй игрок попадает в пустую команду капитаном', () => {
 		const roster = [player('red', 'spymaster')]
+
 		assert.deepEqual(pickSlot(roster), { team: 'blue', role: 'spymaster' })
 	})
 
 	it('третий и четвёртый добивают игроков в обе команды', () => {
 		const roster = [player('red', 'spymaster'), player('blue', 'spymaster')]
 		const third = pickSlot(roster)
+
 		assert.equal(third.role, 'operative')
 		roster.push(player(third.team, third.role))
 		const fourth = pickSlot(roster)
+
 		assert.equal(fourth.role, 'operative')
 		roster.push(player(fourth.team, fourth.role))
 		// The result is a valid 4-player roster.
@@ -71,6 +78,7 @@ describe('pickSlot', () => {
 
 	it('садит в команду с меньшим числом игроков', () => {
 		const roster = [player('red', 'spymaster'), player('red', 'operative')]
+
 		assert.equal(pickSlot(roster).team, 'blue')
 	})
 })
@@ -78,6 +86,7 @@ describe('pickSlot', () => {
 describe('resolveSetup', () => {
 	it('понижает второго капитана команды до игрока', () => {
 		const roster = [player('red', 'spymaster')]
+
 		assert.deepEqual(resolveSetup(roster, 'newbie', 'red', 'spymaster'), {
 			team: 'red',
 			role: 'operative',
@@ -86,6 +95,7 @@ describe('resolveSetup', () => {
 
 	it('не трогает капитана, если в команде нет другого капитана', () => {
 		const roster = [player('red', 'operative')]
+
 		assert.deepEqual(resolveSetup(roster, 'newbie', 'red', 'spymaster'), {
 			team: 'red',
 			role: 'spymaster',
@@ -108,6 +118,7 @@ describe('isRosterReady', () => {
 
 	it('false, если в команде нет игрока', () => {
 		const roster = [player('red', 'spymaster'), player('blue', 'spymaster'), player('red', 'operative')]
+
 		assert.equal(isRosterReady(roster), false)
 	})
 
@@ -122,6 +133,7 @@ describe('isRosterReady', () => {
 			player('blue', 'spymaster'),
 			player('blue', 'operative', false),
 		]
+
 		assert.equal(isRosterReady(roster), false)
 	})
 })
@@ -131,10 +143,12 @@ describe('randomSetup', () => {
 		const roster = [player('red', 'spymaster'), player('blue', 'spymaster')]
 		// Only red/blue operative are available. From blue we always move to red.
 		const current = { team: 'blue' as Team, role: 'operative' as Role }
+
 		assert.deepEqual(
 			randomSetup(roster, 'me', current, () => 0),
 			{ team: 'red', role: 'operative' },
 		)
+
 		assert.deepEqual(
 			randomSetup(roster, 'me', current, () => 0.99),
 			{
@@ -162,6 +176,7 @@ describe('randomSetup', () => {
 			{ team: 'blue', role: 'operative' },
 			{ team: 'blue', role: 'spymaster' },
 		]
+
 		for (const current of combos) {
 			for (const rng of [0, 0.25, 0.5, 0.75, 0.99]) {
 				assert.notDeepEqual(
@@ -174,6 +189,7 @@ describe('randomSetup', () => {
 
 	it('переключает команду, когда оба капитана заняты', () => {
 		const roster = [player('red', 'spymaster'), player('blue', 'spymaster')]
+
 		assert.deepEqual(
 			randomSetup(roster, 'me', { team: 'red', role: 'operative' }, () => 0),
 			{
@@ -187,14 +203,17 @@ describe('randomSetup', () => {
 describe('reshuffleRoster', () => {
 	it('возвращает ростер без изменений, если подключённых меньше 4', () => {
 		const roster = [player('red', 'spymaster'), player('blue', 'spymaster'), player('red', 'operative')]
+
 		assert.deepEqual(reshuffleRoster(roster, makeRng(1)), roster)
 	})
 
 	it('всегда даёт валидный сбалансированный состав (4–8 игроков, много сидов)', () => {
 		for (let n = 4; n <= 8; n++) {
 			const roster = Array.from({ length: n }, (_, i) => player(i % 2 === 0 ? 'red' : 'blue', 'operative'))
+
 			for (let seed = 0; seed < 25; seed++) {
 				const next = reshuffleRoster(roster, makeRng(seed))
+
 				assert.equal(isRosterReady(next), true)
 				// exactly one spymaster per team
 				assert.equal(spymastersOf(next, 'red').length, 1)
@@ -214,8 +233,10 @@ describe('reshuffleRoster', () => {
 		]
 		const moved = Array.from({ length: 30 }, (_, s) => reshuffleRoster(roster, makeRng(s))).some((r) => {
 			const h = r.find((p) => p.id === 'host')!
+
 			return h.team !== 'red' || h.role !== 'spymaster'
 		})
+
 		assert.equal(moved, true)
 	})
 
@@ -226,6 +247,7 @@ describe('reshuffleRoster', () => {
 			player('red', 'operative'),
 			player('blue', 'operative'),
 		]
+
 		assert.deepEqual(reshuffleRoster(roster, makeRng(7)), reshuffleRoster(roster, makeRng(7)))
 	})
 
@@ -245,6 +267,7 @@ describe('reshuffleRoster', () => {
 		]
 		const next = reshuffleRoster(roster, makeRng(3))
 		const off = next.find((p) => p.id === 'off')!
+
 		assert.equal(off.connected, false)
 		assert.equal(off.team, 'blue')
 		assert.equal(off.role, 'operative')

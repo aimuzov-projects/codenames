@@ -43,6 +43,7 @@ export function goToJoin(mode: 'new' | 'reconnect' = 'new') {
 
 export function goTo(screen: Screen) {
 	if (screen === screenAtom()) return
+
 	historyAtom.set([...historyAtom(), screenAtom()])
 	navDirectionAtom.set('forward')
 	screenAtom.set(screen)
@@ -62,6 +63,7 @@ export function goToStats(team: Team | null = null) {
 export function goBack() {
 	const h = historyAtom()
 	const prev = h[h.length - 1] ?? 'home'
+
 	historyAtom.set(h.slice(0, -1))
 	navDirectionAtom.set('back')
 	screenAtom.set(prev)
@@ -78,18 +80,21 @@ export const selectedPackIdsAtom = atom<string[]>([...DEFAULT_PACK_IDS])
 
 export function togglePack(id: string) {
 	const ids = selectedPackIdsAtom()
+
 	selectedPackIdsAtom.set(ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id])
 }
 
 /** Words from the selected packs (merged, no duplicates). */
 export const selectedWordsAtom = computed<string[]>([allPacksAtom, selectedPackIdsAtom], () => {
 	const selected = allPacksAtom().filter((p) => selectedPackIdsAtom().includes(p.id))
+
 	return mergeWords(selected)
 })
 
 /** Loads custom packs from IndexedDB (called on startup). */
 export async function hydrateCustomPacks() {
 	const packs = await loadCustomPacks()
+
 	customPacksAtom.set(packs)
 }
 
@@ -97,10 +102,13 @@ export async function hydrateCustomPacks() {
 export async function addCustomPack(title: string, text: string) {
 	const words = parseWordList(text)
 	const pack = await upsertCustomPack({ title, words })
+
 	customPacksAtom.set([...customPacksAtom(), pack])
+
 	if (!selectedPackIdsAtom().includes(pack.id)) {
 		selectedPackIdsAtom.set([...selectedPackIdsAtom(), pack.id])
 	}
+
 	return pack
 }
 

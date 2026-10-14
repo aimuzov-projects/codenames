@@ -12,5 +12,6 @@ export function redactStateForRole(state: GameState, role: Role): RedactedState 
 		type: role === 'spymaster' || c.revealed ? c.type : null,
 		openedBy: c.openedBy,
 	}))
+
 	return { ...state, cards }
 }

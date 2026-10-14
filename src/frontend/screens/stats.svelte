@@ -32,6 +32,7 @@
 	function buildTurns(log: LogEntry[]): Turn[] {
 		const turns: Turn[] = []
 		let current: Turn | null = null
+
 		for (const e of log) {
 			if (e.kind === 'clue') {
 				current = {
@@ -41,14 +42,17 @@
 					passed: false,
 					startAt: e.at,
 				}
+
 				turns.push(current)
 			} else if (e.kind === 'reveal' && current) {
 				const outcome: Outcome = e.type === 'assassin' ? 'assassin' : e.type === e.team ? 'correct' : 'wrong'
+
 				current.reveals.push({ word: e.word, type: e.type, outcome })
 			} else if (e.kind === 'pass' && current) {
 				current.passed = true
 			}
 		}
+
 		return turns
 	}
 
@@ -57,6 +61,7 @@
 		const total = Math.max(0, Math.round(ms / 1000))
 		const m = Math.floor(total / 60)
 		const s = total % 60
+
 		return `${m}:${s.toString().padStart(2, '0')}`
 	}
 

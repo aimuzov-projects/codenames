@@ -29,6 +29,7 @@
 	async function onScanOffer(offerCode: string) {
 		try {
 			const { connId, answerCode } = await acceptGuestOffer(offerCode)
+
 			pendingConnId = connId
 			answer = answerCode
 		} catch {

@@ -38,6 +38,7 @@
 	function press(event: PointerEvent & { currentTarget: EventTarget & HTMLButtonElement }) {
 		if (ripple) {
 			tapFeedback()
+
 			if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
 				const rect = event.currentTarget.getBoundingClientRect()
 				const id = nextInk++
@@ -47,10 +48,12 @@
 					y: event.clientY - rect.top,
 					size: Math.max(rect.width, rect.height) * 2.2,
 				}
+
 				inks = [...inks, ink]
 				setTimeout(() => (inks = inks.filter((i) => i.id !== id)), 600)
 			}
 		}
+
 		onpointerdown?.(event)
 	}
 </script>

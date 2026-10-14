@@ -50,13 +50,16 @@
 	function handleStart() {
 		if (!isRosterReady(rosterAtom())) {
 			showRosterAlert = true
+
 			return
 		}
+
 		hostStartGame({ words: selectedWordsAtom() })
 	}
 
 	function random() {
 		const s = randomSetup(rosterAtom(), HOST_ID, { team: myTeamAtom(), role: myRoleAtom() })
+
 		setHostSetup(s.team, s.role)
 	}
 </script>

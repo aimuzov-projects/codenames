@@ -4,6 +4,7 @@
 	/** A random variant; with `exclude`, guaranteed to be a different one. */
 	function pick(exclude?: number): number {
 		const candidates = LOGOS.map((_, i) => i).filter((i) => i !== exclude)
+
 		return candidates[Math.floor(Math.random() * candidates.length)]!
 	}
 

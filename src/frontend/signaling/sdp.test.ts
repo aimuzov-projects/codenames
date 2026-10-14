@@ -33,11 +33,13 @@ const fullOffer = {
 describe('minifySdp', () => {
 	it('кодирует существенные поля компактной строкой с префиксом M~', () => {
 		const code = minifySdp(fullOffer)
+
 		assert.equal(code.startsWith('M~0~1Zic~igoyy8MlxdhKBktfxwyBxkak~'), true)
 	})
 
 	it('срезает нестандартный хвост кандидата (generation/network-cost)', () => {
 		const code = minifySdp(fullOffer)
+
 		assert.ok(code.includes('37d389a6-af47-438d-aa1d-eff810022811.local 60215 typ host'))
 		assert.ok(!code.includes('generation'))
 		assert.ok(!code.includes('network-cost'))
@@ -62,6 +64,7 @@ describe('minifySdp', () => {
 			),
 		}
 		const code = minifySdp(many)
+
 		assert.ok(code.includes('192.168.1.5 50000 typ host'))
 		assert.ok(!code.includes('tcp'))
 		assert.ok(!code.includes('fe80'))
@@ -74,6 +77,7 @@ describe('minifySdp', () => {
 describe('expandSdp', () => {
 	it('восстанавливает валидный SDP с теми же ICE-данными и отпечатком', () => {
 		const sdp = expandSdp(minifySdp(fullOffer)).sdp
+
 		assert.ok(sdp.includes('a=ice-ufrag:1Zic'))
 		assert.ok(sdp.includes('a=ice-pwd:igoyy8MlxdhKBktfxwyBxkak'))
 		assert.ok(sdp.includes('a=fingerprint:sha-256 ' + FP))
@@ -91,6 +95,7 @@ describe('expandSdp', () => {
 			sdp: fullOffer.sdp.replace('actpass', 'active'),
 		}
 		const expanded = expandSdp(minifySdp(answer))
+
 		assert.equal(expanded.type, 'answer')
 		assert.ok(expanded.sdp.includes('a=setup:active'))
 	})

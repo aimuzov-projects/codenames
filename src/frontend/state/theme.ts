@@ -7,6 +7,7 @@ const KEY = 'codenames.theme'
 function load(): ThemeMode {
 	try {
 		const v = localStorage.getItem(KEY)
+
 		return v === 'light' || v === 'dark' || v === 'system' ? v : 'system'
 	} catch {
 		return 'system'
@@ -22,7 +23,9 @@ const media =
 
 function resolveDark(mode: ThemeMode): boolean {
 	if (mode === 'dark') return true
+
 	if (mode === 'light') return false
+
 	return media?.matches ?? false
 }
 
@@ -33,11 +36,13 @@ export function applyTheme(mode: ThemeMode = themeAtom()): void {
 
 export function setTheme(mode: ThemeMode) {
 	themeAtom.set(mode)
+
 	try {
 		localStorage.setItem(KEY, mode)
 	} catch {
 		// private mode / no access: the theme just won't be saved
 	}
+
 	applyTheme(mode)
 }
 

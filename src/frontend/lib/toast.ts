@@ -33,13 +33,16 @@ function show(type: ToastType, title: string, options: Options = {}): number {
 	const id = options.id ?? nextId++
 	const next: Toast = { id, type, title, description: options.description }
 	const list = toastsAtom()
+
 	toastsAtom.set(list.some((t) => t.id === id) ? list.map((t) => (t.id === id ? next : t)) : [...list, next])
 	clearTimeout(timers.get(id))
+
 	if (type !== 'loading')
 		timers.set(
 			id,
 			setTimeout(() => dismissToast(id), DURATION_MS),
 		)
+
 	return id
 }
 

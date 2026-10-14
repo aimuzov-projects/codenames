@@ -42,6 +42,7 @@ test.describe('композер подсказки', () => {
 		await expect(count).toHaveText('1') // doesn't go below 1
 
 		for (let i = 0; i < 12; i++) await more.click()
+
 		await expect(count).toHaveText('9') // doesn't go above 9
 	})
 

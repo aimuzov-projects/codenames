@@ -4,5 +4,6 @@
  */
 export function relayUrl(): string {
 	const scheme = location.protocol === 'https:' ? 'wss:' : 'ws:'
+
 	return `${scheme}//${location.host}/ws`
 }

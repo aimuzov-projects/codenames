@@ -18,16 +18,21 @@ let registration: ServiceWorkerRegistration | undefined
  */
 export function registerServiceWorker() {
 	if (!import.meta.env.PROD || !('serviceWorker' in navigator)) return
+
 	// The first controller claim on a fresh install isn't an update, no reason to reload.
 	let reloading = !navigator.serviceWorker.controller
+
 	navigator.serviceWorker.addEventListener('controllerchange', () => {
 		if (reloading) {
 			reloading = false
+
 			return
 		}
+
 		reloading = true
 		location.reload()
 	})
+
 	navigator.serviceWorker
 		.register('/sw.js')
 		.then((r) => (registration = r))
@@ -40,8 +45,10 @@ export function registerServiceWorker() {
 export async function checkForUpdate() {
 	updateStatusAtom.set('checking')
 	const toastId = toast.loading('Проверяю обновление…')
+
 	try {
 		await registration?.update()
+
 		// A new worker is already installing or waiting, it'll take control and reload the page itself.
 		if (registration?.installing || registration?.waiting) {
 			updateStatusAtom.set('updating')

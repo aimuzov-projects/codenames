@@ -7,6 +7,7 @@ const STORAGE_KEY = 'codenames.customPacks'
 /** Loads custom packs from IndexedDB. */
 export async function loadCustomPacks(): Promise<WordPack[]> {
 	const packs = await get<WordPack[]>(STORAGE_KEY)
+
 	return packs ?? []
 }
 
@@ -22,13 +23,16 @@ export async function upsertCustomPack(input: { id?: string; title: string; word
 		words: input.words,
 	}
 	const next = packs.some((p) => p.id === id) ? packs.map((p) => (p.id === id ? pack : p)) : [...packs, pack]
+
 	await set(STORAGE_KEY, next)
+
 	return pack
 }
 
 /** Deletes a custom pack by id. */
 export async function deleteCustomPack(id: string): Promise<void> {
 	const packs = await loadCustomPacks()
+
 	await set(
 		STORAGE_KEY,
 		packs.filter((p) => p.id !== id),

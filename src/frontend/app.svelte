@@ -48,9 +48,12 @@
 	// The startup loader from pages/index.astro is removed after the real UI renders for the first time.
 	$effect(() => {
 		const loader = document.getElementById('initial-loader')
+
 		if (!loader) return
+
 		loader.classList.add('loader--hiding')
 		const timer = setTimeout(() => loader.remove(), 200)
+
 		return () => clearTimeout(timer)
 	})
 
@@ -60,16 +63,20 @@
 	$effect(() => {
 		const vv = window.visualViewport
 		const root = document.getElementById('root')
+
 		if (!vv || !root) return
+
 		const apply = () => {
 			root.style.height = `${vv.height}px`
 			// translate3d stays even at zero: a stable compositing layer keeps the overlay from flickering
 			// when the transform appears abruptly as the keyboard opens.
 			root.style.transform = `translate3d(${vv.offsetLeft}px, ${vv.offsetTop}px, 0)`
 		}
+
 		apply()
 		vv.addEventListener('resize', apply)
 		vv.addEventListener('scroll', apply)
+
 		return () => {
 			vv.removeEventListener('resize', apply)
 			vv.removeEventListener('scroll', apply)

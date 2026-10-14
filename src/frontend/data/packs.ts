@@ -48,6 +48,7 @@ export function parseWordList(text: string): string[] {
 		.split(/[\n,;]+/)
 		.map((w) => w.trim())
 		.filter(Boolean)
+
 	return [...new Set(words)]
 }
 
