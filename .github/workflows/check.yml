@@ -1,9 +1,8 @@
 name: Check
 
-# На main проверки зовёт деплой перед выкладкой, отдельный прогон там был бы вторым.
+# На main эти проверки вызывает workflow деплоя перед выкаткой, а ветки
+# проверяются через PR. Отдельный прогон на push дал бы дубль на тот же коммит.
 on:
-  push:
-    branches-ignore: [main]
   pull_request:
   workflow_call:
   workflow_dispatch:
