@@ -1,27 +1,26 @@
 ---
+import NotFound from '@aimuzov-projects/infra-site-kit/not-found.astro'
 import Base from '#frontend/layouts/base.astro'
 ---
 
 <Base title="Страница не найдена" description="Такой страницы на сайте нет." index={false}>
 	<main class="missing">
-		<div class="container">
-			<h1 class="missing__title">Такой страницы нет</h1>
-			<p>Возможно, ссылка устарела или в ней опечатка.</p>
-			<a href="/" class="missing__link">
-				На главную
-			</a>
-		</div>
+		<NotFound />
 	</main>
 </Base>
 
 <style>
+	/* Документ у игры не скроллится (global.css), поэтому прокрутка -- у самой страницы. */
 	.missing {
+		--not-found-accent: var(--primary);
+		--not-found-muted: var(--muted-foreground);
+		--not-found-radius: var(--radius-lg);
+		user-select: text;
+		overflow-y: auto;
+
 		display: grid;
 		align-items: center;
-		min-height: 100svh;
-
-		&__link {
-			color: var(--accent);
-		}
+		height: 100%;
+		padding: var(--safe-top) 0 var(--safe-bottom);
 	}
 </style>
