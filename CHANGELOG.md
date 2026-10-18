@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.4.0](https://github.com/aimuzov-projects/codenames/compare/v1.3.0...v1.4.0) (2026-10-18)
+
+
+### Features
+
+* move the 404 to the shared not-found page ([fcb0293](https://github.com/aimuzov-projects/codenames/commit/fcb0293e903d6b989a0ff64334ed95868e2bdfd1))
+* move the 404 to the shared not-found page ([e807292](https://github.com/aimuzov-projects/codenames/commit/e8072921698e9ed5b7935d9d79f4b40788a7059e))
+
+
+### Bug Fixes
+
+* **ci:** don't deploy a cancelled run ([#26](https://github.com/aimuzov-projects/codenames/issues/26)) ([6dc9d76](https://github.com/aimuzov-projects/codenames/commit/6dc9d76b90eaf7733b0cdd08bc920c159ea54c70))
+* **ci:** run checks once per PR push ([#28](https://github.com/aimuzov-projects/codenames/issues/28)) ([3ce4b76](https://github.com/aimuzov-projects/codenames/commit/3ce4b7606ba92b03ba2ed2e2b82e424365858df8))
+
 ## [1.3.0](https://github.com/aimuzov-projects/codenames/compare/v1.2.0...v1.3.0) (2026-10-14)
 
 
