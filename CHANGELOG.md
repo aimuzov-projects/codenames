@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.0](https://github.com/aimuzov-projects/codenames/compare/v1.4.0...v1.5.0) (2026-10-20)
+
+
+### Features
+
+* reserve the scrollbar gutter on every page ([cd0a27d](https://github.com/aimuzov-projects/codenames/commit/cd0a27d5f77e3711f55bb84b72bac1539aff90fc))
+* reserve the scrollbar gutter on every page ([5bb408f](https://github.com/aimuzov-projects/codenames/commit/5bb408f4f790c583ae738559b01ae245d1e6fbd0))
+
 ## [1.4.0](https://github.com/aimuzov-projects/codenames/compare/v1.3.0...v1.4.0) (2026-10-18)
 
 
