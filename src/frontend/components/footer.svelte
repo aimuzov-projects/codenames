@@ -1,10 +1,10 @@
 <script lang="ts">
-	import Credit from '@aimuzov-projects/infra-site-kit/credit.svelte'
+	import Credit from '@aimuzov/infra-site-kit/credit.svelte'
 </script>
 
 <!-- Подпись автора у нижней кромки экранов-меню: menu-layout растягивается и прижимает её к низу. -->
 <footer class="footer">
-	<Credit repo="https://github.com/aimuzov-projects/codenames" align="center" />
+	<Credit repo="https://github.com/aimuzov/codenames" align="center" />
 </footer>
 
 <style>

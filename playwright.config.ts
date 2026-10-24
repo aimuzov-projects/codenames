@@ -1,4 +1,4 @@
-import preset from '@aimuzov-projects/infra-site-kit/playwright'
+import preset from '@aimuzov/infra-site-kit/playwright'
 import { defineConfig, devices } from '@playwright/test'
 
 /**
