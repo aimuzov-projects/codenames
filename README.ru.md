@@ -8,12 +8,12 @@
 </p>
 
 <p align="center">
-	<a href="https://github.com/aimuzov-projects/codenames/actions/workflows/deploy.yml"><img src="https://img.shields.io/github/actions/workflow/status/aimuzov-projects/codenames/deploy.yml?branch=main&label=deploy" alt="Deploy"></a>
+	<a href="https://github.com/aimuzov/codenames/actions/workflows/deploy.yml"><img src="https://img.shields.io/github/actions/workflow/status/aimuzov/codenames/deploy.yml?branch=main&label=deploy" alt="Deploy"></a>
 	<a href="https://codenames.aimuzov.online"><img src="https://img.shields.io/website?url=https%3A%2F%2Fcodenames.aimuzov.online&label=site" alt="Site status"></a>
-	<a href="package.json"><img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Faimuzov-projects%2Fcodenames%2Fmain%2Fpackage.json&query=%24.engines.node&label=node&logo=nodedotjs&logoColor=white&color=5fa04e" alt="Node"></a>
-	<a href="https://astro.build"><img src="https://img.shields.io/github/package-json/dependency-version/aimuzov-projects/codenames/dev/astro?logo=astro&logoColor=white&color=bc52ee" alt="Astro"></a>
-	<a href="https://svelte.dev"><img src="https://img.shields.io/github/package-json/dependency-version/aimuzov-projects/codenames/dev/svelte?logo=svelte&logoColor=white&color=ff3e00" alt="Svelte"></a>
-	<a href="LICENSE"><img src="https://img.shields.io/github/license/aimuzov-projects/codenames" alt="License"></a>
+	<a href="package.json"><img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Faimuzov%2Fcodenames%2Fmain%2Fpackage.json&query=%24.engines.node&label=node&logo=nodedotjs&logoColor=white&color=5fa04e" alt="Node"></a>
+	<a href="https://astro.build"><img src="https://img.shields.io/github/package-json/dependency-version/aimuzov/codenames/dev/astro?logo=astro&logoColor=white&color=bc52ee" alt="Astro"></a>
+	<a href="https://svelte.dev"><img src="https://img.shields.io/github/package-json/dependency-version/aimuzov/codenames/dev/svelte?logo=svelte&logoColor=white&color=ff3e00" alt="Svelte"></a>
+	<a href="LICENSE"><img src="https://img.shields.io/github/license/aimuzov/codenames" alt="License"></a>
 </p>
 
 <h3 align="center">Codenames для телефона, которому не нужен интернет</h3>
@@ -66,7 +66,7 @@
 
 ## Запуск
 
-Стек и раскладка как в [infra-site-template](https://github.com/aimuzov-projects/infra-site-template): Astro + Svelte 5, Prettier, oxlint, stylelint (BEM), `node --test`. Node берётся из `mise.toml`, та же версия закреплена в `package.json`.
+Стек и раскладка как в [infra-site-template](https://github.com/aimuzov/infra-site-template): Astro + Svelte 5, Prettier, oxlint, stylelint (BEM), `node --test`. Node берётся из `mise.toml`, та же версия закреплена в `package.json`.
 
 ```sh
 cp .env.example .env
@@ -81,7 +81,7 @@ npm run relay     # WS-релей комнат на :8787, dev-сервер пр
 npm run format:check && npm run lint:js && npm run lint:css && npm run check && npm test && npm run build
 ```
 
-E2E-тесты в [`e2e`](e2e) работают на пресете [infra-site-kit](https://github.com/aimuzov-projects/infra-site-kit): собирают сайт с тестовыми хуками, отдают его через `astro preview`, поднимают рядом релей и играют в Chromium с эмуляцией телефона. Поверх игровых сценариев кит проверяет, что страница отвечает без ошибок в консоли и проходит axe. Браузер ставится один раз через `npx playwright install chromium`, дальше `npm run test:e2e`.
+E2E-тесты в [`e2e`](e2e) работают на пресете [infra-site-kit](https://github.com/aimuzov/infra-site-kit): собирают сайт с тестовыми хуками, отдают его через `astro preview`, поднимают рядом релей и играют в Chromium с эмуляцией телефона. Поверх игровых сценариев кит проверяет, что страница отвечает без ошибок в консоли и проходит axe. Браузер ставится один раз через `npx playwright install chromium`, дальше `npm run test:e2e`.
 
 ## Архитектура
 
@@ -124,7 +124,7 @@ src/
 
 ## Деплой
 
-Сервер projects из [infra-server](https://github.com/aimuzov-projects/infra-server): мерж релизного PR, который ведёт release-please, запускает `deploy.yml`, тот прогоняет проверки и по SSH дёргает общий [`deploy/site.sh`](https://github.com/aimuzov-projects/infra-server/blob/main/deploy/site.sh) из infra-server. На сервере `docker compose` собирает два контейнера: `codenames` (nginx со статикой) и `codenames-relay` (релей комнат). Домен, TLS и маршрут `/ws` к релею держит общий Caddy (`sites/codenames.caddy`).
+Сервер projects из [infra-server](https://github.com/aimuzov/infra-server): мерж релизного PR, который ведёт release-please, запускает `deploy.yml`, тот прогоняет проверки и по SSH дёргает общий [`deploy/site.sh`](https://github.com/aimuzov/infra-server/blob/main/deploy/site.sh) из infra-server. На сервере `docker compose` собирает два контейнера: `codenames` (nginx со статикой) и `codenames-relay` (релей комнат). Домен, TLS и маршрут `/ws` к релею держит общий Caddy (`sites/codenames.caddy`).
 
 > HTTPS нужен камере (`getUserMedia`) и сервис-воркеру. Сервер -- лишь точка раздачи и установки PWA: игра по QR после установки работает офлайн, WebRTC-сигналинг идёт по локальной сети.
 

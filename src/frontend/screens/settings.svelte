@@ -1,6 +1,6 @@
 <script lang="ts">
-	import '@aimuzov-projects/infra-site-kit/theme-peek.css'
-	import { themePeek } from '@aimuzov-projects/infra-site-kit/theme-peek.js'
+	import '@aimuzov/infra-site-kit/theme-peek.css'
+	import { themePeek } from '@aimuzov/infra-site-kit/theme-peek.js'
 	import ChevronRight from '@lucide/svelte/icons/chevron-right'
 	import Moon from '@lucide/svelte/icons/moon'
 	import RefreshCw from '@lucide/svelte/icons/refresh-cw'

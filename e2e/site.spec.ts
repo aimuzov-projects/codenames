@@ -1,4 +1,4 @@
-import { siteChecks } from '@aimuzov-projects/infra-site-kit/playwright/checks'
+import { siteChecks } from '@aimuzov/infra-site-kit/playwright/checks'
 
 // Общие проверки infra-site-kit по sitemap (в нём только главная): страница отвечает 200
 // без ошибок в консоли и проходит axe в обеих схемах. Кнопки темы живут на экране настроек,

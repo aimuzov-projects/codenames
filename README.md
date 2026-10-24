@@ -8,12 +8,12 @@
 </p>
 
 <p align="center">
-	<a href="https://github.com/aimuzov-projects/codenames/actions/workflows/deploy.yml"><img src="https://img.shields.io/github/actions/workflow/status/aimuzov-projects/codenames/deploy.yml?branch=main&label=deploy" alt="Deploy"></a>
+	<a href="https://github.com/aimuzov/codenames/actions/workflows/deploy.yml"><img src="https://img.shields.io/github/actions/workflow/status/aimuzov/codenames/deploy.yml?branch=main&label=deploy" alt="Deploy"></a>
 	<a href="https://codenames.aimuzov.online"><img src="https://img.shields.io/website?url=https%3A%2F%2Fcodenames.aimuzov.online&label=site" alt="Site status"></a>
-	<a href="package.json"><img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Faimuzov-projects%2Fcodenames%2Fmain%2Fpackage.json&query=%24.engines.node&label=node&logo=nodedotjs&logoColor=white&color=5fa04e" alt="Node"></a>
-	<a href="https://astro.build"><img src="https://img.shields.io/github/package-json/dependency-version/aimuzov-projects/codenames/dev/astro?logo=astro&logoColor=white&color=bc52ee" alt="Astro"></a>
-	<a href="https://svelte.dev"><img src="https://img.shields.io/github/package-json/dependency-version/aimuzov-projects/codenames/dev/svelte?logo=svelte&logoColor=white&color=ff3e00" alt="Svelte"></a>
-	<a href="LICENSE"><img src="https://img.shields.io/github/license/aimuzov-projects/codenames" alt="License"></a>
+	<a href="package.json"><img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Faimuzov%2Fcodenames%2Fmain%2Fpackage.json&query=%24.engines.node&label=node&logo=nodedotjs&logoColor=white&color=5fa04e" alt="Node"></a>
+	<a href="https://astro.build"><img src="https://img.shields.io/github/package-json/dependency-version/aimuzov/codenames/dev/astro?logo=astro&logoColor=white&color=bc52ee" alt="Astro"></a>
+	<a href="https://svelte.dev"><img src="https://img.shields.io/github/package-json/dependency-version/aimuzov/codenames/dev/svelte?logo=svelte&logoColor=white&color=ff3e00" alt="Svelte"></a>
+	<a href="LICENSE"><img src="https://img.shields.io/github/license/aimuzov/codenames" alt="License"></a>
 </p>
 
 <h3 align="center">Codenames for a phone that needs no internet</h3>
@@ -68,7 +68,7 @@ Everyone plays on their own phone, yet neither Wi-Fi nor mobile data is needed: 
 
 ## Running
 
-Stack and layout follow [infra-site-template](https://github.com/aimuzov-projects/infra-site-template): Astro + Svelte 5, Prettier, oxlint, stylelint (BEM), `node --test`. Node comes from `mise.toml`, the same version is pinned in `package.json`.
+Stack and layout follow [infra-site-template](https://github.com/aimuzov/infra-site-template): Astro + Svelte 5, Prettier, oxlint, stylelint (BEM), `node --test`. Node comes from `mise.toml`, the same version is pinned in `package.json`.
 
 ```sh
 cp .env.example .env
@@ -83,7 +83,7 @@ Before committing, the same checks as in CI:
 npm run format:check && npm run lint:js && npm run lint:css && npm run check && npm test && npm run build
 ```
 
-The e2e tests in [`e2e`](e2e) run on the preset of [infra-site-kit](https://github.com/aimuzov-projects/infra-site-kit): they build the site with the test hooks on, serve it with `astro preview`, start the relay next to it and play the game in Chromium emulating a phone. On top of the game scenarios, the kit checks that the page answers without console errors and passes axe. The browser is installed once with `npx playwright install chromium`, then `npm run test:e2e`.
+The e2e tests in [`e2e`](e2e) run on the preset of [infra-site-kit](https://github.com/aimuzov/infra-site-kit): they build the site with the test hooks on, serve it with `astro preview`, start the relay next to it and play the game in Chromium emulating a phone. On top of the game scenarios, the kit checks that the page answers without console errors and passes axe. The browser is installed once with `npx playwright install chromium`, then `npm run test:e2e`.
 
 ## Architecture
 
@@ -126,7 +126,7 @@ End-to-end tests (Playwright, a real WebRTC DataChannel and a real relay) cover 
 
 ## Deployment
 
-The projects server from [infra-server](https://github.com/aimuzov-projects/infra-server): merging the release PR that release-please keeps open runs `deploy.yml`, which runs the checks and calls the shared [`deploy/site.sh`](https://github.com/aimuzov-projects/infra-server/blob/main/deploy/site.sh) of infra-server over SSH. On the server `docker compose` builds two containers: `codenames` (nginx with the static site) and `codenames-relay` (the room relay). The domain, TLS and the `/ws` route to the relay are handled by the shared Caddy (`sites/codenames.caddy`).
+The projects server from [infra-server](https://github.com/aimuzov/infra-server): merging the release PR that release-please keeps open runs `deploy.yml`, which runs the checks and calls the shared [`deploy/site.sh`](https://github.com/aimuzov/infra-server/blob/main/deploy/site.sh) of infra-server over SSH. On the server `docker compose` builds two containers: `codenames` (nginx with the static site) and `codenames-relay` (the room relay). The domain, TLS and the `/ws` route to the relay are handled by the shared Caddy (`sites/codenames.caddy`).
 
 > HTTPS is required by the camera (`getUserMedia`) and the service worker. The server only hands out and installs the PWA: after installation the QR game works offline, and WebRTC signaling goes over the local network.
 

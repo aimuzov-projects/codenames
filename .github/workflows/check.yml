@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: aimuzov-projects/infra-site-kit/check@v2
+      - uses: aimuzov/infra-site-kit/check@v3
       # e2e из infra-site-kit: сборка в Chromium. Браузер кэшируется по версии Playwright,
       # его системные библиотеки ставятся из apt каждый прогон.
       - id: playwright

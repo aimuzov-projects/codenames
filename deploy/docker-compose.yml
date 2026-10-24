@@ -1,4 +1,4 @@
-# Игра на сервере projects. Порты 80/443 держит общий Caddy из aimuzov-projects/infra-server,
+# Игра на сервере projects. Порты 80/443 держит общий Caddy из aimuzov/infra-server,
 # он проксирует домен сюда по сети edge, а /ws -- релею комнат.
 
 name: codenames
